@@ -18,7 +18,7 @@ from config import config
 if config.SUCOS_DIR not in sys.path:
   sys.path.append(config.SUCOS_DIR)
 
-from sucos import SuCOS
+from chemUtils.scoring._fragmentBasedScores import sucos
 
 
 def calc_energy(mol: Chem.Mol) -> float:
@@ -66,14 +66,15 @@ def scorePairOfMols(originalMol, newMol):
 
   score = 0
   epsilon = 1e-10
-  energyFold_ori_new = abs(max(original_energy, new_energy)/(min(original_energy, new_energy))+epsilon)
+  energyFold_ori_new = abs(max(original_energy, new_energy)/(min(original_energy, new_energy))+epsilon) # energy fold
+  # change from original to new, absolute value of the ratio between the max and the min energy values of the two molecules
   energyFold_ori_unconstraint = abs(max(original_energy, unconst_energy)/(min(original_energy, unconst_energy)+epsilon))
-
+  # energy fold change from original to unconstrained new
   if energyFold_ori_new > config.ORI_VS_NEW_ENERGY_TIMES_THR or \
      energyFold_ori_unconstraint > config.CONSTRAIN_VS_UNCONSTRAIN_ENERGY_TIMES_THR:
     score = np.nan #- np.inf
-  score += SuCOS.computeShapeIOU(newMol, originalMol)
-  score += SuCOS.computeFeatsIOU(newMol, originalMol)
+  score += sucos.SuCOS.computeShapeIOU(newMol, originalMol) # shape intersection over union
+  score += sucos.SuCOS.computeFeatsIOU(newMol, originalMol) # feature intersection over union
   score *= 0.5
   return score, energyFold_ori_new, energyFold_ori_unconstraint
 

@@ -9,7 +9,7 @@ import itertools
 
 from collections import OrderedDict
 
-from chemUtils.distances import findCloseAtomIdxsFromRefAtomIdxs
+from chemUtils.geometry import findCloseAtomIdxsFromRefAtomIdxs
 from rdkit import Chem
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
@@ -21,7 +21,6 @@ from findNeighbours import expand2DIdxsToNeigs
 
 reactions_rxns = {name: ReactionFromSmarts(val) for name, val in reaction_smarts.items()}
 
-
 _reactant_smarts1 = OrderedDict()
 _reactant_smarts2 = OrderedDict()
 _product_smarts = OrderedDict()
@@ -32,17 +31,20 @@ for name, smart in reaction_smarts.items():
     _reactant_smarts2[name] = react2
     _product_smarts[name] = prod
 
+
 def from_SMARTS_to_patterns(smarts_dict):
-    return tuple([(key, Chem.MolFromSmarts(val)) for key,val in smarts_dict.items()])
+    return tuple([(key, Chem.MolFromSmarts(val)) for key, val in smarts_dict.items()])
 
-PATTERN_PRODUCTS= from_SMARTS_to_patterns(_product_smarts)
+
+PATTERN_PRODUCTS = from_SMARTS_to_patterns(_product_smarts)
 PATTERN_PRODUCTS_DICT = OrderedDict(PATTERN_PRODUCTS)
-PATTERN_REACTANT1= from_SMARTS_to_patterns(_reactant_smarts1)
-PATTERN_REACTANT2= from_SMARTS_to_patterns(_reactant_smarts2)
+PATTERN_REACTANT1 = from_SMARTS_to_patterns(_reactant_smarts1)
+PATTERN_REACTANT2 = from_SMARTS_to_patterns(_reactant_smarts2)
 
 
-def _checkOneReactionSmartInAttachment(mol, patt, attachment_region_idxs): #This is not enough, it does not guarantee that the molecule was modified at the attachment point
-    #TODO: improve this method to check which bonds were broken
+def _checkOneReactionSmartInAttachment(mol, patt,
+                                       attachment_region_idxs):  # This is not enough, it does not guarantee that the molecule was modified at the attachment point
+    # TODO: improve this method to check which bonds were broken
 
     matched_indices = mol.GetSubstructMatches(patt)
     matching = bool(sum([1 if attachment_region_idxs.intersection(option) else 0 for option in matched_indices]))
@@ -54,41 +56,73 @@ def _checkOneReactionSmartInAttachment(mol, patt, attachment_region_idxs): #This
     #         return True
     # return False
 
+
 def checkReactionSmartInAttachment(mol, attachmentIdxs, valid_patterns,
-                                       n_hops_from_attachment=config.SMARTS_N_HOPS_FROM_ATTACHMENT):
-  if mol is None or attachmentIdxs is None:
-      return [ (name, False) for name, patt in valid_patterns]
+                                   n_hops_from_attachment=config.SMARTS_N_HOPS_FROM_ATTACHMENT):
+    if mol is None or attachmentIdxs is None:
+        return [(name, False) for name, patt in valid_patterns]
 
-  attachment_region_idxs = expand2DIdxsToNeigs(mol, attachmentIdxs, n_hops_from_attachment)
+    attachment_region_idxs = expand2DIdxsToNeigs(mol, attachmentIdxs, n_hops_from_attachment)
 
-  # print(attachment_region_idxs)
-  # from molPlot import plotMols
-  # plotMols([mol])
-  matched_reactions = []
-  for name, patt in valid_patterns:
-      matching = _checkOneReactionSmartInAttachment(mol, patt, attachment_region_idxs)
-      matched_reactions.append((name, matching))
-      # print(name, matched_indices, matching)
-  # from molPlot import plotMols
-  # plotMols([mol])
-  return matched_reactions
+    # print(attachment_region_idxs)
+    # from molPlot import plotMols
+    # plotMols([mol])
+    matched_reactions = []
+    for name, patt in valid_patterns:
+        matching = _checkOneReactionSmartInAttachment(mol, patt, attachment_region_idxs)
+        matched_reactions.append((name, matching))
+        # print(name, matched_indices, matching)
+    # from molPlot import plotMols
+    # plotMols([mol])
+    return matched_reactions
 
+
+def checkReactionSmartInAllAtoms(mol, reaction_name) -> list:
+
+    matched_reactions = {"reactant1": {}, "reactant2": {}}
+
+    PATTERNS = {"reactant1": PATTERN_REACTANT1, "reactant2": PATTERN_REACTANT2}
+
+    for reactant, patterns in PATTERNS.items():
+        for name, patt in patterns:
+            matches = mol.GetSubstructMatches(patt)
+            if matches:  # If there are matches
+                matched_reactions[reactant][name] = (True, matches)
+            else:  # If there are no matches
+                matched_reactions[reactant][name] = (False, [])
+
+    if reaction_name is not None:
+        try:
+            matched_reactions1 = matched_reactions['reactant1'][reaction_name]
+            matched_reactions2 = matched_reactions['reactant2'][reaction_name]
+            if matched_reactions1[0]:  # If reaction1 has matches
+                return matched_reactions1[1]
+            elif matched_reactions2[0]:  # If reaction2 has matches
+                return matched_reactions2[1]
+            else:  # If neither reaction has matches
+                print('WARNING: No atoms found involved in reaction ' + reaction_name + ' in mol ' + Chem.MolToSmiles(mol))
+                return []
+        except KeyError:
+            print('WARNING: Reaction name not in smarts dictionary.')
+            return None
+    else:
+        print('WARNING: Reaction name not specified.')
+        return None
 
 
 def runReactionInAttachment(reactant1, reactant2, reactionName, refMol, ref_attachmentIdxs,
                             n_hops_from_attachment=config.SMARTS_N_HOPS_FROM_ATTACHMENT):
-
     ref_attachmentIdxs = expand2DIdxsToNeigs(refMol, ref_attachmentIdxs, n_hops_from_attachment)
 
-
     rxn = reactions_rxns[reactionName]
-    products = rxn.RunReactants([reactant1, reactant2]) + rxn.RunReactants([reactant2, reactant1]) #itertools.permutations
+    products = rxn.RunReactants([reactant1, reactant2]) + rxn.RunReactants(
+        [reactant2, reactant1])  # itertools.permutations
 
     if len(products) == 0:
         return []
     products = list(itertools.chain.from_iterable(products))
     list(map(Chem.SanitizeMol, products))
-    products = {Chem.MolToSmiles(mol): mol for mol in products if mol is not None} #To remove duplicates
+    products = {Chem.MolToSmiles(mol): mol for mol in products if mol is not None}  # To remove duplicates
     products = list(products.values())
     products = myMap(lambda molProd: embedMolUsingRefs(molProd, [reactant1, reactant2]), products)
 
@@ -97,15 +131,15 @@ def runReactionInAttachment(reactant1, reactant2, reactionName, refMol, ref_atta
             return False
         # Chem.SanitizeMol(molProd)
         # molProd.UpdatePropertyCache()
-        #TODO: findCloseAtomsToAtomIdx should be able to find closest to original??
-        attachmentIdxs =  [findCloseAtomIdxsFromRefAtomIdxs(molProd, refMol, idx) for idx in ref_attachmentIdxs]
+        # TODO: findCloseAtomsToAtomIdx should be able to find closest to original??
+        attachmentIdxs = [findCloseAtomIdxsFromRefAtomIdxs(molProd, refMol, idx) for idx in ref_attachmentIdxs]
         attachmentIdxs = filter(None.__ne__, attachmentIdxs)
         attachmentIdxs = set(itertools.chain.from_iterable(attachmentIdxs))
         # from molPlot import plotMols; plotMols([molProd, refMol])
         return _checkOneReactionSmartInAttachment(molProd, PATTERN_PRODUCTS_DICT[reactionName], attachmentIdxs)
 
     isProdValid = myMap(checkIfValidReaction, products)
-    return [prod for i, prod in enumerate(products) if isProdValid[i] ]
+    return [prod for i, prod in enumerate(products) if isProdValid[i]]
 
 # def runReactionInAttachment_v1(reactant1, reactant2, reactionName, attachmentIdxs1,  attachmentIdxs2, referenceMol,
 #                             n_hops_from_attachment=SMARTS_N_HOPS_FROM_ATTACHMENT):

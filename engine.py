@@ -4,6 +4,12 @@
 
 
 def myMap(*args, **kwargs):
+  """
+  Applies args[0] to each element of args[1]. Returns a list of the results.
+  :param args:
+  :param kwargs:
+  :return:
+  """
   return [args[0](x) for x in args[1]]
 
 
