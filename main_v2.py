@@ -19,7 +19,7 @@ sys.path.append('/Users/kate_fieseler/PycharmProjects/chemUtils')
 import chemUtils
 
 from config import config
-from wholeMoleculePipeline import searchDirectAnalogues, searchPicewiseAnalogues, searchReactantAnalogues
+from wholeMoleculePipeline import searchReactantAnalogues
 from constants import REACTIONS_NAMES
 
 def searchAnalogues(df, results_dir, superstructure):
@@ -36,23 +36,28 @@ def searchAnalogues(df, results_dir, superstructure):
         pass
     for i, row in df.iterrows():
         ori_mol = Chem.MolFromSmiles((row['SMILES']))
-        reaction_name = row['Reaction_name'].replace(' ', '_')
+        reaction_name = row['reaction_name'].replace(' ', '_')
         if reaction_name not in REACTIONS_NAMES:
             print(f"Do not have SMARTS for this reaction: {reaction_name}\n "
                   f"Please provide the SMARTS.\n"
                   f"Skipping {row['SMILES']}...\n")
             continue
         else:
-            reactants = ast.literal_eval(row['Reactants'])
+            reactants = ast.literal_eval(row['reactants'])
             print(reactants[0])
             reactant1_mol = Chem.MolFromSmiles(reactants[0])
             reactant2_mol = Chem.MolFromSmiles(reactants[1])
-            print(reactant1_mol.GetNumAtoms())
             if reactant1_mol.GetNumAtoms() < 5 or reactant2_mol.GetNumAtoms() < 5:
                 print("One reactant has very little atoms, the full pipeline search will not be performed since that "
                       "functionality is not implemented yet...\n")
                 continue
-            results = searchReactantAnalogues(ori_mol, reactant1_mol, reactant2_mol, ori_reaction=reaction_name, resultsDir=results_dir)
+            reaction_dir_name = f"{results_dir}/{reaction_name}_{Chem.MolToSmiles(ori_mol)}"
+            os.makedirs(reaction_dir_name, exist_ok=True)
+            results = searchReactantAnalogues(ori_mol, reactant1_mol, reactant2_mol, ori_reaction=reaction_name,
+                                              resultsDir=reaction_dir_name)
+            if results is None:
+                print("No results found for this molecule.\n")
+                continue
             results.to_csv(os.path.join(results_dir, f"{reaction_name}_{i}.csv"), index=False)
             print(results)
 
@@ -61,8 +66,8 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--input_csv', type=str,
                         help=('Path to the input CSV file. The expected CSV structure is:\n'
                               'SMILES (str) - SMILES of product\n'
-                              'Reaction_name (str) - Reaction name to produce product\n'
-                              'Reactants (tuple) - Reactants listed in tuples\n'
+                              'reaction_name (str) - Reaction name to produce product\n'
+                              'reactants (tuple) - Reactants listed in tuples\n'
                               '...\n'))
     parser.add_argument('-r', "--results_dir", help="Directory for the results", required=True)
     parser.add_argument('-u', "--superstructure", help='if performing a superstructure search', action="store_true")

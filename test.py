@@ -109,18 +109,16 @@ def _test_searchReactants():
 
 def _test_reactBackTogether():
   from wholeMoleculePipeline import reactBackTogether
-  analogs_reactant1 = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/test/output2/analogues_substruct_CC1CCC(=CC(=O)O)C1.csv'
-  analogs_reactant2 = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/test/output2/analogues_substruct_NCCN1CCCCC1.csv'
+  analogs_reactant2 = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/D2R-12/Amidation_CC(=O)Nc1cc(NC(C)=O)cc(C(=O)NCc2nc(-c3ccccn3)no2)c1/analogues_substruct_NCc1nc(-c2ccccn2)no1_305.csv'
+  analogs_reactant1 = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/D2R-12/Amidation_CC(=O)Nc1cc(NC(C)=O)cc(C(=O)NCc2nc(-c3ccccn3)no2)c1/analogues_substruct_CC(=O)Nc1cc(NC(C)=O)cc(C(=O)O)c1_174.csv'
   df1 = pd.read_csv(analogs_reactant1, index_col=0)
   df2 = pd.read_csv(analogs_reactant2, index_col=0)
   ori_reaction = 'Amidation'
-  resultsDir = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/test/output2'
+  resultsDir = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/D2R-12/Amidation_CC(=O)Nc1cc(NC(C)=O)cc(C(=O)NCc2nc(-c3ccccn3)no2)c1'
   reactBackTogether(df1, df2, ori_reaction, resultsDir)
 
 def _test_figure_out_attachment(): #TODO
   raise NotImplementedError()
-
-
 
 # test_searchDirectAnalogues()
 # _test_searchPicewiseAnalogues1()
