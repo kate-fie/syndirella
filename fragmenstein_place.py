@@ -15,7 +15,6 @@ import pyrosetta_help as ph
 import pandas as pd
 import pandera.typing as pdt
 from pandarallel import pandarallel
-from smallworld_api import SmallWorld
 
 
 from rdkit import Chem, rdBase, DataStructs
