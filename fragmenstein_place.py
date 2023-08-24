@@ -57,7 +57,7 @@ def config_parser():
     parser.add_argument('-c', '--cutoff', help='Joining cutoff', default=5)
     parser.add_argument('-q', '--quick', help='Quick reanimation', default=False)
     parser.add_argument('-s', '--suffix', help='Suffix for output files', default='')
-    parser.add_argument('-n', '--n_cores', help='Number of cores', default=2, type=int)
+    parser.add_argument('-n', '--n_cores', help='Number of cores', default=8, type=int)
     parser.add_argument('-m', '--combination_size', help='Number of hits to combine in one step', default=2, type=int)
     parser.add_argument('-k', '--top_mergers', help='Max number of mergers to followup up on', default=500, type=int)
     parser.add_argument('-e', '--timeout', help='Timeout for each merger', default=240, type=int)
