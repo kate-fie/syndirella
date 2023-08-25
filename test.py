@@ -109,13 +109,15 @@ def _test_searchReactants():
 
 def _test_reactBackTogether():
   from wholeMoleculePipeline import reactBackTogether
-  analogs_reactant2 = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/D2R-12/Amidation_CC(=O)Nc1cc(NC(C)=O)cc(C(=O)NCc2nc(-c3ccccn3)no2)c1/analogues_substruct_NCc1nc(-c2ccccn2)no1_305.csv'
-  analogs_reactant1 = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/D2R-12/Amidation_CC(=O)Nc1cc(NC(C)=O)cc(C(=O)NCc2nc(-c3ccccn3)no2)c1/analogues_substruct_CC(=O)Nc1cc(NC(C)=O)cc(C(=O)O)c1_174.csv'
+  analogs_reactant2 = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/Ric8enhan-7/Amidation_CCCCCn1cc(C(=O)Nc2cccc3ccccc23)c2ccccc21/analogues_substruct_CCCCCn1cc(C(=O)O)c2ccccc21_405.csv'
+  analogs_reactant1 = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/Ric8enhan-7/Amidation_CCCCCn1cc(C(=O)Nc2cccc3ccccc23)c2ccccc21/analogues_substruct_Nc1cccc2ccccc12_195.csv'
   df1 = pd.read_csv(analogs_reactant1, index_col=0)
   df2 = pd.read_csv(analogs_reactant2, index_col=0)
   ori_reaction = 'Amidation'
-  resultsDir = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/D2R-12/Amidation_CC(=O)Nc1cc(NC(C)=O)cc(C(=O)NCc2nc(-c3ccccn3)no2)c1'
-  reactBackTogether(df1, df2, ori_reaction, resultsDir)
+  resultsDir = '/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/warren_yes_green_aug23/Ric8enhan-7/Amidation_CCCCCn1cc(C(=O)Nc2cccc3ccccc23)c2ccccc21'
+  output_name = 'Ric8enhan-7-frag-placed-'
+  original_mol = Chem.MolFromSmiles('CCCCCN1C=C(C(=O)NC2=CC=CC3=CC=CC=C23)C4=CC=CC=C14')
+  reactBackTogether(original_mol, df1, df2, ori_reaction, resultsDir, output_name=output_name)
 
 def _test_figure_out_attachment(): #TODO
   raise NotImplementedError()

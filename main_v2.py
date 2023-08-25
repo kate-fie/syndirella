@@ -22,7 +22,7 @@ from config import config
 from wholeMoleculePipeline import searchReactantAnalogues
 from constants import REACTIONS_NAMES
 
-def searchAnalogues(df, results_dir, superstructure):
+def searchAnalogues(df, results_dir, superstructure, output_name):
     '''
     :param df: dataframe with columns SMILES, Reaction_name, Reactants
     :param results_dir: directory to save results
@@ -54,7 +54,7 @@ def searchAnalogues(df, results_dir, superstructure):
             reaction_dir_name = f"{results_dir}/{reaction_name}_{Chem.MolToSmiles(ori_mol)}"
             os.makedirs(reaction_dir_name, exist_ok=True)
             results = searchReactantAnalogues(ori_mol, reactant1_mol, reactant2_mol, ori_reaction=reaction_name,
-                                              resultsDir=reaction_dir_name)
+                                              resultsDir=reaction_dir_name, output_name=output_name)
             if results is None:
                 print("No results found for this molecule.\n")
                 continue
@@ -71,11 +71,12 @@ if __name__ == "__main__":
                               '...\n'))
     parser.add_argument('-r', "--results_dir", help="Directory for the results", required=True)
     parser.add_argument('-u', "--superstructure", help='if performing a superstructure search', action="store_true")
+    parser.add_argument('-n', "--output_name", help='Name of the output files')
 
     args = parser.parse_args()
 
     # TODO: Could parallelize search if searching for many SMILES
     # Load the smiles into dataframe
     df = pd.read_csv(args.input_csv)
-    searchAnalogues(df, args.results_dir, args.superstructure)
+    searchAnalogues(df, args.results_dir, args.superstructure, args.output_name)
 
