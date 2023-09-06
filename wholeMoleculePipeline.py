@@ -41,7 +41,7 @@ from itertools import chain
 
 from PIL import Image, ImageDraw, ImageFont
 
-def add_fragmenstein_name(row, output_name):
+def add_fragmenstein_name(row, output_name, name_add):
     """
     Adds the fragmenstein name to the dataframe
 
@@ -52,7 +52,7 @@ def add_fragmenstein_name(row, output_name):
     if row['reactant1_structuralScore'] == 1 and row['reactant2_structuralScore'] == 1:
         row['name'] = "base"
     else:
-        row['name'] = output_name+f"{row.name}"
+        row['name'] = output_name+f"{name_add}-{row.name}"
     return row
 
 
@@ -261,13 +261,6 @@ def createAnaloguesDf(smisDict, structuralScores, mols, mw_diff, mw, similarity,
                              metadata=metadatas, mol=mols)
     result = pd.DataFrame(result)
     result.dropna(axis=0, inplace=True)
-
-    # # add original mol to dataframe
-    # result.loc[-1] = [0, 0, Chem.Descriptors.ExactMolWt(reactant), Chem.MolToSmiles(reactant), None, None]  # adding a row
-    # result.index = result.index + 1  # shifting index
-    # result.sort_index(inplace=True)
-    # result.sort_values(by="structuralScore", inplace=True)
-    # result.reset_index(drop=True, inplace=True)
     return result
 
 
@@ -387,6 +380,7 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
 
     # Switching reactant numbers
     if filtered_df2.empty and filtered_df1.empty:
+
         filtered_df1 = analogs_reactant1[analogs_reactant1[fromReactionFullNameToReactantName(i, 2)] == True]
         filtered_df2 = analogs_reactant2[analogs_reactant2[fromReactionFullNameToReactantName(i, 1)] == True]
 
@@ -398,8 +392,8 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
 
     r1_percent_decrease = round((((len(analogs_reactant1)-len(filtered_df1))/(len(analogs_reactant1)))*100),2)
     r2_percent_decrease = round((((len(analogs_reactant2)-len(filtered_df2))/(len(analogs_reactant2)))*100),2)
-    print(f'NUMBER OF UNIQUE ELABORATIONS OF REACTANT 1: {len(filtered_df1)}. {r1_percent_decrease}% decrease.')
-    print(f'NUMBER OF UNIQUE ELABORATIONS OF REACTANT 2: {len(filtered_df2)}. {r2_percent_decrease}% decrease.')
+    print(f'NUMBER OF REACTABLE UNIQUE ELABORATIONS OF REACTANT 1: {len(filtered_df1)}. {r1_percent_decrease}% decrease.')
+    print(f'NUMBER OF REACTABLE UNIQUE ELABORATIONS OF REACTANT 2: {len(filtered_df2)}. {r2_percent_decrease}% decrease.')
 
     # Merge the information based on the indices
     result_df = (
@@ -433,11 +427,11 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
 
     # Remove repeated rows
     result_df2 = result_df.copy()
-    result_df2.drop_duplicates(subset=['reactant1_smi', 'reactant2_smi', 'smiles'])
+    result_df2 = result_df2.drop_duplicates(subset=['reactant1_smi', 'reactant2_smi', 'smiles'])
     print(f'{len(result_df)-len(result_df2)} product duplicates removed.')
 
     # How many unique products are there?
-    print(f'{result_df2["smiles"].nunique()} unique products found.')
+    print(f'{result_df2["smiles"].nunique()} unique products with unique routes found.')
 
     # SORT BY NUMBER OF ATOM DIFFERENCE
     result_df2.sort_values(by=['num_atom_difference'], inplace=True, ignore_index=True)
@@ -446,11 +440,16 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
     pains_filter(result_df2)
 
     # ADD NAME FOR FRAGMENSTEIN PLACEMENT
-    result_df2 = result_df2.apply(add_fragmenstein_name, output_name=output_name, axis=1)
+    result_df_frag = result_df2.apply(add_fragmenstein_name, output_name=output_name, axis=1, name_add='frag')
+    result_df_base = result_df2.apply(add_fragmenstein_name, output_name=output_name, axis=1, name_add='base')
 
-    # Save the result to a CSV file
-    result_path = os.path.join(resultsDir, f'{i}_{len(result_df2)}_analogs.csv')
-    result_df2.to_csv(result_path, index=False)
+    # Save the result to a CSV file with frag placed name
+    result_path = os.path.join(resultsDir, f'{i}_{len(result_df_frag)}_analogs.csv')
+    result_df_frag.to_csv(result_path, index=False)
+
+    # Save the result to a CSV file with base name
+    result_path = os.path.join(resultsDir, f'{i}_{len(result_df_base)}_analogs_base.csv')
+    result_df_base.to_csv(result_path, index=False)
 
     return result_df2, all_products
 

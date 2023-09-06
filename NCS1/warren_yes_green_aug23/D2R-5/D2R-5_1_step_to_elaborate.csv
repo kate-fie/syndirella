@@ -1,2 +1,0 @@
-﻿SMILES,reaction_name,reactants
-C(NC1=CC=C(S(NC=2SC=CN2)(=O)=O)C=C1)(=O)CC=3C4=C(C=CC=C4)N(CC5=CC=C(F)C=C5)C3,Amidation,"('O=C(O)Cc1cn(Cc2ccc(F)cc2)c2ccccc12', 'Nc1ccc(S(=O)(=O)Nc2nccs2)cc1')"

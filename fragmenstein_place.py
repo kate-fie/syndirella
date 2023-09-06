@@ -50,7 +50,7 @@ def set_up(output, cutoff, quick, suffix, **kwargs):
 def config_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--template', help='Template PDB file', required=True)
-    parser.add_argument('-i', '--hits', help='Hits SDF file', required=True)
+    parser.add_argument('-i', '--hits', help='Hits file (.mol or .sdf)', required=True)
     parser.add_argument('-a', '--analog_path', help='Analogs csv file', required=True)
     parser.add_argument('-o', '--output', help='Output folder', default='output')
     parser.add_argument('-r', '--ranking', help='Ranking method', default='∆∆G')
@@ -161,9 +161,14 @@ if __name__ == '__main__':
     # load
     settings: Dict[str, Any] = vars(parser.parse_args())
     set_up(**settings)
-    with Chem.SDMolSupplier(settings['hits'].strip()) as sd:
-        # hitdex: Dict[str, Chem.Mol] = {mol.GetProp('_Name'): mol for mol in sd}
-        hits: List[Chem.Mol] = list(sd)
+    # load hits either from mol or sdf
+    if os.path.splitext(settings['hits'])[1] == '.mol':
+        print('This is a mol file')
+        hits: List[Chem.Mol] = [Chem.MolFromMolFile(settings['hits'].strip())]
+    else:
+        with Chem.SDMolSupplier(settings['hits'].strip()) as sd:
+            # hitdex: Dict[str, Chem.Mol] = {mol.GetProp('_Name'): mol for mol in sd}
+            hits: List[Chem.Mol] = list(sd)
     settings['hits'] = hits
     if settings['blacklist']:
         with open(settings['blacklist'].strip()) as fh:

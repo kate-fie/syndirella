@@ -22,7 +22,7 @@ from config import config
 from wholeMoleculePipeline import searchReactantAnalogues
 from constants import REACTIONS_NAMES
 
-def searchAnalogues(df, results_dir, superstructure, output_name):
+def searchAnalogues(df, results_dir, superstructure):
     '''
     :param df: dataframe with columns SMILES, Reaction_name, Reactants
     :param results_dir: directory to save results
@@ -35,15 +35,20 @@ def searchAnalogues(df, results_dir, superstructure, output_name):
     except IOError:
         pass
     for i, row in df.iterrows():
-        ori_mol = Chem.MolFromSmiles((row['SMILES']))
-        reaction_name = row['reaction_name'].replace(' ', '_')
+        if args.row is not None:
+            if i != args.row:
+                continue
+        ori_mol = Chem.MolFromSmiles((row['smiles']))
+        if row['num_steps'] == 1:
+            reaction_name = ast.literal_eval(row['rxn_order_first_to_last'].replace(' ', '_'))[0]
         if reaction_name not in REACTIONS_NAMES:
             print(f"Do not have SMARTS for this reaction: {reaction_name}\n "
                   f"Please provide the SMARTS.\n"
-                  f"Skipping {row['SMILES']}...\n")
+                  f"Skipping {row['smiles']}...\n")
             continue
         else:
-            reactants = ast.literal_eval(row['reactants'])
+            if row['num_steps'] == 1:
+                reactants = ast.literal_eval(row['reactants'])[0] # for single step reactions
             print(reactants[0])
             reactant1_mol = Chem.MolFromSmiles(reactants[0])
             reactant2_mol = Chem.MolFromSmiles(reactants[1])
@@ -51,10 +56,12 @@ def searchAnalogues(df, results_dir, superstructure, output_name):
                 print("One reactant has very little atoms, the full pipeline search will not be performed since that "
                       "functionality is not implemented yet...\n")
                 continue
-            reaction_dir_name = f"{results_dir}/{reaction_name}_{Chem.MolToSmiles(ori_mol)}"
+            dir_name = row['dir_name']
+            reaction_dir_name = f"{results_dir}/{dir_name}/{reaction_name}_{Chem.MolToSmiles(ori_mol)}"
             os.makedirs(reaction_dir_name, exist_ok=True)
+            # TODO: Add output name column to csv
             results = searchReactantAnalogues(ori_mol, reactant1_mol, reactant2_mol, ori_reaction=reaction_name,
-                                              resultsDir=reaction_dir_name, output_name=output_name)
+                                              resultsDir=reaction_dir_name, output_name=dir_name+'-')
             if results is None:
                 print("No results found for this molecule.\n")
                 continue
@@ -66,17 +73,19 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--input_csv', type=str,
                         help=('Path to the input CSV file. The expected CSV structure is:\n'
                               'SMILES (str) - SMILES of product\n'
-                              'reaction_name (str) - Reaction name to produce product\n'
-                              'reactants (tuple) - Reactants listed in tuples\n'
+                              'dir_name (str) - Name of the directory to save results. Usually target ID.\n'
+                              'num_steps (int) - Number of steps in the route\n'
+                              'rxn_order_first_to_last (list(str)) - Reaction name to produce product\n'
+                              'reactants (list(tuple)) - Reactants listed in tuples\n'
                               '...\n'))
     parser.add_argument('-r', "--results_dir", help="Directory for the results", required=True)
     parser.add_argument('-u', "--superstructure", help='if performing a superstructure search', action="store_true")
-    parser.add_argument('-n', "--output_name", help='Name of the output files')
+    parser.add_argument('-b', '--row', help='specify row number to search. 0 is the first row below the header.', type=int)
 
     args = parser.parse_args()
 
     # TODO: Could parallelize search if searching for many SMILES
     # Load the smiles into dataframe
     df = pd.read_csv(args.input_csv)
-    searchAnalogues(df, args.results_dir, args.superstructure, args.output_name)
+    searchAnalogues(df, args.results_dir, args.superstructure)
 

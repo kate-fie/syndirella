@@ -164,7 +164,32 @@ def _checkOneReactionSmartInAttachmentSTRICT_noidx(mol, name, smarts):
         pass
     if name == "Formation_of_urea_from_two_amines":
         pass
+    if name == "Sulfonamide_Schotten-Baumann_with_amine_(intermolecular)":
+        matched_indices = mol.GetSubstructMatches(patt)
+        if matched_indices:
+            if patt.GetNumAtoms() == 5:  # sulfonyl halide
+                for i in range(len(matched_indices)): # could have multiple matches ...
+                    # check you have hydroxy group in acid
+                    if len(matched_indices[i]) == 5:
+                        return True
+            else: # primary or secondary amine
+                # check it is not an amide, so does not contain an oxygen
+                for i in range(len(matched_indices)): # could have multiple matches ...
+                    if len(matched_indices[i])==1:
+                        return True
 
+    if name == "Buchwald-Hartwig_amination":
+        matched_indices = mol.GetSubstructMatches(patt)
+        if matched_indices:
+            if patt.GetNumAtoms() == 2:  # halide
+                for i in range(len(matched_indices)): # could have multiple matches ...
+                    # check you have an aromatic carbon and halide
+                    if len(matched_indices[i]) == 2:
+                        return True
+            else: # primary or secondary amine
+                for i in range(len(matched_indices)): # could have multiple matches ...
+                    if len(matched_indices[i])==1:
+                        return True
     return False
 
 def _checkOneReactionSmartInAttachment(mol, patt,
