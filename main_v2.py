@@ -59,7 +59,6 @@ def searchAnalogues(df, results_dir, superstructure):
             dir_name = row['dir_name']
             reaction_dir_name = f"{results_dir}/{dir_name}/{reaction_name}_{Chem.MolToSmiles(ori_mol)}"
             os.makedirs(reaction_dir_name, exist_ok=True)
-            # TODO: Add output name column to csv
             results = searchReactantAnalogues(ori_mol, reactant1_mol, reactant2_mol, ori_reaction=reaction_name,
                                               resultsDir=reaction_dir_name, output_name=dir_name+'-')
             if results is None:
