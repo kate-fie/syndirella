@@ -18,7 +18,7 @@ chemist assisted reaction (CAR) setup and the availability of building blocks.
 * [x] .csv of analog series from follow-up compounds
 * [ ] Fragmenstein placement
 
-# Reactions
+## Reactions
 (checked means tested)
 * [x] Amidation
 * [ ] Sp2-Sp2 Suzuki Coupling
@@ -31,7 +31,7 @@ chemist assisted reaction (CAR) setup and the availability of building blocks.
 * [ ] N-nucleophilic aromatic substitution
 * [ ] Amide schotten-baumann
 
-# Search
+## Search
 * [x] Manifold superstructure search for building blocks
 * [ ] Arthor smallworld search
 * [ ] McPairs functional group replacement search

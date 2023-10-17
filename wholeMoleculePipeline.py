@@ -22,7 +22,7 @@ from rdkit.Chem.PandasTools import WriteSDF
 from rdkit.rdBase import BlockLogs
 
 from config import config
-from constants import fromReactionFullNameToReactantName, REACTIONS_NAMES, REACTION_ATOM_NUMS
+from constants import fromReactionFullNameToReactantName, REACTIONS_NAMES
 from databaseSearch.databaseSearch import perform_database_search
 from embed import embedMolUsingRefs
 from engine import myMap
@@ -41,7 +41,7 @@ from itertools import chain
 
 from PIL import Image, ImageDraw, ImageFont
 
-def add_fragmenstein_name(row, output_name, name_add):
+def add_fragmenstein_name(row, output_name):
     """
     Adds the fragmenstein name to the dataframe
 
@@ -50,9 +50,9 @@ def add_fragmenstein_name(row, output_name, name_add):
     :return:
     """
     if row['reactant1_structuralScore'] == 1 and row['reactant2_structuralScore'] == 1:
-        row['name'] = "base"
+        row['name'] = f"{output_name}-base"
     else:
-        row['name'] = output_name+f"{name_add}-{row.name}"
+        row['name'] = f"{output_name}-{row.name}"
     return row
 
 
@@ -188,8 +188,6 @@ def findReactionAtoms(ori_mol, reactant, reaction_name, results_dir, react_num, 
     :param reaction_name:
     :return:
     """
-    # TODO: Need to save if first reactant has already been found or not.
-    # TODO: NEED TO CLEAN THIS UP AND MAKE IT LOOK AND OPERATE PRETTIER
     matched_reaction_atoms = checkReactionSmartInAllAtoms(reactant, reaction_name, )
     if matched_reaction_atoms is None:
         print('No reaction atoms found for reactant', Chem.MolToSmiles(reactant), 'in reaction', reaction_name)
@@ -207,21 +205,9 @@ def findReactionAtoms(ori_mol, reactant, reaction_name, results_dir, react_num, 
         if reaction_name == 'Amidation' and len(matched_reaction_atoms) == 3:
             return matched_reaction_atoms
         matched_reaction_atoms = list(set(attachmentIdxs).intersection(set(matched_reaction_atoms)))
-
-    # Check number of matched_reaction_atoms to correspond with correct number in reaction
-    num_rxn_atoms = REACTION_ATOM_NUMS[reaction_name]
-
-    match = False
-    for i in range(len(num_rxn_atoms)):
-        if len(matched_reaction_atoms) == num_rxn_atoms[i]:
-            match = True
-
-    if match is False:
-        print('Number of reaction atoms does not match the number in the reaction')
-        return None
     return matched_reaction_atoms
 
-def findReactionAtoms_bothReactants(originalMol, reactant1, reactant2, ori_reaction, resultsDir, reactant1_attachmentIdxs, reactant2_attachmentIdxs):
+def findReactionAtoms_bothReactants(originalMol, reactant1, reactant2, ori_reaction, resultsDirs, reactant1_attachmentIdxs, reactant2_attachmentIdxs):
     """
     Given a product, two reactants and a labeled reaction between them, need to find the atoms involved in the reaction on the reactants.
 
@@ -229,7 +215,7 @@ def findReactionAtoms_bothReactants(originalMol, reactant1, reactant2, ori_react
     :param reactant1:
     :param reactant2:
     :param ori_reaction:
-    :param resultsDir:
+    :param resultsDirs: list of results dirs
     :param reactant1_attachmentIdxs:
     :param reactant2_attachmentIdxs:
     :return:
@@ -237,16 +223,18 @@ def findReactionAtoms_bothReactants(originalMol, reactant1, reactant2, ori_react
 
     # matched_reaction_atoms is a dictionary of 'reactant1' and 'reactant2' with values as atom indices involved in reaction
     matched_reaction_dict = checkReactionSmartInAllAtomsAndReactants(reactant1, reactant1_attachmentIdxs, reactant2, reactant2_attachmentIdxs, reaction_name=ori_reaction)
-    # if len(matched_reaction_atoms[0]) == 0 or len(matched_reaction_atoms[1]) == 0:
-    #     print('Reaction atoms not found for reactants', Chem.MolToSmiles(reactant1), Chem.MolToSmiles(reactant2), 'in reaction', ori_reaction)
-    #     return None
     matched_reaction_atoms1 = matched_reaction_dict['reactant1'][2]
-    save_molecule_with_indices(reactant1, os.path.join(resultsDir,
-                                                      f"{ori_reaction}_reactant{1}.png"), matched_reaction_atoms1)
     matched_reaction_atoms2 = matched_reaction_dict['reactant2'][2]
-    save_molecule_with_indices(reactant2, os.path.join(resultsDir,
-                                                      f"{ori_reaction}_reactant{2}.png"), matched_reaction_atoms2)
-    matched_reaction_info = ((matched_reaction_dict['reactant1'][0], matched_reaction_dict['reactant1'][2]), (matched_reaction_dict['reactant2'][0], matched_reaction_dict['reactant2'][2]))
+    # Need to save with correct image label corresponding to SMARTS order
+    reactant1 = matched_reaction_dict['reactant1'][1]
+    reactant2 = matched_reaction_dict['reactant2'][1]
+    for i in range(len(resultsDirs)):
+        save_molecule_with_indices(reactant1, os.path.join(resultsDirs[i],
+                                                          f"{ori_reaction}_reactant{1}.png"), matched_reaction_atoms1)
+        save_molecule_with_indices(reactant2, os.path.join(resultsDirs[i],
+                                                           f"{ori_reaction}_reactant{2}.png"), matched_reaction_atoms2)
+
+    matched_reaction_info = ((matched_reaction_dict['reactant1'][0], matched_reaction_dict['reactant1'][1], matched_reaction_dict['reactant1'][2]), (matched_reaction_dict['reactant2'][0], matched_reaction_dict['reactant2'][1], matched_reaction_dict['reactant2'][2]))
     return matched_reaction_info
 
 
@@ -264,7 +252,7 @@ def createAnaloguesDf(smisDict, structuralScores, mols, mw_diff, mw, similarity,
     return result
 
 
-def processSubMolReactant(reactant, reaction_name, reaction_smarts, reaction_atoms, similarityThr, structuralThr, reactant_Num, resultsDir, substructure=True):
+def processSubMolReactant(reactant, reaction_name, reaction_smarts, reaction_atoms, similarityThr, structuralThr, reactant_Num, resultsDirs, substructure=True):
     """
     Given a reactant and the atoms involved in the reaction, this function searches for analogues of the reactant
     with Postera's superstructure search.
@@ -273,7 +261,7 @@ def processSubMolReactant(reactant, reaction_name, reaction_smarts, reaction_ato
     :param reaction_atoms: atoms involved in the reaction
     :param similarityThr:
     :param structuralThr:
-    :param resultsDir:
+    :param resultsDirs: list of results dirs
     :param substructure: True if searching for superstructure
     :return: DataFrame with analogues of the reactant.
     """
@@ -284,9 +272,9 @@ def processSubMolReactant(reactant, reaction_name, reaction_smarts, reaction_ato
     smisDict = perform_database_search(reactant, substructure=substructure, thr=similarityThr) # substructure is the search for superstructure
 
     # Save smisDict to a file, to show structures easily
-    out_dict = os.path.join(resultsDir, 'smisDict.pickle')
-    with open(out_dict, 'wb') as f:
-        pickle.dump(smisDict, f)
+    for i in range(len(resultsDirs)):
+        with open(os.path.join(resultsDirs[i], 'smisDict.pickle'), 'wb') as f:
+            pickle.dump(smisDict, f)
 
     structuralScores, similarMols, mw_diff, mw = embedAndScoreSimilarSmiles(reactant, smisDict.keys())
 
@@ -294,7 +282,8 @@ def processSubMolReactant(reactant, reaction_name, reaction_smarts, reaction_ato
     if substructure is True: similarity = False
 
     df = createAnaloguesDf(smisDict, structuralScores, similarMols, mw_diff, mw, similarity, reactant)
-    df.to_csv(os.path.join(resultsDir, f'analogues_preprocess_{Chem.MolToSmiles(reactant)}.csv'))
+    for i in range(len(resultsDirs)):
+        df.to_csv(os.path.join(resultsDirs[i], f'analogues_preprocess_{Chem.MolToSmiles(reactant)}.csv'))
 
     # Search through elaborated compounds for the reaction atoms as substructure search
     #equiv_attachmentIdxs = myMap(lambda mol: find_substruct_atom_match(mol, reactant, reaction_atoms), df["mol"])
@@ -314,7 +303,8 @@ def processSubMolReactant(reactant, reaction_name, reaction_smarts, reaction_ato
         df = df[df["structuralScore"] > structuralThr]
     df = matchMolToReactan(df, reaction_name, reaction_smarts, reactant_Num) # should be specific reactant
     df = df.reset_index(drop=True)
-    df.to_csv(os.path.join(resultsDir, f'analogues_substruct_{Chem.MolToSmiles(reactant)}_{len(df)}.csv'))
+    for i in range(len(resultsDirs)):
+        df.to_csv(os.path.join(resultsDirs[i], f'analogues_substruct_{Chem.MolToSmiles(reactant)}_{len(df)}.csv'))
 
     return df
 
@@ -340,17 +330,18 @@ def apply_reaction(row, original_mol: Chem.Mol, reaction_name) -> list():
 
     products = reaction.RunReactants((reactant1, reactant2))
 
+    # Check the products can be sanitized
+    def can_be_sanitized(mol):
+        try:
+            Chem.SanitizeMol(mol)
+            return True
+        except:
+            return False
+
+    sani_products = [product[0] for product in products if can_be_sanitized(product[0])]
+
     # Convert the products to SMILES strings
-    product_smiles = [Chem.MolToSmiles(product[0]) for product in products]
-
-    # TODO: Test if Ruben's way of finding products works better.
-
-    if len(product_smiles) == 0:
-        # If no products were found, try the other way around
-        products = reaction.RunReactants((reactant2, reactant1))
-
-        # Convert the products to SMILES strings
-        product_smiles = [Chem.MolToSmiles(product[0]) for product in products]
+    product_smiles = [Chem.MolToSmiles(product) for product in sani_products]
 
     if len(product_smiles) == 0:
         print(f'NO PRODUCTS FOUND FOR {row["reactant1_smi"]} and {row["reactant2_smi"]}')
@@ -362,7 +353,7 @@ def apply_reaction(row, original_mol: Chem.Mol, reaction_name) -> list():
 
     return row
 
-def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, analogs_reactant2, resultsDir, output_name: str):
+def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, analogs_reactant2, resultsDirs, output_name: str):
     """
     Given a reaction and the analogues of the reactants, this function finds the reaction combinations that are possible.
 
@@ -425,8 +416,12 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
     # Extracting the smiles column and flattening the lists
     all_products = result_df['smiles']
 
-    # Remove repeated rows
+    # Remove empty rows with no products
     result_df2 = result_df.copy()
+    result_df2 = result_df2[result_df2['smiles'].notna()]
+    print(f'{len(result_df) - len(result_df2)} empty product routes removed.')
+
+    # Remove repeated rows
     result_df2 = result_df2.drop_duplicates(subset=['reactant1_smi', 'reactant2_smi', 'smiles'])
     print(f'{len(result_df)-len(result_df2)} product duplicates removed.')
 
@@ -437,35 +432,26 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
     result_df2.sort_values(by=['num_atom_difference'], inplace=True, ignore_index=True)
 
     # ADDING PAINS FILTER
-    pains_filter(result_df2)
+    # pains_filter(result_df2)
 
     # ADD NAME FOR FRAGMENSTEIN PLACEMENT
-    result_df_frag = result_df2.apply(add_fragmenstein_name, output_name=output_name, axis=1, name_add='frag')
-    result_df_base = result_df2.apply(add_fragmenstein_name, output_name=output_name, axis=1, name_add='base')
-
-    # Save the result to a CSV file with frag placed name
-    result_path = os.path.join(resultsDir, f'{i}_{len(result_df_frag)}_analogs.csv')
-    result_df_frag.to_csv(result_path, index=False)
-
-    # Save the result to a CSV file with base name
-    result_path = os.path.join(resultsDir, f'{i}_{len(result_df_base)}_analogs_base.csv')
-    result_df_base.to_csv(result_path, index=False)
+    result_df2 = result_df2.apply(add_fragmenstein_name, output_name=output_name, axis=1)
 
     return result_df2, all_products
 
-def reactBackTogether(original_mol: Chem.Mol, analogs_reactant1: pd.DataFrame, analogs_reactant2: pd.DataFrame, ori_reaction, resultsDir, output_name: str):
+def reactBackTogether(original_mol: Chem.Mol, analogs_reactant1: pd.DataFrame, analogs_reactant2: pd.DataFrame, ori_reaction, resultsDirs, output_name: str):
     if ori_reaction is None:
         print('Must provide reaction to react back together.')
         # TODO: Could provide a way to react back together with all other reactions in the database.
         return None
     else:
-        df_combined_results, all_products = findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, analogs_reactant2, resultsDir, output_name=output_name)
+        df_combined_results, all_products = findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, analogs_reactant2, resultsDirs, output_name=output_name)
 
     return df_combined_results
 
-def searchReactantAnalogues(originalMol, reactant1, reactant2, ori_expansionAtomIdx=None,
+def searchReactantAnalogues(originalMol, reactant1, reactant2, resultsDirs, ori_expansionAtomIdx=None,
                             similarityThr=config.SIMILARITY_SEARCH_THR,
-                            structuralThr=config.STRUCTURAL_SCORE_THR, ori_reaction=None, resultsDir="./test/output2",
+                            structuralThr=config.STRUCTURAL_SCORE_THR, ori_reaction=None,
                             output_name='test'):
     """
     Find analogues keeping the atoms involved in the reaction fixed.
@@ -478,7 +464,7 @@ def searchReactantAnalogues(originalMol, reactant1, reactant2, ori_expansionAtom
     :param similarityThr:
     :param structuralThr:
     :param ori_reaction: original reaction that links both reactants
-    :param resultsDir:
+    :param resultsDirs: list of results directories
     :return:
     """
     print('This is the original molecule:', Chem.MolToSmiles(originalMol))
@@ -515,16 +501,16 @@ def searchReactantAnalogues(originalMol, reactant1, reactant2, ori_expansionAtom
         # react1_atoms = findReactionAtoms(originalMol, reactant1, ori_reaction, resultsDir, 1, reactant1_attachmentIdxs)
         # react2_atoms = findReactionAtoms(originalMol, reactant2, ori_reaction, resultsDir, 2, reactant2_attachmentIdxs)
 
-        (r1_smarts, react1_atoms), (r2_smarts, react2_atoms) = findReactionAtoms_bothReactants(originalMol, reactant1, reactant2, ori_reaction, resultsDir, reactant1_attachmentIdxs, reactant2_attachmentIdxs)
+        (r1_smarts, reactant1, react1_atoms), (r2_smarts, reactant2, react2_atoms) = findReactionAtoms_bothReactants(originalMol, reactant1, reactant2, ori_reaction, resultsDirs, reactant1_attachmentIdxs, reactant2_attachmentIdxs)
 
     # Perform analogue search of reactants, keeping attachment point fixed
     analogs_react1 = processSubMolReactant(reactant1, ori_reaction, r1_smarts, react1_atoms, similarityThr, structuralThr, reactant_Num=1,
-                          resultsDir=resultsDir)  # are the reacting atoms important here if indexing will change depending on the molecule?
+                          resultsDirs=resultsDirs)  # are the reacting atoms important here if indexing will change depending on the molecule?
     analogs_react2 = processSubMolReactant(reactant2, ori_reaction, r2_smarts, react2_atoms, similarityThr, structuralThr, reactant_Num=2,
-                                           resultsDir=resultsDir)
+                                           resultsDirs=resultsDirs)
 
     # Perform reaction search of reactant analogues (including PAINS filter)
-    resultsdf = reactBackTogether(originalMol, analogs_react1, analogs_react2, ori_reaction, resultsDir=resultsDir, output_name=output_name)
+    resultsdf = reactBackTogether(originalMol, analogs_react1, analogs_react2, ori_reaction, resultsDirs=resultsDirs, output_name=output_name)
 
     # TODO: Do Fragmenstein placement within pipeline, adding failures to minimize to dataframe
     return resultsdf

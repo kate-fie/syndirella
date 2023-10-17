@@ -26,14 +26,15 @@ _reactant_smarts2 = OrderedDict()
 _product_smarts = OrderedDict()
 for name, smart in reaction_smarts.items():
     reactants, prod = smart.split(">>")
-    react1, react2 = reactants.split(".")
+    try: react1, react2 = reactants.split(".")
+    except ValueError: react1, react2 = reactants, None
     _reactant_smarts1[name] = react1
     _reactant_smarts2[name] = react2
     _product_smarts[name] = prod
 
 
 def from_SMARTS_to_patterns(smarts_dict):
-    return tuple([(key, Chem.MolFromSmarts(val)) for key, val in smarts_dict.items()])
+    return tuple([(key, Chem.MolFromSmarts(val)) for key, val in smarts_dict.items() if val is not None])
 
 
 PATTERN_PRODUCTS = from_SMARTS_to_patterns(_product_smarts)
@@ -85,40 +86,43 @@ def checkReactionSmartInAllAtomsAndReactants(reactant1, reactant1_attachment_idx
     patt2 = Chem.MolFromSmarts(reactant_smarts["reactant2"])
     matches1 = reactant1.GetSubstructMatches(patt1)
     matches2 = reactant1.GetSubstructMatches(patt2)
-    found = False
-    if matches1:
+    found_1 = False
+    found_2 = False
+    if found_1 is False and matches1:
         for i in range(len(matches1)):
             matching = bool(sum([1 if reactant1_attachment_idx.intersection(option) else 0 for option in matches1]))
             if matching: # SHOULD BE EXACTLY MATCHING SINCE LOOKING AT ATTACHMENT INDEX
                 matched_atoms["reactant1"] = (reactant_smarts["reactant1"], reactant1, matches1[i])
-                found = True
-    if found is False and matches2:
+                found_1 = True
+    if found_1 is False and matches2:
         for i in range(len(matches2)):
             matching = bool(sum([1 if reactant1_attachment_idx.intersection(option) else 0 for option in matches2]))
-            if matching: # SHOULD BE EXACTLY MATCHING SINCE LOOKING AT ATTACHMENT INDEX
-                matched_atoms["reactant1"] = (reactant_smarts["reactant2"], reactant1, matches2[i])
+            if matching: # SHOULD BE EXACTLY MATCHING SINE LOOKING AT ATTACHMENT INDEX
+                matched_atoms["reactant2"] = (reactant_smarts["reactant2"], reactant1, matches2[i])
+                found_2 = True
 
     # check reactant2 input exhausitvely against both reactant smart patterns
     matches1 = reactant2.GetSubstructMatches(patt1)
     matches2 = reactant2.GetSubstructMatches(patt2)
-    found = False
-    if matches1:
+    if found_1 is False and matches1:
         for i in range(len(matches1)):
             matching = bool(sum([1 if reactant2_attachment_idx.intersection(option) else 0 for option in matches1]))
             if matching:
-                matched_atoms["reactant2"] = (reactant_smarts["reactant1"], reactant2, matches1[i])
-                found = True
-    if found is False and matches2:
+                matched_atoms["reactant1"] = (reactant_smarts["reactant1"], reactant2, matches1[i])
+                found_1 = True
+    if found_2 is False and matches2:
         for i in range(len(matches2)):
             matching = bool(sum([1 if reactant2_attachment_idx.intersection(option) else 0 for option in matches2]))
             if matching:
                 matched_atoms["reactant2"] = (reactant_smarts["reactant2"], reactant2, matches2[i])
+                found_2 = True
 
     # check that there is at least one item in the matched_atoms dict
     if len(matched_atoms["reactant1"]) == 0 or len(matched_atoms["reactant2"]) == 0:
         print('WARNING: No atoms found involved in reaction ' + reaction_name + ' in mol ' + Chem.MolToSmiles(reactant1) + ' and ' + Chem.MolToSmiles(reactant2))
         return None
 
+    # Need to return matched atoms that match reactant numbers in SMARTS
     return matched_atoms
 
 def checkSpecificReactionSmartInReactant(smiles, reaction_name, reaction_smarts):
@@ -138,59 +142,64 @@ def checkSpecificReactionSmartInReactant(smiles, reaction_name, reaction_smarts)
 
 def _checkOneReactionSmartInAttachmentSTRICT_noidx(mol, name, smarts):
     patt = Chem.MolFromSmarts(smarts)
-
-    if name == "Amidation":
-        matched_indices = mol.GetSubstructMatches(patt)
-        if matched_indices:
-            if patt.GetNumAtoms() == 3: # carboxylic acid
-                # check length == 3
-                for i in range(len(matched_indices)): # could have multiple matches ...
-                    # check you have hydroxy group in acid
-                    if len(matched_indices[i]) == 3:
-                        return True
-            else: # primary or secondary amine
-                # check it is not an amide, so does not contain an oxygen
-                for i in range(len(matched_indices)): # could have multiple matches ...
-                    if len(matched_indices[i])==1:
-                        return True
-
-    if name == "Amide_schotten-baumann":
-        pass
-    if name == "Reductive_amination":
-        pass
-    if name == "N-nucleophilic_aromatic_substitution":
-        pass
-    if name == "Sp2-sp2_Suzuki_coupling":
-        pass
-    if name == "Formation_of_urea_from_two_amines":
-        pass
-    if name == "Sulfonamide_Schotten-Baumann_with_amine_(intermolecular)":
-        matched_indices = mol.GetSubstructMatches(patt)
-        if matched_indices:
-            if patt.GetNumAtoms() == 5:  # sulfonyl halide
-                for i in range(len(matched_indices)): # could have multiple matches ...
-                    # check you have hydroxy group in acid
-                    if len(matched_indices[i]) == 5:
-                        return True
-            else: # primary or secondary amine
-                # check it is not an amide, so does not contain an oxygen
-                for i in range(len(matched_indices)): # could have multiple matches ...
-                    if len(matched_indices[i])==1:
-                        return True
-
-    if name == "Buchwald-Hartwig_amination":
-        matched_indices = mol.GetSubstructMatches(patt)
-        if matched_indices:
-            if patt.GetNumAtoms() == 2:  # halide
-                for i in range(len(matched_indices)): # could have multiple matches ...
-                    # check you have an aromatic carbon and halide
-                    if len(matched_indices[i]) == 2:
-                        return True
-            else: # primary or secondary amine
-                for i in range(len(matched_indices)): # could have multiple matches ...
-                    if len(matched_indices[i])==1:
-                        return True
+    matched_indices = mol.GetSubstructMatches(patt)
+    if matched_indices:
+        return True
     return False
+    ####################### OLD METHOD OF CHECKING EACH REACTION SMARTS DON'T THINK I NEED THAT#######################
+    # patt = Chem.MolFromSmarts(smarts)
+    #
+    # if name == "Amidation":
+    #     matched_indices = mol.GetSubstructMatches(patt)
+    #     if matched_indices:
+    #         if patt.GetNumAtoms() == 3: # carboxylic acid
+    #             # check length == 3
+    #             for i in range(len(matched_indices)): # could have multiple matches ...
+    #                 # check you have hydroxy group in acid
+    #                 if len(matched_indices[i]) == 3:
+    #                     return True
+    #         else: # primary or secondary amine
+    #             # check it is not an amide, so does not contain an oxygen
+    #             for i in range(len(matched_indices)): # could have multiple matches ...
+    #                 if len(matched_indices[i])==1:
+    #                     return True
+    #
+    # if name == "Amide_schotten-baumann":
+    #     pass
+    # if name == "Reductive_amination":
+    #     pass
+    # if name == "N-nucleophilic_aromatic_substitution":
+    #     pass
+    # if name == "Sp2-sp2_Suzuki_coupling":
+    #     pass
+    # if name == "Formation_of_urea_from_two_amines":
+    #     pass
+    # if name == "Sulfonamide_Schotten-Baumann_with_amine_(intermolecular)":
+    #     matched_indices = mol.GetSubstructMatches(patt)
+    #     if matched_indices:
+    #         if patt.GetNumAtoms() == 5:  # sulfonyl halide
+    #             for i in range(len(matched_indices)): # could have multiple matches ...
+    #                 # check you have hydroxy group in acid
+    #                 if len(matched_indices[i]) == 5:
+    #                     return True
+    #         else: # primary or secondary amine
+    #             # check it is not an amide, so does not contain an oxygen
+    #             for i in range(len(matched_indices)): # could have multiple matches ...
+    #                 if len(matched_indices[i])==1:
+    #                     return True
+    #
+    # if name == "Buchwald-Hartwig_amination":
+    #     matched_indices = mol.GetSubstructMatches(patt)
+    #     if matched_indices:
+    #         if patt.GetNumAtoms() == 2:  # halide
+    #             for i in range(len(matched_indices)): # could have multiple matches ...
+    #                 # check you have an aromatic carbon and halide
+    #                 if len(matched_indices[i]) == 2:
+    #                     return True
+    #         else: # primary or secondary amine
+    #             for i in range(len(matched_indices)): # could have multiple matches ...
+    #                 if len(matched_indices[i])==1:
+    #                     return True
 
 def _checkOneReactionSmartInAttachment(mol, patt,
                                        attachment_region_idxs):  # This is not enough, it does not guarantee that the molecule was modified at the attachment point
