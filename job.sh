@@ -34,18 +34,21 @@ export TEMPLATE_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/apo_desolv/";
 export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step/";
 export INPUT_SDF="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/fragalysis/D68EV3CPROA_combined.sdf";
 export N_CORES=$(cat /proc/cpuinfo | grep processor | wc -l)
+export LOG_PATH="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step/logs/"
 
 echo "Running fragmenstein_batch.py"
 echo "HOME_DIR: $HOME_DIR"
 echo "TEMPLATE_DIR: $TEMPLATE_DIR"
 echo "INPUT_SDF: $INPUT_SDF"
 echo "N_CORES: $N_CORES"
+echo "LOG_PATH: $LOG_PATH"
 
 nice -19 python fragmenstein_batch.py \
 -d $HOME_DIR \
 -t $TEMPLATE_DIR \
 -i $INPUT_SDF \
 -p "D68EV3CPROA-" \
---n_cores $(($N_CORES - 1));
+--n_cores $(($N_CORES - 1)) \
+--log_path $LOG_PATH;
 
 echo 'COMPLETE'

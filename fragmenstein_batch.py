@@ -10,6 +10,7 @@ import argparse
 import subprocess
 
 import pandas as pd
+import datetime
 
 from typing import List, Dict, Any, Optional
 
@@ -21,6 +22,7 @@ def config_parser():
     parser.add_argument('-o', required=False, help='Output csv to save logging results.')
     parser.add_argument('-p', required=False, help='Prefix for fragment names in sdf.')
     parser.add_argument('--n_cores', required=False, default=1, help='Number of cores to use.')
+    parser.add_argument('-l', '--log_path', required=False, help='Path to the log directory.')
     return parser
 
 def extract_molecule_from_sdf(sdf_content, molecule_name):
@@ -122,7 +124,7 @@ def run_batch(**kwargs):
                 print(f"Template pdb not found for {directory}.")
             if elabs_csv is None:
                 print(f"Elabs csv not found for {directory}.")
-            if frags_sdf and template_pdb and elabs_csv and len < 20:
+            if frags_sdf and template_pdb and elabs_csv:
                 os.chdir(os.path.join(root, directory)) # change to directory
                 try:
                     print(f"PLACING {directory}.")
@@ -141,15 +143,23 @@ def main():
     parser = config_parser()
     # load
     settings: Dict[str, Any] = vars(parser.parse_args())
-    print("Arguments passed to the script:")
-    for key, value in settings.items():
-        print(f"{key}: {value}")
-    # run
-    try:
-        run_batch(**settings)
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+    # Redirect stdout and stderr to log file
+    # Generate a timestamp string and append to the log file path
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    log_path_with_timestamp = f"{settings['log']}frag_place_{timestamp}.log"
+    with open(log_path_with_timestamp, 'a') as f:
+        sys.stdout = f
+        sys.stderr = f
+        print("Arguments passed to the script:")
+        for key, value in settings.items():
+            print(f"{key}: {value}")
+        # run
+        try:
+            run_batch(**settings)
+        except Exception as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
