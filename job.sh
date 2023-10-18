@@ -6,7 +6,7 @@
 : << USAGE
 export JOB_SCRIPT=/data/xchem-fragalysis/shared/singularity.sh;
 export APPTAINER_CONTAINER=/data/xchem-fragalysis/shared/singularity/rockyplus.sif; # CHANGE?
-export JOB_INNER_SCRIPT=/data/xchem-fragalysis/mferla/Zika/job.sh; # CHANGE TO THIS PATH
+export JOB_INNER_SCRIPT=/data/xchem-fragalysis/kfieseler/repos/elaborate/job.sh; # CHANGE TO THIS PATH
 condor_submit /data/xchem-fragalysis/shared/target_script.condor
 USAGE
 
@@ -33,7 +33,7 @@ cd /data/xchem-fragalysis/kfieseler/retrievesynthesizable
 pwd;
 export TEMPLATE_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/apo_desolv"
 export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step"
-export INPUT_SDF=
+export INPUT_SDF="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/fragalysis/D68EV3CPROA_combined.sdf"
 
 N_CORES=$(cat /proc/cpuinfo | grep processor | wc -l)
 nice -19 python fragmenstein_batch.py \
