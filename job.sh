@@ -42,9 +42,9 @@ echo "INPUT_SDF: $INPUT_SDF"
 echo "N_CORES: $N_CORES"
 
 nice -19 python fragmenstein_batch.py \
--d HOME_DIR \
--t TEMPLATE_DIR \
--i INPUT_SDF \
+-d $HOME_DIR \
+-t $TEMPLATE_DIR \
+-i $INPUT_SDF \
 -p "D68EV3CPROA-" \
 --n_cores $(($N_CORES - 1));
 
