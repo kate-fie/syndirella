@@ -145,8 +145,8 @@ def main():
     settings: Dict[str, Any] = vars(parser.parse_args())
     # Redirect stdout and stderr to log file
     # Generate a timestamp string and append to the log file path
-    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    log_path_with_timestamp = f"{settings['log']}frag_place_{timestamp}.log"
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    log_path_with_timestamp = f"{settings['log_path']}frag_place_{timestamp}.log"
     with open(log_path_with_timestamp, 'a') as f:
         sys.stdout = f
         sys.stderr = f
