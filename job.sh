@@ -30,9 +30,14 @@ conda activate fragmenstein
 cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 
 pwd;
-export TEMPLATE_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/apo_desolv"
-export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step"
-export INPUT_SDF="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/fragalysis/D68EV3CPROA_combined.sdf"
+export TEMPLATE_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/apo_desolv/";
+export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step/";
+export INPUT_SDF="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/fragalysis/D68EV3CPROA_combined.sdf";
+
+echo "Running fragmenstein_batch.py"
+echo "HOME_DIR: $HOME_DIR"
+echo "TEMPLATE_DIR: $TEMPLATE_DIR"
+echo "INPUT_SDF: $INPUT_SDF"
 
 N_CORES=$(cat /proc/cpuinfo | grep processor | wc -l)
 nice -19 python fragmenstein_batch.py \
