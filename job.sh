@@ -4,10 +4,8 @@
 # A few things don't work in CentOS 7 due to GNU lib C (glibc) 2.17, so it has to be run in a Singularity container
 
 #: << USAGE #########
-#export JOB_SCRIPT=/data/xchem-fragalysis/shared/singularity.sh;
-#export APPTAINER_CONTAINER=/data/xchem-fragalysis/shared/singularity/rockyplus.sif; # CHANGE?
-#export JOB_INNER_SCRIPT=/data/xchem-fragalysis/kfieseler/repos/elaborate/job.sh; # CHANGE TO THIS PATH
-#condor_submit /data/xchem-fragalysis/shared/target_script.condor
+# source run_job.env
+# condor_submit /data/xchem-fragalysis/shared/target_script.condor
 #USAGE #########
 
 #: << INSTALLATION #############
@@ -29,7 +27,7 @@ echo "Running script ${0} as $USER in $HOST which runs $PRETTY_NAME"
 source /data/xchem-fragalysis/kfieseler/.bashrc
 conda activate fragmenstein
 
-cd /data/xchem-fragalysis/kfieseler/retrievesynthesizable
+cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 
 pwd;
 export TEMPLATE_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/apo_desolv"
