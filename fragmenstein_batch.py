@@ -141,6 +141,9 @@ def main():
     parser = config_parser()
     # load
     settings: Dict[str, Any] = vars(parser.parse_args())
+    print("Arguments passed to the script:")
+    for key, value in settings.items():
+        print(f"{key}: {value}")
     # run
     try:
         run_batch(**settings)
