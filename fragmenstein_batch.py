@@ -100,14 +100,18 @@ def run_batch(**kwargs):
 
     for root, dirs, files in os.walk(kwargs['d']):
         for directory in dirs:
+            done = False
+            if directory != 'MOLPORT_009-117-950_x1594_0A_x2021_0A':
+                continue
             if "xtra_results" in directory:
                 exit()
             if "," in directory:
                 continue
             for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
                 if 'output' in sub_dir:
-                    continue
-
+                    done=True
+            if done:
+                continue
             print(f"DIRECTORY: {directory}")
             frag1 = directory.split("_")[2]+"_"+directory.split("_")[3]
             frag2 = directory.split("_")[4]+"_"+directory.split("_")[5]
@@ -145,22 +149,30 @@ def main():
     settings: Dict[str, Any] = vars(parser.parse_args())
     # Redirect stdout and stderr to log file
     # Generate a timestamp string and append to the log file path
-    if os.path.exists(settings['log_path']) is False:
-        os.makedirs(settings['log_path'])
-    timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    log_path_with_timestamp = f"{settings['log_path']}frag_place_{timestamp}.log"
-    with open(log_path_with_timestamp, 'a') as f:
-        sys.stdout = f
-        sys.stderr = f
-        print("Arguments passed to the script:")
-        for key, value in settings.items():
-            print(f"{key}: {value}")
+    if settings['log_path'] is None:
         # run
         try:
             run_batch(**settings)
         except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
+            print(f"Error: {e}")
             sys.exit(1)
+    else:
+        if os.path.exists(settings['log_path']) is False:
+            os.makedirs(settings['log_path'])
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        log_path_with_timestamp = f"{settings['log_path']}frag_place_{timestamp}.log"
+        with open(log_path_with_timestamp, 'a') as f:
+            sys.stdout = f
+            sys.stderr = f
+            print("Arguments passed to the script:")
+            for key, value in settings.items():
+                print(f"{key}: {value}")
+            # run
+            try:
+                run_batch(**settings)
+            except Exception as e:
+                print(f"Error: {e}", file=sys.stderr)
+                sys.exit(1)
 
 
 if __name__ == "__main__":
