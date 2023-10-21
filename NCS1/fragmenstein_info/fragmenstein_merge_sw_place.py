@@ -36,7 +36,7 @@ from rdkit.Chem.rdfiltercatalog import FilterCatalogParams, FilterCatalog, Filte
 
 Chem.SetDefaultPickleProperties(Chem.PropertyPickleOptions.AllProps)
 
-from fragmenstein import Igor, Victor, Laboratory
+from fragmenstein import Igor, Victor, Laboratory, Monster
 from fragmenstein.laboratory.validator import place_input_validator
 
 pandarallel.initialize()
@@ -118,8 +118,7 @@ def UFF_Gibbs(mol):
         AllChem.SanitizeMol(mol)
         # this is actually UFF
         copy = Chem.Mol(mol)
-        #return Monster.MMFF_score(None, mol, True)
-        return float('nan')
+        return Monster.MMFF_score(None, mol, True)
     return float('nan')
 
 
