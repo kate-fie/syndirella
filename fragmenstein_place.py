@@ -18,8 +18,7 @@ from pandarallel import pandarallel
 
 
 from rdkit import Chem, rdBase, DataStructs
-from rdkit.Chem import AllChem, Draw, PandasTools, BRICS
-from rdkit.Chem.Draw import IPythonConsole
+from rdkit.Chem import AllChem
 from rdkit.Chem import rdFingerprintGenerator as rdfpg
 from rdkit.Chem.rdfiltercatalog import FilterCatalogParams, FilterCatalog, FilterCatalogEntry
 
