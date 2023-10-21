@@ -101,8 +101,6 @@ def run_batch(**kwargs):
     for root, dirs, files in os.walk(kwargs['d']):
         for directory in dirs:
             done = False
-            if directory != 'MOLPORT_009-117-950_x1594_0A_x2021_0A':
-                continue
             if "xtra_results" in directory:
                 exit()
             if "," in directory:
@@ -136,9 +134,10 @@ def run_batch(**kwargs):
                         ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
                          "--in-table", elabs_csv, "--output",
                          os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
-                         "--cores", n_cores, "--verbose"])
+                         "--cores", str(n_cores), "--verbose"])
                 except Exception as e:
                     print(f"Error placing elabs for {directory}.")
+                    print(e)
                     continue
             else:
                 continue
