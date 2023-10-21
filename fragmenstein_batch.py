@@ -59,7 +59,7 @@ def find_frags_sdf(sdf_content, root, directory, cmpd_catalog, frag1, frag2, sdf
 def find_elabs_csv(root, directory, frag1, frag2, sdf_prefix=None, add_hit_names=False):
     """Finds the elabs csv for the given directory. Adds column 'hit_names' if needed."""
     for filename in os.listdir(os.path.join(root, directory)):
-        if filename.endswith('.csv'):
+        if filename.endswith('.csv') and filename.startswith('.'):
             if add_hit_names:
                 csv_path = os.path.join(root, directory, filename)
                 print(csv_path)
