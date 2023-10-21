@@ -134,7 +134,7 @@ def run_batch(**kwargs):
                         ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
                          "--in-table", elabs_csv, "--output",
                          os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
-                         "--cores", str(n_cores), "--verbose"])
+                         "--cores", str(n_cores), "--verbose"], capture_output=True, text=True)
                 except Exception as e:
                     print(f"Error placing elabs for {directory}.")
                     print(e)
