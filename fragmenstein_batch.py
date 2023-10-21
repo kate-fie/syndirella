@@ -62,7 +62,7 @@ def find_elabs_csv(root, directory, frag1, frag2, sdf_prefix=None, add_hit_names
         if filename.endswith('.csv'):
             if add_hit_names:
                 csv_path = os.path.join(root, directory, filename)
-                df = pd.read_csv(csv_path)
+                df = pd.read_csv(csv_path, encoding='ISO-8859-1')
                 df['hit_names'] = f"{sdf_prefix}{frag1} {sdf_prefix}{frag2}"
                 df.to_csv(csv_path, index=False)
             return csv_path, len(df)
