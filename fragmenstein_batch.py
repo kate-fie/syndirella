@@ -101,7 +101,7 @@ def run_batch(**kwargs):
     for root, dirs, files in os.walk(kwargs['d']):
         for directory in dirs:
             done = False
-            if "xtra_results" in directory:
+            if "xtra_results" in directory or "logs" in directory:
                 exit()
             if "," in directory:
                 continue
