@@ -130,11 +130,13 @@ def run_batch(**kwargs):
                 os.chdir(os.path.join(root, directory)) # change to directory
                 try:
                     print(f"PLACING {directory}.")
-                    subprocess.run(
+                    result = subprocess.run(
                         ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
                          "--in-table", elabs_csv, "--output",
                          os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
                          "--cores", str(n_cores), "--verbose"], capture_output=True, text=True)
+                    output = result.stdout
+                    print(output)
                 except Exception as e:
                     print(f"Error placing elabs for {directory}.")
                     print(e)
