@@ -118,8 +118,11 @@ def run_batch(**kwargs):
             # I might actually remove it
             #frags_sdf = find_frags_sdf(sdf_content, root, directory, cmpd_catalog, frag1, frag2, sdf_prefix=kwargs['p'])
             frags_sdf = sdf_file_path
+            print(frags_sdf)
             template_pdb = find_template_pdb(kwargs['t'], frag1)
+            print(template_pdb)
             elabs_csv, len = find_elabs_csv(root, directory, frag1, frag2, sdf_prefix=kwargs['p'], add_hit_names=True)
+            print(elabs_csv)
             if frags_sdf is None:
                 print(f"Frags sdf not found for {directory}.")
             if template_pdb is None:
