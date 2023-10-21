@@ -36,7 +36,7 @@ from rdkit.Chem.rdfiltercatalog import FilterCatalogParams, FilterCatalog, Filte
 
 Chem.SetDefaultPickleProperties(Chem.PropertyPickleOptions.AllProps)
 
-from fragmenstein import Igor, Victor, Laboratory, Monster
+from fragmenstein import Igor, Victor, Laboratory
 from fragmenstein.laboratory.validator import place_input_validator
 
 pandarallel.initialize()
@@ -118,7 +118,8 @@ def UFF_Gibbs(mol):
         AllChem.SanitizeMol(mol)
         # this is actually UFF
         copy = Chem.Mol(mol)
-        return Monster.MMFF_score(None, mol, True)
+        #return Monster.MMFF_score(None, mol, True)
+        return float('nan')
     return float('nan')
 
 
@@ -385,7 +386,7 @@ def score(placements, hit_replacements, suffix, hits, weights, **settings):
     placements['PAINSes'] = placements.minimized_mol.apply(get_pains)
     placements['N_PAINS'] = placements.PAINSes.apply(len)
     placements['UFF_Gibbs'] = placements.minimized_mol.apply(UFF_Gibbs)
-    placements['strain_per_HA'] = placements.UFF_Gibbs / min(placements.N_HA, 0.0001)
+    #placements['strain_per_HA'] = placements.UFF_Gibbs / min(placements.N_HA, 0.0001)
     penalize = PenaltyMeter(weights)
     placements['ad_hoc_penalty'] = placements.apply(penalize, axis=1)
     # placements['N_interactions'] = placements[[c for c in placements.columns if isinstance(c, tuple)]].fillna(0).sum(axis=1)
