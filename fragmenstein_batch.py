@@ -161,11 +161,15 @@ def run_batch(**kwargs):
                         continue
                     os.chdir(output_dir)  # change to output directory
                     suffixes_to_keep = ['.minimised.json', '.holo_minimised.pdb', '.minimised.mol']
-                    for root, dirs, files in os.walk(output_dir):
-                        for directory in dirs:
-                            for file in os.listdir(os.path.join(output_dir, directory)):
+                    for root1, dirs, files in os.walk(output_dir):
+                        for directory2 in dirs:
+                            directory2_path = os.path.join(output_dir, directory2)
+                            if not os.path.exists(directory2_path):
+                                print('THIS PATH DOES NOT EXIST', directory2_path)
+                                continue
+                            for file in os.listdir(directory2_path):
                                 if not any(file.endswith(suffix) for suffix in suffixes_to_keep):
-                                    file_path = os.path.join(output_dir, directory, file)
+                                    file_path = os.path.join(output_dir, directory2, file)
                                     try:
                                         if os.path.isfile(file_path) or os.path.islink(file_path):
                                             os.unlink(file_path)
