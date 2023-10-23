@@ -449,9 +449,12 @@ def reactBackTogether(original_mol: Chem.Mol, analogs_reactant1: pd.DataFrame, a
 
     return df_combined_results
 
-def searchReactantAnalogues(originalMol, reactant1, reactant2, resultsDirs, ori_expansionAtomIdx=None,
+def searchReactantAnalogues(originalMol, reactant1, reactant2, resultsDirs, step_num,
+                            r1_label=None,
+                            r2_label=None,
+                            ori_expansionAtomIdx=None,
                             similarityThr=config.SIMILARITY_SEARCH_THR,
-                            structuralThr=config.STRUCTURAL_SCORE_THR, ori_reaction=None,
+                            structuralThr=config.STRUCTURAL_SCORE_THR, struct_score=False, ori_reaction=None,
                             output_name='test'):
     """
     Find analogues keeping the atoms involved in the reaction fixed.
@@ -463,10 +466,23 @@ def searchReactantAnalogues(originalMol, reactant1, reactant2, resultsDirs, ori_
     :param ori_expansionAtomIdx:
     :param similarityThr:
     :param structuralThr:
+    :param struct_score: True if want to use structural score
     :param ori_reaction: original reaction that links both reactants
     :param resultsDirs: list of results directories
     :return:
     """
+    #### RUNS NORMALLY FOR STEP 1 ########
+    if step_num == 2:
+        """
+        originalMol: original product molecule from 2nd step
+        reactant1: elaborated reactant 1 from 1st step
+        reactant2: original reactant 2 from 1st step
+        r1_label: label of elaborated reactant in labelled reaction (so can label easily for smarts rxn back together)
+        r2_label: label of orig reactant in labelled reaction (so can label easily for smarts rxn back together)
+        """
+
+        return NotImplementedError
+
     print('This is the original molecule:', Chem.MolToSmiles(originalMol))
     print('This is the first reactant:', Chem.MolToSmiles(reactant1))
     print('This is the second reactant:', Chem.MolToSmiles(reactant2))
@@ -514,3 +530,4 @@ def searchReactantAnalogues(originalMol, reactant1, reactant2, resultsDirs, ori_
 
     # TODO: Do Fragmenstein placement within pipeline, adding failures to minimize to dataframe
     return resultsdf
+

@@ -11,6 +11,7 @@ import subprocess
 
 import pandas as pd
 import datetime
+import shutil
 
 from typing import List, Dict, Any, Optional
 
@@ -23,7 +24,16 @@ def config_parser():
     parser.add_argument('-p', required=False, help='Prefix for fragment names in sdf.')
     parser.add_argument('--n_cores', required=False, default=1, help='Number of cores to use.')
     parser.add_argument('-l', '--log_path', required=False, help='Path to the log directory.')
+    parser.add_argument('--cutoff', action='store_true', required=False, help='Cutoff of 10,000 for placing elabs.')
     return parser
+
+def shorten_elabs_csv(elabs_csv, len):
+    """Shortens the elabs csv to 10,000 rows."""
+    df = pd.read_csv(elabs_csv, encoding='ISO-8859-1')
+    df = df[:10000]
+    new_path = elabs_csv.replace(f'{len}.csv','') + "10000.csv"
+    df.to_csv(new_path, index=True)
+    return new_path
 
 def extract_molecule_from_sdf(sdf_content, molecule_name):
     """Extracts the molecule with the given name from the SDF content."""
@@ -101,6 +111,8 @@ def run_batch(**kwargs):
 
     for root, dirs, files in os.walk(kwargs['d']):
         for directory in dirs:
+            if directory == 'output':
+                exit()
             done = False
             if "xtra_results" in directory or "logs" in directory:
                 exit()
@@ -133,14 +145,36 @@ def run_batch(**kwargs):
             if frags_sdf and template_pdb and elabs_csv:
                 os.chdir(os.path.join(root, directory)) # change to directory
                 try:
+                    if kwargs['cutoff'] and len > 10000:
+                        print(f"CUTTING {directory} because it has more than 10,000 elabs.")
+                        elabs_csv = shorten_elabs_csv(elabs_csv, len)
                     print(f"PLACING {directory}.")
-                    result = subprocess.run(
+                    subprocess.run(
                         ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
                          "--in-table", elabs_csv, "--output",
                          os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
-                         "--cores", str(n_cores), "--verbose"], capture_output=True, text=True)
-                    output = result.stdout
-                    print(output)
+                         "--cores", str(n_cores), "--verbose"])
+                    print("DELETING EXTRA FILES.")
+                    output_dir = os.path.join(root, directory, 'output')
+                    if not os.path.exists(output_dir):
+                        print(f"Output directory does not exist for {directory}.")
+                        continue
+                    os.chdir(output_dir)  # change to output directory
+                    suffixes_to_keep = ['.minimised.json', '.holo_minimised.pdb', '.minimised.mol']
+                    for root, dirs, files in os.walk(output_dir):
+                        for directory in dirs:
+                            for file in os.listdir(os.path.join(output_dir, directory)):
+                                if not any(file.endswith(suffix) for suffix in suffixes_to_keep):
+                                    file_path = os.path.join(output_dir, directory, file)
+                                    try:
+                                        if os.path.isfile(file_path) or os.path.islink(file_path):
+                                            os.unlink(file_path)
+                                            print(f"Deleted file: {file_path}")
+                                        elif os.path.isdir(file_path):
+                                            shutil.rmtree(file_path)
+                                            print(f"Deleted directory: {file_path}")
+                                    except Exception as e:
+                                        print('Failed to delete %s. Reason: %s' % (file_path, e))
                 except Exception as e:
                     print(f"Error placing elabs for {directory}.")
                     print(e)
