@@ -32,7 +32,7 @@ cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 pwd;
 export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-1/";
 export ELAB_SUFFIX="2_of_2.csv"
-Export OUTPUT_SUFFIX="output.csv"
+export OUTPUT_SUFFIX="output.csv"
 export N_CORES=$(cat /proc/cpuinfo | grep processor | wc -l)
 
 echo "Running format_to_hippo.py"
@@ -41,7 +41,7 @@ echo "ELAB_SUFFIX: $ELAB_SUFFIX"
 echo "OUTPUT_SUFFIX: $OUTPUT_SUFFIX"
 echo "N_CORES: $N_CORES"
 
-nice -19 python format_to_hippo.py \
+nice -19 python utils/format_to_hippo.py \
 -d $HOME_DIR \
 -e $ELAB_SUFFIX \
 -o $OUTPUT_SUFFIX \
