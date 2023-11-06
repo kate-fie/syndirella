@@ -20,11 +20,13 @@ def config_parser():
     parser.add_argument('-d', required=True, help='Home directory where csvs of elabs live.')
     parser.add_argument('-t', required=True, help='Directory of templates to use. Name must contain fragalysis ID.')
     parser.add_argument('-i', required=True, help='SDF of all fragment hits for target.')
+    parser.add_argument('--step', required=True, help='Step to place elabs for. Options: 1 or 2.')
     parser.add_argument('-o', required=False, help='Output csv to save logging results.')
     parser.add_argument('-p', required=False, help='Prefix for fragment names in sdf.')
     parser.add_argument('--n_cores', required=False, default=1, help='Number of cores to use.')
     parser.add_argument('-l', '--log_path', required=False, help='Path to the log directory.')
     parser.add_argument('--cutoff', action='store_true', required=False, help='Cutoff of 10,000 for placing elabs.')
+    parser.add_argument('--all_csv', required=False, help='CSV of all elabs for elaboration campaign.')
     return parser
 
 def shorten_elabs_csv(elabs_csv, len):
@@ -66,10 +68,14 @@ def find_frags_sdf(sdf_content, root, directory, cmpd_catalog, frag1, frag2, sdf
             f.write(frag_sdf_content)
     return frags_sdf
 
-def find_elabs_csv(root, directory, frag1, frag2, sdf_prefix=None, add_hit_names=False):
+def find_elabs_csv(root, directory, frag1, frag2, step, sdf_prefix=None, add_hit_names=False):
     """Finds the elabs csv for the given directory. Adds column 'hit_names' if needed."""
     for filename in os.listdir(os.path.join(root, directory)):
-        if filename.endswith('.csv') and not filename.startswith('.'):
+        if step == '1':
+            suffix = '1_of_'
+        elif step == '2':
+            suffix = '2_of_'
+        if filename.endswith('.csv') and suffix in filename and not filename.startswith('.'):
             if add_hit_names:
                 csv_path = os.path.join(root, directory, filename)
                 print(csv_path)
@@ -78,6 +84,25 @@ def find_elabs_csv(root, directory, frag1, frag2, sdf_prefix=None, add_hit_names
                 df.to_csv(csv_path, index=False)
             return csv_path, len(df)
     return None, None
+
+# Function to search within lists in the DataFrame column
+def search_in_list(row, dir_name):
+    return dir_name in row
+
+def set_acceptable_value(row, matches_index, num_accept_elabs):
+    if not row.empty and row.name in matches_index:
+        row['placed_acceptable'] = num_accept_elabs  # assuming you have this from the output csv processing
+
+def update_placed_acceptable(df, directory, num_accept_value):
+    print(f"APPENDING {directory} to all elabs csv.")
+    # Ensure 'placed_acceptable' column exists
+    if 'placed_acceptable' not in df.columns:
+        df['placed_acceptable'] = None  # or pd.NA for pandas' native missing value type
+    # Find the index of rows with the matching 'dir_name'
+    matches_indices = df[df['dir_name'].apply(lambda x: directory in x)].index
+    # Update the 'placed_acceptable' column for matched rows
+    df.loc[matches_indices, 'placed_acceptable'] = num_accept_value
+    return df
 
 def run_batch(**kwargs):
     """
@@ -134,7 +159,7 @@ def run_batch(**kwargs):
             print(frags_sdf)
             template_pdb = find_template_pdb(kwargs['t'], frag1)
             print(template_pdb)
-            elabs_csv, len = find_elabs_csv(root, directory, frag1, frag2, sdf_prefix=kwargs['p'], add_hit_names=True)
+            elabs_csv, len = find_elabs_csv(root, directory, frag1, frag2, step=kwargs['step'], sdf_prefix=kwargs['p'], add_hit_names=True)
             print(elabs_csv)
             if frags_sdf is None:
                 print(f"Frags sdf not found for {directory}.")
@@ -154,6 +179,24 @@ def run_batch(**kwargs):
                          "--in-table", elabs_csv, "--output",
                          os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
                          "--cores", str(n_cores), "--verbose"])
+                    for filename in os.listdir(os.path.join(root, directory)):
+                        if filename.endswith('output.csv') and not filename.startswith('.'):
+                            df = pd.read_csv(os.path.join(root, directory, filename), encoding='ISO-8859-1', index_col=0)
+                            num_accept_elabs = df[df['outcome']=='acceptable'].shape[0]
+                            df_output = pd.read_csv(os.path.join(root, directory, filename), encoding='ISO-8859-1', index_col=0)
+                            print(f"Number of acceptable elabs: {num_accept_elabs}")
+                            break
+                    if kwargs['all_csv']:
+                        print(f"APPENDING {directory} to all elabs csv.")
+                        all_csv = kwargs['all_csv']
+                        df_all = pd.read_csv(all_csv, encoding='ISO-8859-1')
+                        df_all = update_placed_acceptable(df_all, directory, num_accept_elabs)
+                        # Save the modified DataFrame back to the CSV
+                        df_all.to_csv(all_csv, index=False)
+                    print('MERGING FRAGMENSTEIN OUTPUT WITH ORIGINAL ELABS CSV.')
+                    df = pd.read_csv(elabs_csv, encoding='ISO-8859-1')
+                    df = df.merge(df_output, on='smiles', how='left')
+                    df.to_csv(elabs_csv, index=False)
                     print("DELETING EXTRA FILES.")
                     output_dir = os.path.join(root, directory, 'output')
                     if not os.path.exists(output_dir):
@@ -200,6 +243,7 @@ def main():
             print(f"Error: {e}")
             sys.exit(1)
     else:
+        # I don't think this logging functionality works
         if os.path.exists(settings['log_path']) is False:
             os.makedirs(settings['log_path'])
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')

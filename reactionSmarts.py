@@ -125,7 +125,7 @@ def checkReactionSmartInAllAtomsAndReactants(reactant1, reactant1_attachment_idx
     # Need to return matched atoms that match reactant numbers in SMARTS
     return matched_atoms
 
-def checkSpecificReactionSmartInReactant(smiles, reaction_name, reaction_smarts):
+def checkSpecificReactionSmartInReactant(smiles, reaction_name, reactant_smarts):
     """
     Given a molecule and a reaction smarts that it should contain because it is a superstructure of it, checks if the molecule has the reaction pattern.
 
@@ -136,13 +136,13 @@ def checkSpecificReactionSmartInReactant(smiles, reaction_name, reaction_smarts)
     mol = Chem.MolFromSmiles(smiles)
     Chem.AddHs(mol)
     matched_reactions = []
-    matching = _checkOneReactionSmartInAttachmentSTRICT_noidx(mol, reaction_name, reaction_smarts)
+    matching = _checkOneReactionSmartInAttachmentSTRICT_noidx(mol, reaction_name, reactant_smarts)
     matched_reactions.append((reaction_name, matching))
     return matched_reactions
 
 def _checkOneReactionSmartInAttachmentSTRICT_noidx(mol, name, smarts):
     patt = Chem.MolFromSmarts(smarts)
-    matched_indices = mol.GetSubstructMatches(patt)
+    matched_indices = mol.GetSubstructMatches(patt, useQueryQueryMatches=True)
     if matched_indices:
         return True
     return False

@@ -60,11 +60,13 @@ def findstep2(reaction_name, final_product, step1_product, reactants):
     INPUT:
         reaction_name: string of reaction name
         product: string of product SMILES
-        reactants: list of reactants SMILES
+        reactants: tuple of reactants SMILES
     OUTPUT:
         exact_reactant1: string of reactant1 SMILES matched to reactant1 smarts
         exact_reactant2: string of reactant2 SMILES matched to reactant2 smarts
     """
+    exact_reactant1 = None
+    exact_reactant2 = None
     if reaction_name not in REACTIONS_NAMES:
         print(f"Do not have SMARTS for this reaction: {reaction_name}\n "
               f"Please provide the SMARTS.\n"
@@ -75,14 +77,15 @@ def findstep2(reaction_name, final_product, step1_product, reactants):
             pred_prods = {}
             smarts_pattern = reaction_smarts[reaction_name]
             reaction = AllChem.ReactionFromSmarts(smarts_pattern)
-            reactant1 = step1_product # IMPORTANT
-            reactant2 = [x for x in reactants if x != step1_product][0] # IMPORTANT
+            reactant1 = Chem.MolFromSmiles(step1_product) # IMPORTANT
+            reactant2 = [Chem.MolFromSmiles(x) for x in reactants if x != step1_product][0] # IMPORTANT
             if reactant2 is None:
                 print('NO MATCH FOUND FOR REACTANT 2')
                 return NotImplementedError
             # Find all products from both combinations
             pred_prods['r1_r2'] = [x[0] for x in reaction.RunReactants((reactant1, reactant2)) if x is not None]
             pred_prods['r2_r1'] = [x[0] for x in reaction.RunReactants((reactant2, reactant1)) if x is not None]
+            found = False
             # Check tanimoto
             for key, value in pred_prods.items():
                 if len(value) == 0:
@@ -95,18 +98,64 @@ def findstep2(reaction_name, final_product, step1_product, reactants):
                         prod_fp = AllChem.GetMorganFingerprintAsBitVect(prod, radius=2, nBits=1024)
                         final_prod_fp = AllChem.GetMorganFingerprintAsBitVect(final_prod, radius=2, nBits=1024)
                         if FingerprintSimilarity(prod_fp, final_prod_fp) == 1:
+                            found = True
                             if key=='r1_r2':
-                                exact_reactant1 = step1_product
-                                exact_reactant2 = reactant2
+                                exact_reactant1 = None #step1_product
+                                exact_reactant2 = Chem.MolToSmiles(reactant2)
                             if key=='r2_r1':
-                                exact_reactant1 = reactant2
-                                exact_reactant2 = step1_product
+                                exact_reactant1 = Chem.MolToSmiles(reactant2)
+                                exact_reactant2 = None #step1_product
                             break
+            if found is False:
                 print('NO MATCH FOUND FOR THIS FINAL:', final_product)
                 print('REACTANTS: ', reactants)
         except Exception as e:
             print(e)
     return exact_reactant1, exact_reactant2
+
+def editstep2(df, step1_df):
+    """
+    Given a df of two-step route and df of successful beginning one steps, return a df with reaction info for 2nd step.
+    Since we don't have the elaborated products from step 1 yet, make barebones dataframe to then merge with elaborated
+    products.
+
+    INPUT:
+        df: dataframe with columns 'smiles', 'num_steps', 'reactants', 'rxn_order_first_to_last', 'reactants', 'dir_name'
+        step1_df: dataframe with columns 'smiles', 'num_steps', 'reactants', 'rxn_order_first_to_last', 'reactants', 'dir_name'
+
+    OUTPUT:
+        step2_output_df: dataframe with columns 'smiles', 'num_steps', 'rxn_order_first_to_last', 'reactant1_exact', 'reactant2_exact'
+    """
+    step2_output_df = pd.DataFrame(columns=['smiles', 'num_steps', 'rxn_order_first_to_last', 'dir_name', 'reactant1_exact', 'reactant2_exact'])
+    # Rename df['dir_name]'
+    df['dir_name'] = df['dir_name'].apply(lambda x: x.replace(':','_'))
+    success_step1 = step1_df.merge(df, how='left', on='dir_name', suffixes=("_first", "_full")) # first for first step, full for full route
+    assert len(success_step1) == len(step1_df)
+    for index, row in success_step1.iterrows():
+        reaction_name_step2 = ast.literal_eval(row['rxn_order_first_to_last_full'])[1].replace(' ', '_')
+        if reaction_name_step2 not in REACTIONS_NAMES:
+            print(f"Do not have SMARTS for this reaction: {reaction_name_step2}\n "
+                  f"Please provide the SMARTS.\n"
+                  f"Skipping {row['smiles_full']}...\n")
+            continue
+        final_product = row['smiles_full']
+        reactants = ast.literal_eval(row['reactants_full'])
+        step1_product = row['smiles_first']
+        # Either exact_reactant1 or exact_reactant2 must be None since that is the elaborated product.
+        exact_reactant1, exact_reactant2 = findstep2(reaction_name_step2, final_product, step1_product,reactants[1])
+        assert exact_reactant1 is None or exact_reactant2 is None, "One reactant must be the identified elaborated product."
+        # if both reactants are None and there are two required reactants for this rxn, don't store
+        if exact_reactant1 is None and exact_reactant2 is None:
+            if len(reactants[1]) == 2:
+                print('REACTANTS NOT FOUND')
+                continue
+        step2_output_df.loc[index, 'smiles'] = final_product
+        step2_output_df.loc[index, 'num_steps'] = 1
+        step2_output_df.loc[index, 'rxn_order_first_to_last'] = [reaction_name_step2]
+        step2_output_df.loc[index, 'dir_name'] = row['dir_name']
+        step2_output_df.loc[index, 'reactant1_exact'] = exact_reactant1
+        step2_output_df.loc[index, 'reactant2_exact'] = exact_reactant2
+    return step2_output_df
 
 def editstep1(df):
     """
@@ -114,29 +163,20 @@ def editstep1(df):
     the next. Make whole new dataframe.
 
     INPUT:
-        df: dataframe with columns SMILES, Reaction_name, Reactants
+        df: dataframe with columns smiles, rxn_order_first_to_last, reactants
 
     OUTPUT:
         step1_output_df: dataframe with columns 'smiles', 'num_steps', 'reactants', 'rxn_order_first_to_last', 'reactants', 'dir_name'
-        step2_output_df: dataframe with columns 'smiles', 'num_steps', 'reactants', 'rxn_order_first_to_last', 'reactants', 'dir_name'
     """
     step1_output_df = pd.DataFrame(columns=['smiles', 'num_steps', 'reactants', 'rxn_order_first_to_last', 'dir_name'])
-    step2_output_df = pd.DataFrame(columns=['smiles', 'num_steps', 'reactants', 'rxn_order_first_to_last', 'dir_name'])
     for index, row in df.iterrows():
         reaction_name = ast.literal_eval(row['rxn_order_first_to_last'])[0].replace(' ', '_')
-        reaction_name_step2 = ast.literal_eval(row['rxn_order_first_to_last'])[1].replace(' ', '_')
         if reaction_name not in REACTIONS_NAMES:
             print(f"Do not have SMARTS for this reaction: {reaction_name}\n "
                   f"Please provide the SMARTS.\n"
                   f"Skipping {row['smiles']}...\n")
             continue
-        if reaction_name_step2 not in REACTIONS_NAMES:
-            print(f"Do not have SMARTS for this reaction: {reaction_name_step2}\n "
-                  f"Please provide the SMARTS.\n"
-                  f"Skipping {row['smiles']}...\n")
-            continue
         try:
-            final_product = row['smiles']
             pred_prods = {}
             reactants = ast.literal_eval(row['reactants'])
             reactant1 = Chem.MolFromSmiles(reactants[0][0])
@@ -148,6 +188,7 @@ def editstep1(df):
             pred_prods['r1_r2'] = [x[0] for x in reaction.RunReactants((reactant1, reactant2)) if x is not None]
             pred_prods['r2_r1'] = [x[0] for x in reaction.RunReactants((reactant2, reactant1)) if x is not None]
             # Check tanimoto
+            found = False
             for key, value in pred_prods.items():
                 if len(value) == 0:
                     continue
@@ -166,15 +207,11 @@ def editstep1(df):
                                 step1_output_df.loc[index, 'rxn_order_first_to_last'] = [ast.literal_eval(row['rxn_order_first_to_last'])[0]]
                                 step1_output_df.loc[index, 'reactants'] = [reactants[0]]
                                 step1_output_df.loc[index, 'dir_name'] = row['dir_name']
+                                found = True
                                 break
+            if found is False:
                 print('NO MATCH FOUND FOR INDEX: ', index)
                 print('POSS_PROD: ', poss_prod_smiles)
-                exact_reactant1, exact_reactant2 = findstep2(reaction_name_step2, final_product, poss_prod_smiles, reactants[1])
-                step2_output_df.loc[index, 'smiles'] = final_product
-                step2_output_df.loc[index, 'num_steps'] = 2
-                step2_output_df.loc[index, 'rxn_order_first_to_last'] = [ast.literal_eval(row['rxn_order_first_to_last'])[1]]
-                step2_output_df.loc[index, 'reactant1_exact'] = exact_reactant1
-                step2_output_df.loc[index, 'reactant2_exact'] = exact_reactant2
         except Exception as e:
             print(e)
 
