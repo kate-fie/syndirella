@@ -33,7 +33,7 @@ def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_
     full_path = os.path.join(root_path, dir_path)
     print('full_path', full_path)
     # Find all csv files in the directory
-    csv_files = glob2.glob(os.path.join(full_path, '*.csv'))
+    csv_files = glob2.glob(os.path.join(full_path, '/*.csv'))
     # Find the elab and output files based on the unique identifiers
     for file in csv_files:
         if elab_identifier in file and output_identifier not in file:
