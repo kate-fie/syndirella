@@ -31,7 +31,7 @@ cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 
 pwd;
 export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-2/";
-export ELAB_SUFFIX="2_of_2.csv"
+export ELAB_SUFFIX="1_step"
 export OUTPUT_SUFFIX="output.csv"
 
 echo "Running format_to_hippo.py"
