@@ -26,8 +26,8 @@ def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_
         output_suffix: suffix of the output csv file
     """
     merged_data = []
-    print('elab_suffix', elab_identifier)
-    print('output_suffix', output_identifier)
+    print('elab_identifier', elab_identifier)
+    print('output_identifier', output_identifier)
     elab_path = ''
     output_path = ''
     full_path = os.path.join(root_path, dir_path)
@@ -38,7 +38,7 @@ def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_
     for file in csv_files:
         if elab_identifier in file and output_identifier not in file:
             elab_path = file
-        elif output_identifier in file and elab_identifier not in file:
+        elif output_identifier in file:
             output_path = file
     print('elab_path', elab_path)
     print('output_path', output_path)
