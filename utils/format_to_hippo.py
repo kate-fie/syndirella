@@ -36,6 +36,7 @@ def get_merged_data(root_path: str, dir_path: str, elab_suffix: str, output_suff
         elif output_suffix in file:
             output_path = file
     if elab_path == '' or output_path == '':
+        print(f"Could not find elab or output csv file for {dir_path}")
         return None
     elabdf = pd.read_csv(elab_path)
     # Check if elabdf is already merged by if it contains 'outcome' column
