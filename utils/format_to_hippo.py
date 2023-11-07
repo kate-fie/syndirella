@@ -37,6 +37,8 @@ def get_merged_data(root_path: str, dir_path: str, elab_suffix: str, output_suff
             elab_path = file
         elif output_suffix in file:
             output_path = file
+    print('elab_path', elab_path)
+    print('output_path', output_path)
     if elab_path == '' or output_path == '':
         print(f"Could not find elab or output csv file for {dir_path}")
         return None
