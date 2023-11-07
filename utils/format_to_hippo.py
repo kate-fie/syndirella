@@ -30,7 +30,7 @@ def get_merged_data(root_path: str, dir_path: str, elab_suffix: str, output_suff
     print('output_suffix', output_suffix)
     elab_path = ''
     output_path = ''
-    full_path = os.path.join(root_path, dir_path) + '/*.csv'
+    full_path = os.path.join(root_path, dir_path)
     print('full_path', full_path)
     # Find files that match the elab_suffix but do not contain the output_suffix
     for file in glob2.glob(os.path.join(full_path, f"*{elab_suffix}*")):
