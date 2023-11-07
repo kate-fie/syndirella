@@ -11,12 +11,12 @@ import ast
 def config_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--directory', required=True, help='Home directory for all the placements')
-    parser.add_argument('-e', '--elab', required=True, help='Suffix of the elab CSV file to merge')
-    parser.add_argument('-o', '--output', required=True, help='Suffix of the output CSV file to merge')
+    parser.add_argument('-e', '--elab', required=True, help='Identifier of the elab CSV file to merge')
+    parser.add_argument('-o', '--output', required=True, help='Identifier of the output CSV file to merge')
     return parser
 #-------------------------#
 
-def get_merged_data(root_path: str, dir_path: str, elab_suffix: str, output_suffix: str) -> pd.DataFrame:
+def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_identifier: str) -> pd.DataFrame:
     """
     Merges original elab csv and output csv from Fragmenstein
 
@@ -26,22 +26,20 @@ def get_merged_data(root_path: str, dir_path: str, elab_suffix: str, output_suff
         output_suffix: suffix of the output csv file
     """
     merged_data = []
-    print('elab_suffix', elab_suffix)
-    print('output_suffix', output_suffix)
+    print('elab_suffix', elab_identifier)
+    print('output_suffix', output_identifier)
     elab_path = ''
     output_path = ''
     full_path = os.path.join(root_path, dir_path)
     print('full_path', full_path)
-    # Find files that match the elab_suffix but do not contain the output_suffix
-    for file in glob2.glob(os.path.join(full_path, f"*{elab_suffix}*")):
-        if output_suffix not in file:
+    # Find all csv files in the directory
+    csv_files = glob2.glob(os.path.join(full_path, '*.csv'))
+    # Find the elab and output files based on the unique identifiers
+    for file in csv_files:
+        if elab_identifier in file and output_identifier not in file:
             elab_path = file
-            break  # Found the elab file, no need to continue the loop
-    # Find files that match the output_suffix but do not contain the elab_suffix
-    for file in glob2.glob(os.path.join(full_path, f"*{output_suffix}*")):
-        if elab_suffix not in file:
+        elif output_identifier in file and elab_identifier not in file:
             output_path = file
-            break  # Found the output file, no need to continue the loop
     print('elab_path', elab_path)
     print('output_path', output_path)
     if elab_path == '' or output_path == '':
