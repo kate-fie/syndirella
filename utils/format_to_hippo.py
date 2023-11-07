@@ -105,6 +105,10 @@ def main():
     num_success_dirs = 0
     num_success_elabs = 0
     for root, directories, files in os.walk(args.directory): # walk through home directory, where the directories of the elab compounds are
+        # Only interested in the top-level directories within args.directory
+        if root != args.directory:
+            # If the root is not the directory we started with, it's a subdirectory, so skip it
+            continue
         for directory in directories:
             if directory == 'success' or directory == 'output' or 'xtra_results' in directory:
                 continue
@@ -120,9 +124,10 @@ def main():
                 num_success_elabs += num_dirs
                 # Store success dirs paths and number of successes within each
                 total_success_dirs.append(success_dict)
+                print(f"SUCCESS: {directory}")
             except Exception as e:
                 print(f"Error in {directory}: {e}")
-                continue
+        break
     # Save results
     with open((os.path.join(args.directory, 'success_dirs.json')), 'w') as f:
         json.dump(total_success_dirs, f)
