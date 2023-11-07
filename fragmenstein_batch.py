@@ -20,7 +20,7 @@ def config_parser():
     parser.add_argument('-d', required=True, help='Home directory where csvs of elabs live.')
     parser.add_argument('-t', required=True, help='Directory of templates to use. Name must contain fragalysis ID.')
     parser.add_argument('-i', required=True, help='SDF of all fragment hits for target.')
-    parser.add_argument('--step', required=True, help='Step to place elabs for. Options: 1 or 2.')
+    parser.add_argument('--step', required=True, help='Step identifier to place elabs for. Must be present in csv name.')
     parser.add_argument('-o', required=False, help='Output csv to save logging results.')
     parser.add_argument('-p', required=False, help='Prefix for fragment names in sdf.')
     parser.add_argument('--n_cores', required=False, default=1, help='Number of cores to use.')
@@ -68,14 +68,10 @@ def find_frags_sdf(sdf_content, root, directory, cmpd_catalog, frag1, frag2, sdf
             f.write(frag_sdf_content)
     return frags_sdf
 
-def find_elabs_csv(root, directory, frag1, frag2, step, sdf_prefix=None, add_hit_names=False):
+def find_elabs_csv(root, directory, frag1, frag2, step_identifier, sdf_prefix=None, add_hit_names=False):
     """Finds the elabs csv for the given directory. Adds column 'hit_names' if needed."""
     for filename in os.listdir(os.path.join(root, directory)):
-        if step == '1':
-            suffix = '1_of_'
-        elif step == '2':
-            suffix = '2_of_'
-        if filename.endswith('.csv') and suffix in filename and not filename.startswith('.'):
+        if filename.endswith('.csv') and step_identifier in filename and not filename.startswith('.'):
             if add_hit_names:
                 csv_path = os.path.join(root, directory, filename)
                 print(csv_path)
@@ -159,7 +155,8 @@ def run_batch(**kwargs):
             print(frags_sdf)
             template_pdb = find_template_pdb(kwargs['t'], frag1)
             print(template_pdb)
-            elabs_csv, len = find_elabs_csv(root, directory, frag1, frag2, step=kwargs['step'], sdf_prefix=kwargs['p'], add_hit_names=True)
+            elabs_csv, len = find_elabs_csv(root, directory, frag1, frag2, step_identifier=kwargs['step'],
+                                            sdf_prefix=kwargs['p'], add_hit_names=True)
             print(elabs_csv)
             if frags_sdf is None:
                 print(f"Frags sdf not found for {directory}.")
