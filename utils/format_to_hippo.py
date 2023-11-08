@@ -13,17 +13,22 @@ def config_parser():
     parser.add_argument('-d', '--directory', required=True, help='Home directory for all the placements')
     parser.add_argument('-e', '--elab', required=True, help='Identifier of the elab CSV file to merge')
     parser.add_argument('-o', '--output', required=True, help='Identifier of the output CSV file to merge')
+    parser.add_argument('--rmsd', required=False, help='RMSD threshold to accept placement. All placements '
+                                                       'below this will be accepted. Default is 1.0.')
     return parser
 #-------------------------#
 
-def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_identifier: str) -> pd.DataFrame:
+def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_identifier: str, rmsd_thresh: float) -> pd.DataFrame:
     """
-    Merges original elab csv and output csv from Fragmenstein
+    Gets dataframe of successful placements based on rmsd threshold.
 
     INPUT:
         dir_path: directory path of the base compound
         elab_suffix: suffix of the elab csv file
         output_suffix: suffix of the output csv file
+    OUTPUT:
+        acceptable_data: DataFrame of the acceptable placements and its metadata
+        elab_path: path to the csv of elaborations
     """
     merged_data = []
     print('elab_identifier', elab_identifier)
@@ -48,15 +53,17 @@ def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_
         return None
     elabdf = pd.read_csv(elab_path)
     # Check if elabdf is already merged by if it contains 'outcome' column
-    if 'outcome' in elabdf.columns:
-        acceptable_data = elabdf[elabdf['outcome'] == 'acceptable']
-    else:
+    if 'outcome' not in elabdf.columns: # Merge
         outputdf = pd.read_csv(output_path, index_col=0)
-        merged_data = elabdf.merge(outputdf, on='smiles', how='left', suffixes=('_elab', '_output'))
-        #Save merged_data if not already created
-        merged_data.to_csv(elab_path, index=False)
-        #Drop rows where there is no output or an error
-        acceptable_data = merged_data[merged_data['outcome'] == 'acceptable']
+        elabdf = elabdf.merge(outputdf, on='smiles', how='left', suffixes=('_elab', '_output'))
+        elabdf.to_csv(elab_path, index=False)
+    assert 'comRMSD' in elabdf.columns, f"RMSD column does not exist! Please check {elab_path}"
+    # Find delta delta G column
+    ddg_identifier = 'ΔΔG'
+    for col in elabdf.columns:
+        if elabdf[col].eq(ddg_identifier).any():
+            ddg_column = col
+    acceptable_data = elabdf[(elabdf['comRMSD'] <= rmsd_thresh) & (elabdf[ddg_column] < 0)]
     return acceptable_data, elab_path
 
 
@@ -81,15 +88,22 @@ def move_folder(row, output_path, success_dir_path, df):
         # If it exists, print a message and continue
         print(f"Directory {destination} already exists, skipping.")
 
-def create_success_directories(root: str, dir_path: str, acceptable_data: pd.DataFrame, elab_path: str) -> Tuple[Dict[str, int], int]:
+def create_success_directories(root: str, dir: str, acceptable_data: pd.DataFrame, elab_path: str) -> Tuple[Dict[str, int], int]:
     """
-    Create success directories and return a mapping of paths to number of files.
+    Create success directories and return a mapping of paths to number of files. Will do an exhaustive check if success
+    dirs already exist and will move the ones that have not been created yet.
+
+    INPUT:
+        root: root path to parent directory
+        dir: directory name
+        acceptable_data: dataframe of the metadata of the acceptable placements
+        elab_path: path to the elaboration csv
     """
     success_dict = {}
-    success_dir_path = os.path.join(root, dir_path, 'success')
+    success_dir_path = os.path.join(root, dir, 'success')
     if not os.path.exists(success_dir_path):
         os.makedirs(success_dir_path)
-    output_path = os.path.join(root, dir_path) + '/output'
+    output_path = os.path.join(root, dir) + '/output'
     # move dirs in success.csv to success dir
     try:
         acceptable_data.apply(lambda row: move_folder(row, output_path=output_path, success_dir_path=success_dir_path, df=acceptable_data), axis=1)
@@ -97,11 +111,14 @@ def create_success_directories(root: str, dir_path: str, acceptable_data: pd.Dat
         print(e)
     num_dirs = len(os.listdir(success_dir_path))
     success_dict[success_dir_path] = num_dirs
-    # Merge success.csv with elab.csv
+    acceptable_data.to_csv(os.path.join(success_dir_path, 'success.csv'))
+    # Merge elabdf with acceptable data
     elabdf = pd.read_csv(elab_path)
     acceptable_data_subset = acceptable_data[['smiles', 'moved_to_success_dir']]
+    # Check if 'moved_to_success_dir' already exists, if so, delete since you're gonna merge it
+    if 'moved_to_success_dir' in elabdf.columns:
+        del elabdf['moved_to_success_dir']
     df = elabdf.merge(acceptable_data_subset, on='smiles', how='left', suffixes=('_elab', '_output'))
-    acceptable_data.to_csv(os.path.join(success_dir_path, 'success.csv'))
     # Save merged data
     df.to_csv(elab_path, index=False)
     return success_dict, num_dirs
@@ -123,7 +140,11 @@ def main():
                 continue
             # Merge csvs of the original csv and output csv from Fragmenstein (if not already done)
             try:
-                acceptable_data, elab_path = get_merged_data(root, directory, args.elab, args.output)
+                if args.rmsd is None:
+                    rmsd_thresh = 1.0
+                else:
+                    rmsd_thresh = float(args.rmsd)
+                acceptable_data, elab_path = get_merged_data(root, directory, args.elab, args.output, rmsd_thresh)
                 if acceptable_data is None:
                     print(f"{directory} DOES NOT CONTAIN THE ELAB AND OUTPUT CSV FILES")
                     continue # go onto next directory of elab compounds
