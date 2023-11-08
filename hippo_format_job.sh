@@ -33,15 +33,18 @@ pwd;
 export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-4/";
 export ELAB_SUFFIX="1_step"
 export OUTPUT_SUFFIX="output.csv"
+export RMSD_THRESHOLD=2.0
 
 echo "Running format_to_hippo.py"
 echo "HOME_DIR: $HOME_DIR"
 echo "ELAB_SUFFIX: $ELAB_SUFFIX"
 echo "OUTPUT_SUFFIX: $OUTPUT_SUFFIX"
+echo "RMSD_THRESHOLD: $RMSD_THRESHOLD"
 
 nice -19 python utils/format_to_hippo.py \
 -d $HOME_DIR \
 -e $ELAB_SUFFIX \
--o $OUTPUT_SUFFIX;
+-o $OUTPUT_SUFFIX \
+--rmsd $RMSD_THRESHOLD;
 
 echo 'COMPLETE'
