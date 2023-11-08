@@ -6,7 +6,8 @@ from typing import Dict, Any, Tuple
 import glob2
 import pandas as pd
 import shutil
-import ast
+import unicodedata
+from pathlib import Path
 
 def config_parser():
     parser = argparse.ArgumentParser()
@@ -52,17 +53,23 @@ def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_
         print(f"Could not find elab or output csv file for {dir_path}")
         return None
     elabdf = pd.read_csv(elab_path)
+    elabdf.drop_duplicates(inplace=True) # always drop duplicates
     # Check if elabdf is already merged by if it contains 'outcome' column
     if 'outcome' not in elabdf.columns: # Merge
         outputdf = pd.read_csv(output_path, index_col=0)
         elabdf = elabdf.merge(outputdf, on='smiles', how='left', suffixes=('_elab', '_output'))
-        elabdf.to_csv(elab_path, index=False)
+    elabdf.to_csv(elab_path, index=False)
     assert 'comRMSD' in elabdf.columns, f"RMSD column does not exist! Please check {elab_path}"
     # Find delta delta G column
-    ddg_identifier = 'ΔΔG'
+    #ddg_identifier = 'ΔΔG'
+    ddg_identifier = unicodedata.normalize('NFKC', '∆∆G')
+    ddg_column = None
     for col in elabdf.columns:
-        if elabdf[col].eq(ddg_identifier).any():
+        col = unicodedata.normalize('NFKC', col)
+        if ddg_identifier in col:
             ddg_column = col
+    if ddg_column is None:
+        print(f'∆∆G was not found! Please check {elab_path}...')
     acceptable_data = elabdf[(elabdf['comRMSD'] <= rmsd_thresh) & (elabdf[ddg_column] < 0)]
     return acceptable_data, elab_path
 
@@ -86,6 +93,7 @@ def move_folder(row, output_path, success_dir_path, df):
             print(f"Could not move {source} to {destination}: {e}")
     else:
         # If it exists, print a message and continue
+        df.at[row.name, 'moved_to_success_dir'] = True
         print(f"Directory {destination} already exists, skipping.")
 
 def create_success_directories(root: str, dir: str, acceptable_data: pd.DataFrame, elab_path: str) -> Tuple[Dict[str, int], int]:
@@ -115,12 +123,22 @@ def create_success_directories(root: str, dir: str, acceptable_data: pd.DataFram
     # Merge elabdf with acceptable data
     elabdf = pd.read_csv(elab_path)
     acceptable_data_subset = acceptable_data[['smiles', 'moved_to_success_dir']]
-    # Check if 'moved_to_success_dir' already exists, if so, delete since you're gonna merge it
+    elab_path2 = Path(elab_path)
+    success_path_identifier = '_success_moved'
+    # Check if 'moved_to_success_dir' already exists, if so, delete. Also delete suffix of
+    # success_moved since adding it again will be redundant.
     if 'moved_to_success_dir' in elabdf.columns:
         del elabdf['moved_to_success_dir']
+        # Remove the identifier from the stem
+        new_stem = elab_path2.stem.replace(success_path_identifier, '')
+        elab_path2 = elab_path2.with_name(new_stem + elab_path2.suffix)
     df = elabdf.merge(acceptable_data_subset, on='smiles', how='left', suffixes=('_elab', '_output'))
-    # Save merged data
-    df.to_csv(elab_path, index=False)
+    df.drop_duplicates(inplace=True)
+    success_dir_merge_path = elab_path2.with_stem(f"{elab_path2.stem}{success_path_identifier}")
+    # Save merged data to new csv
+    df.to_csv(success_dir_merge_path, index=False)
+    # Save elab dataframe to same path
+    elabdf.to_csv(elab_path, index=False)
     return success_dict, num_dirs
 
 #----------------------------#
