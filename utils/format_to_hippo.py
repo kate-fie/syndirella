@@ -159,7 +159,7 @@ def create_success_directories(root: str, dir: str, acceptable_data: pd.DataFram
                                                       df=acceptable_data, remove=remove), axis=1)
     except Exception as e:
         print(e)
-    num_dirs = len(os.listdir(success_dir_path))
+    num_dirs = sum(os.path.isdir(os.path.join(success_dir_path, i)) for i in os.listdir(success_dir_path))
     success_dict[success_dir_path] = num_dirs
     acceptable_data.to_csv(os.path.join(success_dir_path, 'success.csv'))
     # Merge elabdf with acceptable data
