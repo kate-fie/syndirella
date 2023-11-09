@@ -30,7 +30,7 @@ conda activate fragmenstein
 cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 
 pwd;
-#export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-4/";
+export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-1/";
 export ELAB_SUFFIX="1_step"
 export OUTPUT_SUFFIX="output.csv"
 export RMSD_THRESHOLD=2.0
