@@ -28,7 +28,6 @@ source /data/xchem-fragalysis/kfieseler/.bashrc
 conda activate fragmenstein
 
 cd /data/xchem-fragalysis/kfieseler/repos/elaborate
-git pull
 
 pwd;
 export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-1/";

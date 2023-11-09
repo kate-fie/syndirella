@@ -9,6 +9,7 @@ import shutil
 import unicodedata
 from pathlib import Path
 
+
 def config_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--directory', required=True, help='Home directory for all the placements')
@@ -16,10 +17,16 @@ def config_parser():
     parser.add_argument('-o', '--output', required=True, help='Identifier of the output CSV file to merge')
     parser.add_argument('--rmsd', required=False, help='RMSD threshold to accept placement. All placements '
                                                        'below this will be accepted. Default is 1.0.')
+    parser.add_argument('--remove', action='store_true', required=False,
+                        help='Remove the extra fragmenstein files when moving'
+                             'to success directory. Default is False.')
     return parser
-#-------------------------#
 
-def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_identifier: str, rmsd_thresh: float) -> pd.DataFrame:
+
+# -------------------------#
+
+def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_identifier: str,
+                    rmsd_thresh: float) -> pd.DataFrame:
     """
     Gets dataframe of successful placements based on rmsd threshold.
 
@@ -53,15 +60,15 @@ def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_
         print(f"Could not find elab or output csv file for {dir_path}")
         return None
     elabdf = pd.read_csv(elab_path)
-    elabdf.drop_duplicates(inplace=True) # always drop duplicates
+    elabdf.drop_duplicates(inplace=True)  # always drop duplicates
     # Check if elabdf is already merged by if it contains 'outcome' column
-    if 'outcome' not in elabdf.columns: # Merge
+    if 'outcome' not in elabdf.columns:  # Merge
         outputdf = pd.read_csv(output_path, index_col=0)
         elabdf = elabdf.merge(outputdf, on='smiles', how='left', suffixes=('_elab', '_output'))
     elabdf.to_csv(elab_path, index=False)
     assert 'comRMSD' in elabdf.columns, f"RMSD column does not exist! Please check {elab_path}"
     # Find delta delta G column
-    #ddg_identifier = 'ΔΔG'
+    # ddg_identifier = 'ΔΔG'
     ddg_identifier = unicodedata.normalize('NFKC', '∆∆G')
     ddg_column = None
     for col in elabdf.columns:
@@ -74,7 +81,18 @@ def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_
     return acceptable_data, elab_path
 
 
-def move_folder(row, output_path, success_dir_path, df):
+def move_folder(row, output_path, success_dir_path, df, remove: bool = True):
+    """
+    Moves the folder to the success dir. Also checks if the extra fragmenstein files are there, if so removes them.
+
+    :param row:
+    :param output_path:
+    :param success_dir_path: path to success directory
+    :param df:
+    :param remove: boolean if the extra fragmenstein files should be removed
+
+    :return:
+    """
     # Check if 'moved_to_success_dir' column exists in df, if not, add it
     if 'moved_to_success_dir' not in df.columns:
         df['moved_to_success_dir'] = False
@@ -95,8 +113,31 @@ def move_folder(row, output_path, success_dir_path, df):
         # If it exists, print a message and continue
         df.at[row.name, 'moved_to_success_dir'] = True
         print(f"Directory {destination} already exists, skipping.")
+    # Check if the extra fragmenstein files are there, if so remove them
+    if remove:
+        suffixes_to_keep = ['.minimised.json', '.holo_minimised.pdb', '.minimised.mol']
+        for root1, dirs, files in os.walk(success_dir_path):
+            for directory2 in dirs:
+                directory2_path = os.path.join(success_dir_path, directory2)
+                if not os.path.exists(directory2_path):
+                    print('THIS PATH DOES NOT EXIST', directory2_path)
+                    continue
+                for file in os.listdir(directory2_path):
+                    if not any(file.endswith(suffix) for suffix in suffixes_to_keep):
+                        file_path = os.path.join(success_dir_path, directory2, file)
+                        try:
+                            if os.path.isfile(file_path) or os.path.islink(file_path):
+                                os.unlink(file_path)
+                                print(f"Deleted file: {file_path}")
+                            elif os.path.isdir(file_path):
+                                shutil.rmtree(file_path)
+                                print(f"Deleted directory: {file_path}")
+                        except Exception as e:
+                            print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-def create_success_directories(root: str, dir: str, acceptable_data: pd.DataFrame, elab_path: str) -> Tuple[Dict[str, int], int]:
+
+def create_success_directories(root: str, dir: str, acceptable_data: pd.DataFrame, elab_path: str, remove: bool) -> Tuple[
+    Dict[str, int], int]:
     """
     Create success directories and return a mapping of paths to number of files. Will do an exhaustive check if success
     dirs already exist and will move the ones that have not been created yet.
@@ -114,7 +155,8 @@ def create_success_directories(root: str, dir: str, acceptable_data: pd.DataFram
     output_path = os.path.join(root, dir) + '/output'
     # move dirs in success.csv to success dir
     try:
-        acceptable_data.apply(lambda row: move_folder(row, output_path=output_path, success_dir_path=success_dir_path, df=acceptable_data), axis=1)
+        acceptable_data.apply(lambda row: move_folder(row, output_path=output_path, success_dir_path=success_dir_path,
+                                                      df=acceptable_data, remove=remove), axis=1)
     except Exception as e:
         print(e)
     num_dirs = len(os.listdir(success_dir_path))
@@ -141,14 +183,16 @@ def create_success_directories(root: str, dir: str, acceptable_data: pd.DataFram
     elabdf.to_csv(elab_path, index=False)
     return success_dict, num_dirs
 
-#----------------------------#
+
+# ----------------------------#
 def main():
     parser = config_parser()
     args = parser.parse_args()
     total_success_dirs = []
     num_success_dirs = 0
     num_success_elabs = 0
-    for root, directories, files in os.walk(args.directory): # walk through home directory, where the directories of the elab compounds are
+    for root, directories, files in os.walk(
+            args.directory):  # walk through home directory, where the directories of the elab compounds are
         # Only interested in the top-level directories within args.directory
         if root != args.directory:
             # If the root is not the directory we started with, it's a subdirectory, so skip it
@@ -165,9 +209,9 @@ def main():
                 acceptable_data, elab_path = get_merged_data(root, directory, args.elab, args.output, rmsd_thresh)
                 if acceptable_data is None:
                     print(f"{directory} DOES NOT CONTAIN THE ELAB AND OUTPUT CSV FILES")
-                    continue # go onto next directory of elab compounds
+                    continue  # go onto next directory of elab compounds
                 # Create success dirs
-                success_dict, num_dirs = create_success_directories(root, directory, acceptable_data, elab_path)
+                success_dict, num_dirs = create_success_directories(root, directory, acceptable_data, elab_path, args.remove)
                 num_success_dirs += 1
                 num_success_elabs += num_dirs
                 # Store success dirs paths and number of successes within each
@@ -179,6 +223,7 @@ def main():
     # Save results
     with open((os.path.join(args.directory, 'success_dirs.json')), 'w') as f:
         json.dump(total_success_dirs, f)
+
 
 if __name__ == "__main__":
     main()
