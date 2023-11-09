@@ -43,7 +43,7 @@ def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_
     print('csv_files', csv_files)
     # Find the elab and output files based on the unique identifiers
     for file in csv_files:
-        if elab_identifier in file and output_identifier not in file:
+        if elab_identifier in file and output_identifier not in file and 'success_moved' not in file:
             elab_path = file
         elif output_identifier in file:
             output_path = file
