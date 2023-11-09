@@ -45,6 +45,7 @@ nice -19 python utils/format_to_hippo.py \
 -d $HOME_DIR \
 -e $ELAB_SUFFIX \
 -o $OUTPUT_SUFFIX \
---rmsd $RMSD_THRESHOLD;
+--rmsd $RMSD_THRESHOLD \
+--remove;
 
 echo 'COMPLETE'
