@@ -27,6 +27,7 @@ def config_parser():
     parser.add_argument('-l', '--log_path', required=False, help='Path to the log directory.')
     parser.add_argument('--cutoff', action='store_true', required=False, help='Cutoff of 10,000 for placing elabs.')
     parser.add_argument('--all_csv', required=False, help='CSV of all elabs for elaboration campaign.')
+    parser.add_argument('--wictor', action='store_true', required=False, help='Use if running on with Wictor in Fragmenstein')
     return parser
 
 def shorten_elabs_csv(elabs_csv, len):
@@ -171,11 +172,18 @@ def run_batch(**kwargs):
                         print(f"CUTTING {directory} because it has more than 10,000 elabs.")
                         elabs_csv = shorten_elabs_csv(elabs_csv, len)
                     print(f"PLACING {directory}.")
-                    subprocess.run(
-                        ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
-                         "--in-table", elabs_csv, "--output",
-                         os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
-                         "--cores", str(n_cores), "--verbose"])
+                    if kwargs['wictor']:
+                        subprocess.run(
+                            ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
+                             "--in-table", elabs_csv, "--output",
+                             os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
+                             "--cores", str(n_cores), "--verbose", "--victor", "Wictor"])
+                    else:
+                        subprocess.run(
+                            ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
+                             "--in-table", elabs_csv, "--output",
+                             os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
+                             "--cores", str(n_cores), "--verbose"])
                     for filename in os.listdir(os.path.join(root, directory)):
                         if filename.endswith('output.csv') and not filename.startswith('.'):
                             df = pd.read_csv(os.path.join(root, directory, filename), encoding='ISO-8859-1', index_col=0)
