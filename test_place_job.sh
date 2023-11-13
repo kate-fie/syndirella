@@ -35,6 +35,7 @@ export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/tests/pyrose
 export INPUT_SDF="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/fragalysis/D68EV3CPROA_combined.sdf";
 export N_CORES=$(cat /proc/cpuinfo | grep processor | wc -l)
 export STEP="1_step"
+export ALL_CSV="data/xchem-fragalysis/kfieseler/D68EV3CPROA/routes_data/D68EV3CPROA_enumeration_oct10_first_route_1_step_OUTPUT.csv"
 
 echo "Running fragmenstein_batch.py"
 echo "HOME_DIR: $HOME_DIR"
@@ -42,6 +43,7 @@ echo "TEMPLATE_DIR: $TEMPLATE_DIR"
 echo "INPUT_SDF: $INPUT_SDF"
 echo "N_CORES: $N_CORES"
 echo "STEP: $STEP"
+echo "ALL_CSV: $ALL_CSV"
 
 nice -19 python fragmenstein_batch.py \
 -d $HOME_DIR \
@@ -50,6 +52,7 @@ nice -19 python fragmenstein_batch.py \
 -p "D68EV3CPROA-" \
 --step $STEP \
 --n_cores $(($N_CORES - 1)) \
+--all_csv $ALL_CSV \
 --cutoff;
 
 echo 'COMPLETE'
