@@ -243,6 +243,7 @@ def main():
     if settings['log_path'] is None:
         # run
         try:
+            print('RUNNING')
             run_batch(**settings)
         except Exception as e:
             print(f"Error: {e}")
