@@ -43,7 +43,7 @@ echo "INPUT_SDF: $INPUT_SDF"
 echo "N_CORES: $N_CORES"
 echo "STEP: $STEP"
 
-time nice -19 python fragmenstein_batch.py \
+nice -19 python fragmenstein_batch.py \
 -d $HOME_DIR \
 -t $TEMPLATE_DIR \
 -i $INPUT_SDF \
