@@ -174,18 +174,22 @@ def run_batch(**kwargs):
                         elabs_csv = shorten_elabs_csv(elabs_csv, len)
                     if kwargs['wictor']:
                         print(f"PLACING {directory} WITH WICTOR.")
-                        subprocess.run(
-                            ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
+                        command = ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
                              "--in-table", elabs_csv, "--output",
                              os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
-                             "--cores", str(n_cores), "--verbose", "--victor", "Wictor"])
+                             "--cores", str(n_cores), "--verbose", "--victor", "Wictor"]
+                        command_str = ' '.join(command)
+                        print(f"Executing command: {command_str}")
+                        subprocess.run(command)
                     else:
                         print(f"PLACING {directory}.")
-                        subprocess.run(
-                            ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
+                        command = ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
                              "--in-table", elabs_csv, "--output",
                              os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
-                             "--cores", str(n_cores), "--verbose"])
+                             "--cores", str(n_cores), "--verbose"]
+                        command_str = ' '.join(command)
+                        print(f"Executing command: {command_str}")
+                        subprocess.run(command)
                     for filename in os.listdir(os.path.join(root, directory)):
                         if filename.endswith('output.csv') and not filename.startswith('.'):
                             df = pd.read_csv(os.path.join(root, directory, filename), encoding='ISO-8859-1', index_col=0)
