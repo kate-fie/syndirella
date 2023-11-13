@@ -172,14 +172,15 @@ def run_batch(**kwargs):
                     if kwargs['cutoff'] and len > 10000:
                         print(f"CUTTING {directory} because it has more than 10,000 elabs.")
                         elabs_csv = shorten_elabs_csv(elabs_csv, len)
-                    print(f"PLACING {directory}.")
                     if kwargs['wictor']:
+                        print(f"PLACING {directory} WITH WICTOR.")
                         subprocess.run(
                             ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
                              "--in-table", elabs_csv, "--output",
                              os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
                              "--cores", str(n_cores), "--verbose", "--victor", "Wictor"])
                     else:
+                        print(f"PLACING {directory}.")
                         subprocess.run(
                             ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
                              "--in-table", elabs_csv, "--output",
