@@ -133,6 +133,7 @@ def run_batch(**kwargs):
 
     for root, dirs, files in os.walk(kwargs['d']):
         for directory in dirs:
+            print('DIRECTORY', directory)
             if directory == 'output':
                 exit()
             done = False
