@@ -134,18 +134,18 @@ def run_batch(**kwargs):
     for root, dirs, files in os.walk(kwargs['d']):
         for directory in dirs:
             print('DIRECTORY', directory)
-            if directory == 'output':
-                exit()
-            done = False
-            if "xtra_results" in directory or "logs" in directory:
-                exit()
-            if "," in directory:
-                continue
-            for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
-                if 'output' in sub_dir:
-                    done=True
-            if done:
-                continue
+            # if directory == 'output':
+            #     exit()
+            # done = False
+            # if "xtra_results" in directory or "logs" in directory:
+            #     exit()
+            # if "," in directory:
+            #     continue
+            # for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
+            #     if 'output' in sub_dir:
+            #         done=True
+            # if done:
+            #     continue
             print(f"DIRECTORY: {directory}")
             frag1 = directory.split("_")[2]+"_"+directory.split("_")[3]
             frag2 = directory.split("_")[4]+"_"+directory.split("_")[5]
