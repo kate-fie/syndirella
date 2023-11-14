@@ -31,7 +31,7 @@ cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 
 pwd;
 export TEMPLATE_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/apo_desolv/";
-export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/tests/pyrosetta_place/";
+export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/tests/rdkit_place/";
 export INPUT_SDF="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/fragalysis/D68EV3CPROA_combined.sdf";
 export N_CORES=$(cat /proc/cpuinfo | grep processor | wc -l)
 export STEP="1_step"
@@ -53,6 +53,7 @@ time nice -19 python fragmenstein_batch.py \
 --step $STEP \
 --n_cores $(($N_CORES - 1)) \
 --all_csv $ALL_CSV \
---cutoff;
+--cutoff \
+--wictor;
 
 echo 'COMPLETE'
