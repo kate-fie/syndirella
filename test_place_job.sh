@@ -45,7 +45,7 @@ echo "N_CORES: $N_CORES"
 echo "STEP: $STEP"
 echo "ALL_CSV: $ALL_CSV"
 
-nice -19 python fragmenstein_batch.py \
+time nice -19 python fragmenstein_batch.py \
 -d $HOME_DIR \
 -t $TEMPLATE_DIR \
 -i $INPUT_SDF \

@@ -101,6 +101,15 @@ def update_placed_acceptable(df, directory, num_accept_value):
     df.loc[matches_indices, 'placed_acceptable'] = num_accept_value
     return df
 
+def find_p1_frag(frag1, frag2):
+    """Finds the frag in the P1 site out of the 2."""
+    frag1 = frag1.split("_")[0]
+    frag2 = frag2.split("_")[0]
+    if frag1 == frag2:
+        return frag1
+    else:
+        return None
+
 def run_batch(**kwargs):
     """
     Runs:
@@ -155,6 +164,7 @@ def run_batch(**kwargs):
             #frags_sdf = find_frags_sdf(sdf_content, root, directory, cmpd_catalog, frag1, frag2, sdf_prefix=kwargs['p'])
             frags_sdf = sdf_file_path
             print(frags_sdf)
+
             template_pdb = find_template_pdb(kwargs['t'], frag1)
             print(template_pdb)
             elabs_csv, len = find_elabs_csv(root, directory, frag1, frag2, step_identifier=kwargs['step'],
