@@ -25,16 +25,16 @@ def config_parser():
     parser.add_argument('-p', required=False, help='Prefix for fragment names in sdf.')
     parser.add_argument('--n_cores', required=False, default=1, help='Number of cores to use.')
     parser.add_argument('-l', '--log_path', required=False, help='Path to the log directory.')
-    parser.add_argument('--cutoff', action='store_true', required=False, help='Cutoff of 10,000 for placing elabs.')
+    parser.add_argument('--cutoff', action='store_true', required=False, help='Cutoff of 5,000 for placing elabs.')
     parser.add_argument('--all_csv', required=False, help='CSV of all elabs for elaboration campaign.')
     parser.add_argument('--wictor', action='store_true', required=False, help='Use if running on with Wictor in Fragmenstein')
     return parser
 
 def shorten_elabs_csv(elabs_csv, len):
-    """Shortens the elabs csv to 10,000 rows."""
+    """Shortens the elabs csv to 5,000 rows."""
     df = pd.read_csv(elabs_csv, encoding='ISO-8859-1')
-    df = df[:10000]
-    new_path = elabs_csv.replace(f'{len}.csv','') + "10000.csv"
+    df = df[:5000]
+    new_path = elabs_csv.replace(f'{len}_2_of_2.csv','') + "5000_2_of_2.csv"
     df.to_csv(new_path, index=True)
     return new_path
 
@@ -143,18 +143,18 @@ def run_batch(**kwargs):
     for root, dirs, files in os.walk(kwargs['d']):
         for directory in dirs:
             print('DIRECTORY', directory)
-            # if directory == 'output':
-            #     exit()
-            # done = False
-            # if "xtra_results" in directory or "logs" in directory:
-            #     exit()
-            # if "," in directory:
-            #     continue
-            # for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
-            #     if 'output' in sub_dir:
-            #         done=True
-            # if done:
-            #     continue
+            if directory == 'output':
+                exit()
+            done = False
+            if "xtra_results" in directory or "logs" in directory:
+                exit()
+            if "," in directory:
+                continue
+            for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
+                if 'output' in sub_dir:
+                    done=True
+            if done:
+                continue
             print(f"DIRECTORY: {directory}")
             frag1 = directory.split("_")[2]+"_"+directory.split("_")[3]
             frag2 = directory.split("_")[4]+"_"+directory.split("_")[5]
@@ -179,8 +179,8 @@ def run_batch(**kwargs):
             if frags_sdf and template_pdb and elabs_csv:
                 os.chdir(os.path.join(root, directory)) # change to directory
                 try:
-                    if kwargs['cutoff'] and len > 10000:
-                        print(f"CUTTING {directory} because it has more than 10,000 elabs.")
+                    if kwargs['cutoff'] and len > 5000:
+                        print(f"CUTTING {directory} because it has more than 5,000 elabs.")
                         elabs_csv = shorten_elabs_csv(elabs_csv, len)
                     if kwargs['wictor']:
                         print(f"PLACING {directory} WITH WICTOR.")
