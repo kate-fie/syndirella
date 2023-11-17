@@ -9,6 +9,11 @@ import shutil
 import unicodedata
 from pathlib import Path
 
+# TODO:
+# 1. Instead of searching for directory with output.csv, just search for directory with output folder. Then count
+#    the number of directories in the output folder. This will be the number of successes.
+# 2. Add the total number of compounds placed by Fragmenstein to the success_dirs.json file as a tuple. So in it it will
+#    be {'success_dir_path': (num_successes, total_num_compounds_placed)}
 
 def config_parser():
     parser = argparse.ArgumentParser()
