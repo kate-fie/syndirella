@@ -1,7 +1,20 @@
 #!/bin/bash
 
-# USAGE:
+###########################
+# USAGE WITH RUN_JOB.ENV:
+# source run_job.env <home_directory_path>
+# WHICH RUNS THIS SCRIPT:
 # ./cleanup_script.sh <home_directory_path>
+###########################
+
+# Check if HOME_DIRECTORY_PATH environment variable is set
+if [ -z "$HOME_DIRECTORY_PATH" ]; then
+    echo "HOME_DIRECTORY_PATH is not set. Make sure to run this script through run_job.env."
+    exit 1
+fi
+
+home_dir_path="$HOME_DIRECTORY_PATH"
+suffixes_to_keep=( '.minimised.json' '.holo_minimised.pdb' '.minimised.mol' )
 
 # Function to check if a file has a suffix to keep
 function has_suffix_to_keep {
@@ -35,15 +48,6 @@ function remove_files_and_directories {
         done
     fi
 }
-
-# Check if the home directory path argument is provided
-if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 <home_directory_path>"
-    exit 1
-fi
-
-home_dir_path="$1"
-suffixes_to_keep=( '.minimised.json' '.holo_minimised.pdb' '.minimised.mol' )
 
 # Start removing files and directories
 read -p "This script will remove files and directories. Proceed? (y/n): " confirm
