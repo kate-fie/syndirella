@@ -19,12 +19,44 @@ def config_parser():
     parser.add_argument('--remove', action='store_true', required=False,
                         help='Remove the extra fragmenstein files when moving'
                              'to success directory. Default is False.')
+    parser.add_argument('--orig_elab', required=True, help='Identifier of where to look for original elab csv. '
+                                                           'Done if elab csv does not exist if it was accidentally deleted.')
     return parser
 
 
 # -------------------------#
 
-def create_output_csv(root_path: str, dir_path: str):
+def find_create_elab_csv(root_path: str, dir_path: str, orig_elabs: str):
+    """
+    Creates elab.csv if it does not exist and there is an output folder. Should name it differently to avoid
+    overwriting the original elab.csv.
+
+    INPUT:
+        root_path: root path to parent directory
+        dir_path: directory name
+    """
+    print('elab_identifier', elab_identifier)
+    print('output_identifier', output_identifier)
+    elab_path = ''
+    output_path = ''
+    full_path = os.path.join(root_path, dir_path)
+    print('full_path', full_path)
+    # Find all csv files in the directory
+    csv_files = glob2.glob(os.path.join(full_path, '*.csv'))
+    print('csv_files', csv_files)
+    # Find the elab and output files based on the unique identifiers
+    for file in csv_files:
+        if elab_identifier in file and output_identifier not in file and 'success_moved' not in file:
+            elab_path = file
+        elif output_identifier in file:
+            output_path = file
+    print('elab_path', elab_path)
+    print('output_path', output_path)
+    if elab_path == '' or output_path == '':
+        print(f"Could not find elab or output csv file for {dir_path}")
+        return None
+
+def find_create_output_csv(root_path: str, dir_path: str):
     """
     Creates output.csv if it does not exist and there is an output folder. Should name it differently to avoid
     overwriting the original output.csv from Fragmenstein.
@@ -47,40 +79,20 @@ def create_output_csv(root_path: str, dir_path: str):
 
 
 
-def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_identifier: str,
+def get_merged_data(root_path: str, dir_path: str, elab_path: str, output_path: str,
                     rmsd_thresh: float) -> pd.DataFrame:
     """
     Gets dataframe of successful placements based on rmsd threshold.
 
     INPUT:
         dir_path: directory path of the base compound
-        elab_suffix: suffix of the elab csv file
-        output_suffix: suffix of the output csv file
+        elab_path: path to the elab csv file
+        output_path: path to the output csv file
     OUTPUT:
         acceptable_data: DataFrame of the acceptable placements and its metadata
         elab_path: path to the csv of elaborations
     """
     merged_data = []
-    print('elab_identifier', elab_identifier)
-    print('output_identifier', output_identifier)
-    elab_path = ''
-    output_path = ''
-    full_path = os.path.join(root_path, dir_path)
-    print('full_path', full_path)
-    # Find all csv files in the directory
-    csv_files = glob2.glob(os.path.join(full_path, '*.csv'))
-    print('csv_files', csv_files)
-    # Find the elab and output files based on the unique identifiers
-    for file in csv_files:
-        if elab_identifier in file and output_identifier not in file and 'success_moved' not in file:
-            elab_path = file
-        elif output_identifier in file:
-            output_path = file
-    print('elab_path', elab_path)
-    print('output_path', output_path)
-    if elab_path == '' or output_path == '':
-        print(f"Could not find elab or output csv file for {dir_path}")
-        return None
     elabdf = pd.read_csv(elab_path)
     elabdf.drop_duplicates(inplace=True)  # always drop duplicates
     # Check if elabdf is already merged by if it contains 'outcome' column
@@ -230,8 +242,9 @@ def main():
                 else:
                     rmsd_thresh = float(args.rmsd)
                 # Create output.csv if it does not exist
-                find_create_output_csv(root, directory)
-                acceptable_data, elab_path = get_merged_data(root, directory, args.elab, args.output, rmsd_thresh)
+                output_path = find_create_output_csv(root, directory, args.output, args.elab)
+                elab_path = find_create_elab_csv(root, directory, args.output, args.elab)
+                acceptable_data, elab_path = get_merged_data(root, directory, output_path, elab_path, rmsd_thresh)
                 if acceptable_data is None:
                     print(f"{directory} DOES NOT CONTAIN THE ELAB AND OUTPUT CSV FILES")
                     continue  # go onto next directory of elab compounds
