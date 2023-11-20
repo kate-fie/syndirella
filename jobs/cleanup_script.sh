@@ -7,11 +7,11 @@
 # ./cleanup_script.sh <home_directory_path>
 ###########################
 
-# Check if HOME_DIRECTORY_PATH environment variable is set
-if [ -z "$HOME_DIRECTORY_PATH" ]; then
-    echo "HOME_DIRECTORY_PATH is not set. Make sure to run this script through run_cleanup.env."
-    exit 1
-fi
+## Check if HOME_DIRECTORY_PATH environment variable is set
+#if [ -z "$HOME_DIRECTORY_PATH" ]; then
+#    echo "HOME_DIRECTORY_PATH is not set. Make sure to run this script through run_cleanup.env."
+#    exit 1
+#fi
 
 home_dir_path="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-1"
 suffixes_to_keep=( '.minimised.json' '.holo_minimised.pdb' '.minimised.mol' )
