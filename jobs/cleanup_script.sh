@@ -2,14 +2,14 @@
 
 ###########################
 # USAGE WITH RUN_JOB.ENV:
-# source run_job.env <home_directory_path>
+# source run_cleanup.env <home_directory_path>
 # WHICH RUNS THIS SCRIPT:
 # ./cleanup_script.sh <home_directory_path>
 ###########################
 
 # Check if HOME_DIRECTORY_PATH environment variable is set
 if [ -z "$HOME_DIRECTORY_PATH" ]; then
-    echo "HOME_DIRECTORY_PATH is not set. Make sure to run this script through run_job.env."
+    echo "HOME_DIRECTORY_PATH is not set. Make sure to run this script through run_cleanup.env."
     exit 1
 fi
 
