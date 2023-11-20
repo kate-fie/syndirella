@@ -13,6 +13,8 @@
 #    exit 1
 #fi
 
+#!/bin/bash
+
 home_dir_path="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-1"
 suffixes_to_keep=( '.minimised.json' '.holo_minimised.pdb' '.minimised.mol' )
 
@@ -27,20 +29,15 @@ function has_suffix_to_keep {
     return 1  # No matching suffix found
 }
 
-# Function to remove files and directories with user confirmation
+# Function to remove files and directories without user confirmation
 function remove_files_and_directories {
     local path="$1"
     if [[ -d "$path" ]]; then
         for file in "$path"/*; do
             if [[ -f "$file" ]]; then
                 if ! has_suffix_to_keep "$file"; then
-                    read -p "Delete file '$file'? (y/n): " choice
-                    if [[ "$choice" == "y" ]]; then
-                        rm "$file"
-                        echo "Deleted file: $file"
-                    else
-                        echo "Skipped file: $file"
-                    fi
+                    rm "$file"
+                    echo "Deleted file: $file"
                 fi
             elif [[ -d "$file" ]]; then
                 remove_files_and_directories "$file"
@@ -49,11 +46,6 @@ function remove_files_and_directories {
     fi
 }
 
-# Start removing files and directories
-read -p "This script will remove files and directories. Proceed? (y/n): " confirm
-if [[ "$confirm" == "y" ]]; then
-    remove_files_and_directories "$home_dir_path"
-    echo "Cleanup complete."
-else
-    echo "Cleanup aborted."
-fi
+# Start removing files and directories without user confirmation
+remove_files_and_directories "$home_dir_path"
+echo "Cleanup complete."
