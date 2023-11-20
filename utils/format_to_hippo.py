@@ -9,19 +9,13 @@ import shutil
 import unicodedata
 from pathlib import Path
 
-# TODO:
-# 1. Instead of searching for directory with output.csv, just search for directory with output folder. Then count
-#    the number of directories in the output folder. This will be the number of successes.
-# 2. Add the total number of compounds placed by Fragmenstein to the success_dirs.json file as a tuple. So in it it will
-#    be {'success_dir_path': (num_successes, total_num_compounds_placed)}
-
 def config_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--directory', required=True, help='Home directory for all the placements')
     parser.add_argument('-e', '--elab', required=True, help='Identifier of the elab CSV file to merge')
     parser.add_argument('-o', '--output', required=True, help='Identifier of the output CSV file to merge')
     parser.add_argument('--rmsd', required=False, help='RMSD threshold to accept placement. All placements '
-                                                       'below this will be accepted. Default is 1.0.')
+                                                       'below this will be accepted. Default is 2.0.')
     parser.add_argument('--remove', action='store_true', required=False,
                         help='Remove the extra fragmenstein files when moving'
                              'to success directory. Default is False.')
@@ -29,6 +23,29 @@ def config_parser():
 
 
 # -------------------------#
+
+def create_output_csv(root_path: str, dir_path: str):
+    """
+    Creates output.csv if it does not exist and there is an output folder. Should name it differently to avoid
+    overwriting the original output.csv from Fragmenstein.
+
+    INPUT:
+        root_path: root path to parent directory
+        dir_path: directory name
+    """
+    output_path = os.path.join(root_path, dir_path) + '/output'
+    if not os.path.exists(output_path):
+        print(f"{output_path} DOES NOT EXIST")
+        return
+    output_csv_path = os.path.join(root_path, dir_path, 'output.csv')
+    if not os.path.exists(output_csv_path):
+        print(f"{output_csv_path} DOES NOT EXIST. MAKING ONE NOW...")
+        temp_output_csv_path = os.path.join(root_path, dir_path, 'temp_output.csv')
+        # TODO: MAKE OUTPUT CSV SAME FORMAT AS FRAGMENSTEIN IN fragmenstein/laboratory/_base.py
+
+        return
+
+
 
 def get_merged_data(root_path: str, dir_path: str, elab_identifier: str, output_identifier: str,
                     rmsd_thresh: float) -> pd.DataFrame:
@@ -205,12 +222,15 @@ def main():
         for directory in directories:
             if directory == 'success' or directory == 'output' or 'xtra_results' in directory:
                 continue
+            # directory = name of the elab compound
             # Merge csvs of the original csv and output csv from Fragmenstein (if not already done)
             try:
                 if args.rmsd is None:
-                    rmsd_thresh = 1.0
+                    rmsd_thresh = 2.0
                 else:
                     rmsd_thresh = float(args.rmsd)
+                # Create output.csv if it does not exist
+                find_create_output_csv(root, directory)
                 acceptable_data, elab_path = get_merged_data(root, directory, args.elab, args.output, rmsd_thresh)
                 if acceptable_data is None:
                     print(f"{directory} DOES NOT CONTAIN THE ELAB AND OUTPUT CSV FILES")
