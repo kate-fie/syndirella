@@ -34,7 +34,7 @@ def shorten_elabs_csv(elabs_csv, len):
     """Shortens the elabs csv to 5,000 rows."""
     df = pd.read_csv(elabs_csv, encoding='ISO-8859-1')
     df = df[:5000]
-    new_path = elabs_csv.replace(f'{len}_2_of_2.csv','') + "5000_2_of_2.csv"
+    new_path = elabs_csv.replace(f'{len}.csv','') + "5000.csv"
     df.to_csv(new_path, index=True)
     return new_path
 
@@ -148,13 +148,12 @@ def run_batch(**kwargs):
             done = False
             if "xtra_results" in directory or "logs" in directory:
                 exit()
-            if "," in directory:
-                continue
-            for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
-                if 'output' in sub_dir:
-                    done=True
-            if done:
-                continue
+            # REMOVING THIS BECAUSE I THINK IT IS UNNECESSARY
+            # for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
+            #     if 'output' in sub_dir:
+            #         done=True
+            # if done:
+            #     continue
             print(f"DIRECTORY: {directory}")
             frag1 = directory.split("_")[2]+"_"+directory.split("_")[3]
             frag2 = directory.split("_")[4]+"_"+directory.split("_")[5]
