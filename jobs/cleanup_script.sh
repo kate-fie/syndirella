@@ -15,7 +15,7 @@
 
 #!/bin/bash
 
-home_dir_path="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-4"
+home_dir_path="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/2_step"
 suffixes_to_keep=( '.minimised.json' '.holo_minimised.pdb' '.minimised.mol' )
 
 # Function to check if a file has a suffix to keep
