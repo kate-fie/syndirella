@@ -2,7 +2,7 @@
 
 ###########################
 # USAGE WITH RUN_JOB.ENV:
-# source run_cleanup.env <home_directory_path>
+# source run_cleanup.env <home_directory_path> # NOT WORKING YET....#
 # WHICH RUNS THIS SCRIPT:
 # ./cleanup_script.sh <home_directory_path>
 ###########################
@@ -13,7 +13,7 @@ if [ -z "$HOME_DIRECTORY_PATH" ]; then
     exit 1
 fi
 
-home_dir_path="$HOME_DIRECTORY_PATH"
+home_dir_path="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/1_step_1-1"
 suffixes_to_keep=( '.minimised.json' '.holo_minimised.pdb' '.minimised.mol' )
 
 # Function to check if a file has a suffix to keep
