@@ -148,12 +148,12 @@ def run_batch(**kwargs):
             done = False
             if "xtra_results" in directory or "logs" in directory:
                 exit()
-            # REMOVING THIS BECAUSE I THINK IT IS UNNECESSARY
-            # for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
-            #     if 'output' in sub_dir:
-            #         done=True
-            # if done:
-            #     continue
+            for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
+                if 'output' in sub_dir:
+                    done=True
+                    print('OUTPUT IS FOUND, SKIPPING')
+            if done:
+                continue
             print(f"DIRECTORY: {directory}")
             frag1 = directory.split("_")[2]+"_"+directory.split("_")[3]
             frag2 = directory.split("_")[4]+"_"+directory.split("_")[5]
