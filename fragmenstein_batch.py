@@ -33,13 +33,11 @@ def config_parser():
 
 
 def extract_info(directory):
+    """Extracts the cmpd_catalog, frag1, and frag2 from the directory name."""
     # Define a regular expression pattern to capture the cmpd_catalog, frag1, and frag2
     pattern = r'(.+?)_(x\d+_\d+[AB])_(x\d+_\d+[AB])'
-
-
     # Use re.search to find the first match in the input string
     match = re.search(pattern, directory)
-
     if match:
         # Extract the cmpd_catalog, frag1, and frag2 from the matched groups
         cmpd_catalog, frag1, frag2 = match.groups()
@@ -170,15 +168,10 @@ def run_batch(**kwargs):
                 if 'output' in sub_dir:
                     done=True
                     print('OUTPUT IS FOUND, SKIPPING')
-            # if done:
-            #     continue
+            if done:
+                continue
             print(f"DIRECTORY: {directory}")
             cmpd_catalog, frag1, frag2 = extract_info(directory)
-            # frag1 = directory.split("_")[2]+"_"+directory.split("_")[3]
-            # frag2 = directory.split("_")[4]+"_"+directory.split("_")[5]
-            # cmpd_catalog = directory.split("_")[0]+"_"+directory.split("_")[1]
-            # frags_sdf is no longer needed to could be helpful for viewing even though it is output by fragmenstien,
-            # I might actually remove it
             #frags_sdf = find_frags_sdf(sdf_content, root, directory, cmpd_catalog, frag1, frag2, sdf_prefix=kwargs['p'])
             frags_sdf = sdf_file_path
             print(frags_sdf)
