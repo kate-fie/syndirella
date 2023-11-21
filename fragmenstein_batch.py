@@ -8,6 +8,7 @@ import os
 import sys
 import argparse
 import subprocess
+import re
 
 import pandas as pd
 import datetime
@@ -29,6 +30,23 @@ def config_parser():
     parser.add_argument('--all_csv', required=False, help='CSV of all elabs for elaboration campaign.')
     parser.add_argument('--wictor', action='store_true', required=False, help='Use if running on with Wictor in Fragmenstein')
     return parser
+
+
+def extract_info(directory):
+    # Define a regular expression pattern to capture the cmpd_catalog, frag1, and frag2
+    pattern = r'(.+?)_(x\d+_\d+[AB])_(x\d+_\d+[AB])'
+
+
+    # Use re.search to find the first match in the input string
+    match = re.search(pattern, directory)
+
+    if match:
+        # Extract the cmpd_catalog, frag1, and frag2 from the matched groups
+        cmpd_catalog, frag1, frag2 = match.groups()
+        return cmpd_catalog, frag1, frag2
+    else:
+        # Return None if the pattern is not found in the input string
+        return None, None, None
 
 def shorten_elabs_csv(elabs_csv, len):
     """Shortens the elabs csv to 5,000 rows."""
@@ -152,12 +170,13 @@ def run_batch(**kwargs):
                 if 'output' in sub_dir:
                     done=True
                     print('OUTPUT IS FOUND, SKIPPING')
-            if done:
-                continue
+            # if done:
+            #     continue
             print(f"DIRECTORY: {directory}")
-            frag1 = directory.split("_")[2]+"_"+directory.split("_")[3]
-            frag2 = directory.split("_")[4]+"_"+directory.split("_")[5]
-            cmpd_catalog = directory.split("_")[0]+"_"+directory.split("_")[1]
+            cmpd_catalog, frag1, frag2 = extract_info(directory)
+            # frag1 = directory.split("_")[2]+"_"+directory.split("_")[3]
+            # frag2 = directory.split("_")[4]+"_"+directory.split("_")[5]
+            # cmpd_catalog = directory.split("_")[0]+"_"+directory.split("_")[1]
             # frags_sdf is no longer needed to could be helpful for viewing even though it is output by fragmenstien,
             # I might actually remove it
             #frags_sdf = find_frags_sdf(sdf_content, root, directory, cmpd_catalog, frag1, frag2, sdf_prefix=kwargs['p'])
