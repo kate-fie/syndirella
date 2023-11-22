@@ -263,6 +263,7 @@ def main():
             if not found:
                 print(f"No relevant .csv file found in {directory}")
                 continue
+            print(f"FOUND elab_csv_path: {elab_csv_path}")
             # 4. If the cmpd_catalog, frag1, frag2 in the output dir names does not match dir, skip. output error
             if not output_dirs_match(output_dir_path, cmpd_catalog, frag1, frag2):
                 print(f"OUTPUT DIRS CMPD_CATALOG, FRAG1, FRAG2, DO NOT MATCH PARENT {directory}")
