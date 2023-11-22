@@ -236,6 +236,8 @@ def find_cmpd_dirs(home_directory):
 def contains_elab_csv(directory, cmpd_catalog, frag1, frag2):
     """Check if directory contains a .csv file with specific names."""
     for file in os.listdir(directory):
+        if file.startswith('.'):  # Skip hidden files
+            continue
         if file.endswith(".csv") and all(x in file for x in [cmpd_catalog, frag1, frag2]) and 'success' not in file:
             elab_file_path = os.path.join(directory, file)
             return elab_file_path, True
