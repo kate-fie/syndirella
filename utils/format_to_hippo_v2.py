@@ -5,6 +5,7 @@ import csv
 import json
 import pandas as pd
 import shutil
+import traceback
 
 """
 This script will find the succesful placements of Fragmenstein. All that is needed in each compound dir are:
@@ -285,7 +286,8 @@ def main():
             total_success_dirs.append({directory: (num_success, num_placements)})
             print(f"SUCCESS: {directory}")
         except Exception as e:
-            print(f"Error in {directory}: {e}")
+            line_number = traceback.extract_tb(e.__traceback__)[-1].lineno
+            print(f"Error in {directory} at line {line_number}: {e}")
 
     # Save results
     with open((os.path.join(args.directory, 'success_dirs.json')), 'w') as f:
