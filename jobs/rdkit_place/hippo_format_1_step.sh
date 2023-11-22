@@ -30,7 +30,7 @@ conda activate fragmenstein
 cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 
 pwd;
-export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/2_step/";
+export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/rdkit_place/1_step";
 export RMSD_THRESHOLD=2.0
 
 echo "Running format_to_hippo.py"
