@@ -286,8 +286,8 @@ def main():
             total_success_dirs.append({directory: (num_success, num_placements)})
             print(f"SUCCESS: {directory}")
         except Exception as e:
-            line_number = traceback.extract_tb(e.__traceback__)[-1].lineno
-            print(f"Error in {directory} at line {line_number}: {e}")
+            tb = traceback.format_exc()
+            print(f"Error in {directory}:\n{tb}")
 
     # Save results
     with open((os.path.join(args.directory, 'success_dirs.json')), 'w') as f:
