@@ -103,6 +103,8 @@ def move_successful_cases(output_dir_path, success_dir_path, rmsd_thresh, remove
         os.makedirs(success_dir_path)
     # Move successful cases to success_dir
     for subdir in os.listdir(output_dir_path):
+        if subdir.startswith('.'):  # Skip hidden files/directories
+            continue
         subdir_path = os.path.join(output_dir_path, subdir)
         if os.path.isdir(subdir_path):
             for file in os.listdir(subdir_path):
@@ -130,6 +132,8 @@ def create_success_csv(success_dir_path, cmpd_catalog, frag1, frag2):
     headers = ['name', 'ΔΔG', 'xyz_unbound', 'xyz_bound', 'mRMSD']
     collected_data = []
     for subdir in os.listdir(success_dir_path):
+        if subdir.startswith('.'):  # Skip hidden files/directories
+            continue
         subdir_path = os.path.join(success_dir_path, subdir)
         if os.path.isdir(subdir_path):
             for file in os.listdir(subdir_path):
@@ -220,11 +224,14 @@ def find_cmpd_dirs(home_directory):
     cmpd_dirs = []
     for root, directories, _ in os.walk(home_directory):
         for directory in directories:
+            if directory.startswith('.'):  # Skip hidden directories
+                continue
             cmpd_catalog, frag1, frag2 = extract_info(directory)
             if cmpd_catalog is not None and frag1 is not None and frag2 is not None:
                 full_dir_path = os.path.join(root, directory)
                 cmpd_dirs.append(full_dir_path)
     return cmpd_dirs
+
 
 def contains_elab_csv(directory, cmpd_catalog, frag1, frag2):
     """Check if directory contains a .csv file with specific names."""
