@@ -88,8 +88,8 @@ def get_delta_delta_G(data: dict) -> float:
         return data["Energy"]["xyz_∆∆G"]
     except KeyError:
         try:
-            bound = data["Energy"]["bound"]
-            unbound = data["Energy"]["unbound"]
+            bound = data["Energy"]["bound"]['total_score']
+            unbound = data["Energy"]["unbound"]['total_score']
             ddG = bound - unbound
             return ddG
         except KeyError:
@@ -148,8 +148,8 @@ def get_bound_unbound(data: dict) -> tuple:
         return bound, unbound
     except KeyError:
         try:
-            bound = data["Energy"]["bound"]
-            unbound = data["Energy"]["unbound"]
+            bound = data["Energy"]["bound"]["total_score"]
+            unbound = data["Energy"]["unbound"]["total_score"]
             return bound, unbound
         except KeyError:
             return float('inf'), float('inf')
