@@ -82,12 +82,24 @@ def find_max_placement(output_dir_path, success_dir_path):
     # Return the overall max
     return max(max_output, max_success)
 
+def get_delta_delta_G(data: dict) -> float:
+    # Get the delta delta G value from the JSON file. Accounts for different formats.
+    try:
+        return data["Energy"]["xyz_∆∆G"]
+    except KeyError:
+        try:
+            bound = data["Energy"]["bound"]
+            unbound = data["Energy"]["unbound"]
+            ddG = bound - unbound
+            return ddG
+        except KeyError:
+            return float('inf')
+
 def read_json_and_check_conditions(json_path, rmsd_thresh):
     with open(json_path, 'r') as file:
         data = json.load(file)
         mRMSD = data.get("mRMSD", float('inf'))
-        delta_delta_G = data["Energy"]["xyz_∆∆G"]
-
+        delta_delta_G = get_delta_delta_G(data)
         if mRMSD < rmsd_thresh and delta_delta_G <= 0:
             return data
     return None
@@ -115,7 +127,7 @@ def move_successful_cases(output_dir_path, success_dir_path, rmsd_thresh, remove
                         if data:
                             if remove:
                                 # remove extra files in subdir_path that don't have these suffixes
-                                suffixes_to_keep = ['.minimised.json', '.holo_minimised.pdb', '.minimised.mol']
+                                suffixes_to_keep = ['.minimised.json', '.holo_minimised.pdb', '.minimised.mol', '.csv']
                                 for file in os.listdir(subdir_path):
                                     if not any(file.endswith(suffix) for suffix in suffixes_to_keep):
                                         file_path = os.path.join(subdir_path, file)
@@ -128,8 +140,33 @@ def move_successful_cases(output_dir_path, success_dir_path, rmsd_thresh, remove
                             shutil.move(subdir_path, success_dir_path)
                             break
 
+def get_bound_unbound(data: dict) -> tuple:
+    """Get the bound and unbound energy values from the JSON file. Accounts for different formats"""
+    try:
+        bound = data["Energy"]["xyz_bound"]
+        unbound = data["Energy"]["xyz_unbound"]
+        return bound, unbound
+    except KeyError:
+        try:
+            bound = data["Energy"]["bound"]
+            unbound = data["Energy"]["unbound"]
+            return bound, unbound
+        except KeyError:
+            return float('inf'), float('inf')
+
+def make_success_csv_row(subdir: str, data: dict) -> list:
+    """Make a row for the success.csv file."""
+    ddG = get_delta_delta_G(data)
+    bound, unbound = get_bound_unbound(data)
+    try:
+        rmsd = data["mRMSD"]
+    except KeyError:
+        rmsd = float('inf')
+    csv_row = [subdir, ddG, unbound, bound, rmsd]
+    return csv_row
+
 def create_success_csv(success_dir_path, cmpd_catalog, frag1, frag2):
-    headers = ['name', 'ΔΔG', 'xyz_unbound', 'xyz_bound', 'mRMSD']
+    headers = ['name', 'ΔΔG', 'unbound', 'bound', 'mRMSD']
     collected_data = []
     for subdir in os.listdir(success_dir_path):
         if subdir.startswith('.'):  # Skip hidden files/directories
@@ -146,7 +183,7 @@ def create_success_csv(success_dir_path, cmpd_catalog, frag1, frag2):
                             placement_method = 'rdkit'
                         except KeyError:
                             placement_method = 'pyrosetta'
-                        csv_row = [subdir, data["Energy"]["xyz_∆∆G"], data["Energy"]["xyz_unbound"], data["Energy"]["xyz_bound"], data["mRMSD"]]
+                        csv_row = make_success_csv_row(subdir, data)
                         collected_data.append(csv_row)
     csv_file_path = os.path.join(success_dir_path, f'{cmpd_catalog}_{frag1}_{frag2}_success.csv')
     if collected_data:
@@ -157,47 +194,6 @@ def create_success_csv(success_dir_path, cmpd_catalog, frag1, frag2):
             writer.writerows(collected_data)
         return csv_file_path, placement_method, num_success
     return None, None, None
-
-def process_success_placements(output_dir_path, success_dir_path, cmpd_catalog, frag1, frag2, rmsd_thresh):
-    headers = ['name', 'ΔΔG', 'xyz_unbound', 'xyz_bound', 'mRMSD']
-    # Ensure success directory exists
-    if not os.path.exists(success_dir_path):
-        os.makedirs(success_dir_path)
-    # Move successful cases to success_dir
-    for subdir in os.listdir(output_dir_path):
-        subdir_path = os.path.join(output_dir_path, subdir)
-        if os.path.isdir(subdir_path):
-            for file in os.listdir(subdir_path):
-                if file.endswith('.json'):
-                    json_file_path = os.path.join(subdir_path, file)
-                    if os.path.exists(json_file_path):
-                        data = read_json_and_check_conditions(json_file_path, rmsd_thresh)
-                        if data:
-                            # Move directory to success_dir_path
-                            shutil.move(subdir_path, success_dir_path)
-                            break  # Exit the loop after processing the JSON file
-    # Read all .json files in success_dir and collect data
-    collected_data = []
-    for subdir in os.listdir(success_dir_path):
-        subdir_path = os.path.join(success_dir_path, subdir)
-        if os.path.isdir(subdir_path):
-            for file in os.listdir(subdir_path):
-                if file.endswith('.json'):
-                    json_file_path = os.path.join(subdir_path, file)
-                    with open(json_file_path, 'r') as file:
-                        data = json.load(file)
-                        csv_row = [subdir, data["Energy"]["xyz_ΔΔG"], data["Energy"]["xyz_unbound"], data["Energy"]["xyz_bound"], data["mRMSD"]]
-                        collected_data.append(csv_row)
-    # Write collected data to CSV
-    csv_file_path = os.path.join(success_dir_path, f'{cmpd_catalog}_{frag1}_{frag2}_success.csv')
-    if collected_data:
-        with open(csv_file_path, 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(headers)
-            writer.writerows(collected_data)
-        return csv_file_path
-    return None
-
 
 def output_dirs_match(output_path, cmpd_catalog, frag1, frag2):
     """ Check if the output directory names match the cmpd_catalog, frag1, frag2. """
