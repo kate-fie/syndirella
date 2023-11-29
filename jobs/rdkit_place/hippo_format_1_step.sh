@@ -33,7 +33,7 @@ pwd;
 export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/rdkit_place/1_step";
 export RMSD_THRESHOLD=2.0
 
-echo "Running format_to_hippo.py"
+echo "Running format_to_hippo_v2.py"
 echo "HOME_DIR: $HOME_DIR"
 echo "RMSD_THRESHOLD: $RMSD_THRESHOLD"
 
