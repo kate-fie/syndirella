@@ -30,6 +30,7 @@ def config_parser():
     parser.add_argument('--remove', action='store_true', required=False,
                         help='Remove the extra fragmenstein files when moving'
                              'to success directory. Default is False.')
+    parser.add_argument('--num_steps', required=True, help='Number of steps in route to help with qualifier addition.')
     return parser
 
 # -------------------------#
@@ -229,12 +230,17 @@ def find_cmpd_dirs(home_directory):
     return cmpd_dirs
 
 
-def contains_elab_csv(directory, cmpd_catalog, frag1, frag2):
+def contains_elab_csv(directory, cmpd_catalog, frag1, frag2, num_steps):
     """Check if directory contains a .csv file with specific names."""
+    if num_steps is 1:
+        suffix = '1_step'
+    else:
+        suffix = '2_of_2'
     for file in os.listdir(directory):
         if file.startswith('.'):  # Skip hidden files
             continue
-        if file.endswith(".csv") and all(x in file for x in [cmpd_catalog, frag1, frag2]) and 'success' not in file:
+        if (file.endswith(".csv") and all(x in file for x in [cmpd_catalog, frag1, frag2])
+                and 'success' not in file and suffix in file):
             elab_file_path = os.path.join(directory, file)
             return elab_file_path, True
     return None, False
@@ -264,7 +270,7 @@ def main():
                 print(f"{directory} DOES NOT CONTAIN CMPD_CATALOG, FRAG1, FRAG2")
                 continue
             # 3. If there is no cmpd_catalog, frag1, frag2 in .csv, skip.
-            elab_csv_path, found = contains_elab_csv(directory, cmpd_catalog, frag1, frag2)
+            elab_csv_path, found = contains_elab_csv(directory, cmpd_catalog, frag1, frag2, args.num_steps)
             if not found:
                 print(f"No relevant .csv file found in {directory}")
                 continue

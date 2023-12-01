@@ -40,6 +40,7 @@ echo "RMSD_THRESHOLD: $RMSD_THRESHOLD"
 nice -19 python utils/format_to_hippo_v2.py \
 -d $HOME_DIR \
 --rmsd $RMSD_THRESHOLD \
---remove;
+--remove
+--num_steps 2;
 
 echo 'COMPLETE'
