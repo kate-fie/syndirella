@@ -84,7 +84,7 @@ def find_template_pdb(elabs_csv, template_dir, kwargs):
             return None
     for root, dirs, files in os.walk(template_dir):
         for file in files:
-            if ref_pdb in file:
+            if ref_pdb in file and not file.startswith('.'): # ignore hidden
                 return os.path.join(root, file)
     return None
 
