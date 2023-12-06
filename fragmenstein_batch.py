@@ -29,6 +29,9 @@ def config_parser():
     parser.add_argument('--cutoff', action='store_true', required=False, help='Cutoff of 5,000 for placing elabs.')
     parser.add_argument('--all_csv', required=False, help='CSV of all elabs for elaboration campaign.')
     parser.add_argument('--wictor', action='store_true', required=False, help='Use if running on with Wictor in Fragmenstein')
+    parser.add_argument('--batch_range', required=True,
+                        help='Num atom difference range for placing. E.g., "0-3", "4-7", "8-11", "12+".')
+    return parser
     return parser
 
 
@@ -47,10 +50,10 @@ def extract_info(directory):
         return None, None, None
 
 def shorten_elabs_csv(elabs_csv, len):
-    """Shortens the elabs csv to 5,000 rows."""
+    """Shortens the elabs csv to 10,000 rows."""
     df = pd.read_csv(elabs_csv, encoding='ISO-8859-1')
-    df = df[:5000]
-    new_path = elabs_csv.replace(f'{len}.csv','') + "5000.csv"
+    df = df[:10000]
+    new_path = elabs_csv.replace(f'.csv','') + "_5000.csv"
     df.to_csv(new_path, index=True)
     return new_path
 
@@ -156,31 +159,46 @@ def run_batch(**kwargs):
     with open(sdf_file_path, 'r') as f:
         sdf_content = f.read()
 
+    batch_range = kwargs['batch_range']
+    min_value, max_value = None, None
+
+    # Parse the batch range
+    if batch_range == "12+":
+        min_value = 12
+    else:
+        min_value, max_value = map(int, batch_range.split('-'))
+
     for root, dirs, files in os.walk(kwargs['d']):
         for directory in dirs:
             print('DIRECTORY', directory)
             if directory == 'output':
                 exit()
-            done = False
             if "xtra_results" in directory or "logs" in directory:
                 exit()
-            for sub_dir in os.listdir(os.path.join(root, directory)): # checks if output folder is already there, skip
-                if 'output' in sub_dir:
-                    done=True
-                    print('OUTPUT IS FOUND, SKIPPING')
-            if done:
-                continue
             print(f"DIRECTORY: {directory}")
+            # TODO: Change this to use the new naming convention
             cmpd_catalog, frag1, frag2 = extract_info(directory)
             #frags_sdf = find_frags_sdf(sdf_content, root, directory, cmpd_catalog, frag1, frag2, sdf_prefix=kwargs['p'])
             frags_sdf = sdf_file_path
             print(frags_sdf)
-
+            # TODO: Change this to using the ref_pdb column in the elabs csv
             template_pdb = find_template_pdb(kwargs['t'], frag1)
             print(template_pdb)
+            # TODO: Change this to using the dir name in csv
             elabs_csv, len = find_elabs_csv(root, directory, frag1, frag2, step_identifier=kwargs['step'],
                                             sdf_prefix=kwargs['p'], add_hit_names=True)
             print(elabs_csv)
+            # Filter the DataFrame based on the batch range
+            if max_value is None:  # For "12+" case
+                batch_df = df[df['num_atom_difference'] >= min_value]
+            else:
+                batch_df = df[df['num_atom_difference'].between(min_value, max_value)]
+
+            if not batch_df.empty:
+                batch_len = batch_df.shape[0]
+                batch_csv_path = elabs_csv.replace('.csv', f'_batch_{batch_range}.csv')
+                batch_df.to_csv(batch_csv_path, index=False)
+
             if frags_sdf is None:
                 print(f"Frags sdf not found for {directory}.")
             if template_pdb is None:
@@ -190,13 +208,13 @@ def run_batch(**kwargs):
             if frags_sdf and template_pdb and elabs_csv:
                 os.chdir(os.path.join(root, directory)) # change to directory
                 try:
-                    if kwargs['cutoff'] and len > 5000:
-                        print(f"CUTTING {directory} because it has more than 5,000 elabs.")
-                        elabs_csv = shorten_elabs_csv(elabs_csv, len)
+                    if kwargs['cutoff'] and batch_len > 10000:
+                        print(f"CUTTING {directory} because it has more than 10,000 elabs.")
+                        elabs_csv = shorten_elabs_csv(batch_csv_path, len)
                     if kwargs['wictor']:
                         print(f"PLACING {directory} WITH WICTOR.")
                         command = ["fragmenstein", "laboratory", "place", "--input", frags_sdf, "--template", template_pdb,
-                             "--in-table", elabs_csv, "--output",
+                             "--in-table", batch_csv_path, "--output",
                              os.path.join(root, directory, f"{cmpd_catalog}_{frag1}_{frag2}_output.csv"),
                              "--cores", str(n_cores), "--verbose", "--victor", "Wictor"]
                         command_str = ' '.join(command)
@@ -228,6 +246,7 @@ def run_batch(**kwargs):
                     print('MERGING FRAGMENSTEIN OUTPUT WITH ORIGINAL ELABS CSV.')
                     df = pd.read_csv(elabs_csv, encoding='ISO-8859-1')
                     df = df.merge(df_output, on='smiles', how='left')
+                    # TODO: Change path to save merged fragmenstein output csv
                     df.to_csv(elabs_csv, index=False)
                     print("DELETING EXTRA FILES.")
                     output_dir = os.path.join(root, directory, 'output')
@@ -235,7 +254,8 @@ def run_batch(**kwargs):
                         print(f"Output directory does not exist for {directory}.")
                         continue
                     os.chdir(output_dir)  # change to output directory
-                    suffixes_to_keep = ['.minimised.json', '.holo_minimised.pdb', '.minimised.mol']
+                    # TODO: Change to delete minimised.pdb in elabs but not the base compound
+                    suffixes_to_keep = ['.minimised.json', '.holo_minimised.pdb', '.minimised.mol', '.csv']
                     for root1, dirs, files in os.walk(output_dir):
                         for directory2 in dirs:
                             directory2_path = os.path.join(output_dir, directory2)

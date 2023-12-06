@@ -9,6 +9,7 @@ import itertools
 import os
 from collections import OrderedDict
 from typing import Tuple, Iterable
+from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
 
 import numpy as np
 import pandas as pd
@@ -364,7 +365,45 @@ def apply_reaction(row, original_mol: Chem.Mol, reaction_name) -> list():
 
     return row
 
-def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, analogs_reactant2, output_name: str, max_combinations: int = 10_000):
+def find_stereoisomers(smiles) -> list():
+    # This function should return a list of stereoisomers for the given SMILES string.
+    mol = Chem.MolFromSmiles(smiles)
+    # Generate all stereoisomers
+    opts = StereoEnumerationOptions(unique=True)
+    isomers = list(EnumerateStereoisomers(mol, options=opts))
+    isomer_list = [Chem.MolToSmiles(isomer, isomericSmiles=True) for isomer in isomers]
+    return isomer_list
+
+def enumerate_stereoisomers(df):
+    """
+    Given a DataFrame with a column of smiles strings, this function enumerates all the stereoisomers of the smiles.
+    it also needs a names column to add conformer letters to
+
+    :param df:
+    :return:
+    """
+    assert 'smiles' in df.columns, 'No smiles column in DataFrame'
+    assert 'name' in df.columns, 'No name column in DataFrame'
+
+    new_rows = []
+
+    for index, row in df.iterrows():
+        stereoisomers = find_stereoisomers(row['smiles'])
+
+        for i, iso in enumerate(stereoisomers):
+            new_row = row.copy()
+            new_row['smiles'] = iso
+            new_row['name'] = f"{row['name']}_{chr(65 + i)}"  # Appending A, B, C, etc., to the name
+            new_row['conformer'] = chr(65 + i)
+            new_rows.append(new_row)
+
+    new_df = pd.DataFrame(new_rows)
+    exploded_df = pd.concat([df, new_df], ignore_index=True)
+    # remove NaNs
+    exploded_df = exploded_df.dropna()
+    return exploded_df
+
+def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, analogs_reactant2, output_name: str, max_combinations: int = None):
     """
     Given a reaction and the analogues of the reactants, this function finds the reaction combinations that are possible.
 
@@ -424,7 +463,8 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
         .merge(filtered_df2, left_on='reactant2', right_index=True)
     )
     result_df = result_df.drop(columns=['reactant1', 'reactant2'])
-    if max_combinations is not None:
+
+    if max_combinations is not None and len(result_df) > max_combinations:
         print(f'Limiting number of reactant combinations to {max_combinations}. Randomly sampling.')
         # Separate the first 5 rows
         first_five_rows = result_df.head(5)
@@ -449,7 +489,6 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
     # Remove repeated rows
     result_df2 = result_df2.drop_duplicates(subset=['smi_reactant1', 'smi_reactant2', 'smiles'])
     print(f'{len(result_df)-len(result_df2)} product duplicates removed.')
-    all_products = result_df2['smiles']
 
     # How many unique products are there?
     print(f'{result_df2["smiles"].nunique()} unique products with unique routes found.')
@@ -471,15 +510,25 @@ def findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, anal
                                           axis=1)
     result_df2.drop(columns='count', inplace=True)
 
-    return result_df2, all_products
+    # Only take the top 10K products to enumerate stereoisomers
+    if len(result_df2) > 10_000:
+        print('Limiting number of products to 10,000.')
+        result_df2 = result_df2.head(10_000)
 
-def reactBackTogether(original_mol: Chem.Mol, analogs_reactant1: pd.DataFrame, analogs_reactant2: pd.DataFrame, ori_reaction, output_name: str, max_combinations: int):
+    print('Enumerating stereoisomers...')
+    result_df3 = enumerate_stereoisomers(result_df2)
+    all_products = result_df3['smiles']
+
+    # Save the results to a CSV file
+    return result_df3, all_products
+
+def reactBackTogether(original_mol: Chem.Mol, analogs_reactant1: pd.DataFrame, analogs_reactant2: pd.DataFrame, ori_reaction, output_name: str, max_combinations: int = None):
     if ori_reaction is None:
         print('Must provide reaction to react back together.')
         # TODO: Could provide a way to react back together with all other reactions in the database.
         return None
     else:
-        df_combined_results, all_products = findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, analogs_reactant2, output_name=output_name, max_combinations=10_000)
+        df_combined_results, all_products = findReactionCombinations(original_mol, ori_reaction, analogs_reactant1, analogs_reactant2, output_name=output_name, max_combinations=max_combinations)
 
     return df_combined_results
 
@@ -573,7 +622,7 @@ def searchReactantAnalogues(originalMol, reactant1, reactant2, resultsDirs, step
                             ori_expansionAtomIdx=None,
                             similarityThr=config.SIMILARITY_SEARCH_THR,
                             structuralThr=config.STRUCTURAL_SCORE_THR, struct_score=False, ori_reaction=None,
-                            output_name='test'):
+                            output_name='test', fragmen_info: dict =None):
     """
     Find analogues keeping the atoms involved in the reaction fixed.
     Author: Kate Fieseler
@@ -634,8 +683,12 @@ def searchReactantAnalogues(originalMol, reactant1, reactant2, resultsDirs, step
                                            structuralThr, reactant_Num=2, resultsDirs=resultsDirs)
 
     # Perform reaction search of reactant analogues (including PAINS filter)
-    resultsdf = reactBackTogether(originalMol, analogs_react1, analogs_react2, ori_reaction, resultsDirs=resultsDirs, output_name=output_name)
+    resultsdf = reactBackTogether(originalMol, analogs_react1, analogs_react2, ori_reaction, output_name=output_name, max_combinations=10_000)
 
-    # TODO: Do Fragmenstein placement within pipeline, adding failures to minimize to dataframe
+    # Add fragmen_info to resultsdf
+    if fragmen_info is not None:
+        for key, value in fragmen_info.items():
+            resultsdf[key] = value
+
     return resultsdf
 

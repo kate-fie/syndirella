@@ -15,6 +15,8 @@ from rdkit import Chem
 import datetime
 import numpy as np
 import glob2
+import traceback
+import datetime
 
 sys.path.append('/Users/kate_fieseler/PycharmProjects/chemUtils')
 import chemUtils
@@ -183,8 +185,10 @@ def searchAnalogues(df, results_dir, superstructure, step_num, rows_to_process=1
         df['Analogs'] = np.nan
     # Convert NaN values to None
     df = df.applymap(lambda x: None if pd.isna(x) else x)
+    assert df['smiles'] is not None, "No SMILES provided in input csv."
 
     for row_num in rows_to_process:
+        start_time = datetime.datetime.now()  # Start timing
         row = df.iloc[row_num]
         if 'Done_Time' in df.columns:
             if row['Done_Time'] != None:
@@ -221,11 +225,15 @@ def searchAnalogues(df, results_dir, superstructure, step_num, rows_to_process=1
                 print("One reactant has very little atoms, the full pipeline search will not be performed since that "
                       "functionality is not implemented yet...\n")
                 continue
-            dir_names = ast.literal_eval(row['dir_name'])
+            dir_names = [row['dir_name']]
             # Remove colon from dir names
             dir_names = [dir_name.replace(':', '_') for dir_name in dir_names]
             reaction_dir_names = []
             xtra_reaction_dir_names = []
+
+            # Get constant fragmenstein placement info to append in dictionary
+            fragmen_info = {'hit_names': row.hit_names, 'ref_pdb': row.ref_pdb}
+
             for i in range(len(dir_names)):
                 dir_name = dir_names[i]
                 reaction_dir_name = f"{results_dir}/{dir_name}/"
@@ -234,26 +242,31 @@ def searchAnalogues(df, results_dir, superstructure, step_num, rows_to_process=1
                 xtra_reaction_dir_name = f"{results_dir}/{dir_name}/xtra_results_{step}/"
                 os.makedirs(xtra_reaction_dir_name, exist_ok=True)
                 xtra_reaction_dir_names.append(xtra_reaction_dir_name)
-                output_name = f"{dir_name}_{step}_step"
+                output_name = f"{dir_name}_{step}_of_1_step"
             try:
                 results = searchReactantAnalogues(ori_mol, reactant1_mol, reactant2_mol, step_num=step,
                                                   ori_reaction=reaction_name,
                                                   resultsDirs=xtra_reaction_dir_names, output_name=output_name,
-                                                  struct_score=False)
+                                                  struct_score=False, fragmen_info=fragmen_info)
                 # Set the Done_Time and Analogs columns for the current row
                 df.at[row_num, 'Done_Time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 df.at[row_num, 'Analogs'] = len(results) if results is not None else 0
             except Exception as e:
-                print(f"Error processing row {i}: {e}")
+                tb = traceback.format_exc()
+                print(f"Error processing row {i}: {tb}")
+                num_analogs = 0
                 continue
             if results is None:
                 print("No results found for this molecule.\n")
                 continue
             for i in range(len(reaction_dir_names)):
                 num_analogs = len(results)
-                results.to_csv(os.path.join(reaction_dir_names[i], f"{output_name}_{num_analogs}_1_of_2.csv"),
+                results.to_csv(os.path.join(reaction_dir_names[i], f"{output_name}_{num_analogs}_1_of_1.csv"),
                                index=False)
             print(results)
+            end_time = datetime.datetime.now()  # End timing
+            duration = end_time - start_time  # Calculate duration
+            print(f"row {i} took {duration} to execute")
     if "OUTPUT" in args.input_csv:
         df.to_csv(args.input_csv, index=True)
     else:
@@ -327,7 +340,8 @@ if __name__ == "__main__":
         # searchAnalogues(df_edit, args.results_dir, args.superstructure, step_num=2)
 
     # Load the smiles into dataframe
-    df = pd.read_csv(args.input_csv, sep=',', header=0, index_col=0)
+
+    df = pd.read_csv(args.input_csv, sep=',', header=0)
     # Get rows to be processed based on batch_num, batch_size or row argument
     rows_to_process = find_rows_to_process(df, args.batch, args.batch_size)
     searchAnalogues(df, args.results_dir, args.superstructure, step_num=1, rows_to_process=rows_to_process)

@@ -2,7 +2,7 @@ from collections import OrderedDict
 import json
 
 # PROVIDE PATH TO REACTION SMARTS CONSTANTS
-reaction_constants_path = "/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/D68EV3CPROA/RXN_SMARTS_CONSTANTS.json"
+reaction_constants_path = "/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/RXN_SMARTS_CONSTANTS.json"
 with open(reaction_constants_path) as f:
     reaction_smarts = json.load(f)
 
