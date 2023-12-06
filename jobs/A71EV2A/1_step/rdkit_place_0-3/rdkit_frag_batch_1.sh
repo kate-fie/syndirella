@@ -55,6 +55,7 @@ time nice -19 python fragmenstein_batch_A71EV2A.py \
 --n_cores $(($N_CORES - 1)) \
 --cutoff \
 --wictor \
+--batch_range $BATCH_RANGE \
 --exact_template $EXACT_TEMPLATE;
 
 echo 'COMPLETE'
