@@ -31,7 +31,7 @@ cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 
 pwd;
 export TEMPLATE_DIR="/data/xchem-fragalysis/kfieseler/A71EV2A/apo_desolv/";
-export HOME_DIR="/data/xchem-fragalysis/kfieseler/A71EV2A/elabs/1_step_dec6_batched/batch_3";
+export HOME_DIR="/data/xchem-fragalysis/kfieseler/A71EV2A/elabs/1_step_dec7_batched/batch_3";
 export INPUT_SDF="/data/xchem-fragalysis/kfieseler/A71EV2A/clean_hits.sdf";
 export N_CORES=$(cat /proc/cpuinfo | grep processor | wc -l)
 export STEP="1_of_1"

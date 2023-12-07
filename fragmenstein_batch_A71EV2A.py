@@ -53,7 +53,7 @@ def shorten_elabs_csv(elabs_csv, len):
     """Shortens the elabs csv to 10,000 rows."""
     df = pd.read_csv(elabs_csv, encoding='ISO-8859-1')
     df = df[:10000]
-    new_path = elabs_csv.replace(f'.csv','') + "_5000.csv"
+    new_path = elabs_csv.replace(f'.csv','') + "_10000.csv"
     df.to_csv(new_path, index=True)
     return new_path
 
@@ -196,6 +196,7 @@ def run_batch(**kwargs):
                 batch_df = df[df['num_atom_difference'] >= min_value]
             else:
                 batch_df = df[df['num_atom_difference'].between(min_value, max_value)]
+            batch_csv_path = None
             if not batch_df.empty:
                 batch_len = batch_df.shape[0]
                 batch_csv_path = elabs_csv.replace('.csv', f'_batch_{batch_range}.csv')
