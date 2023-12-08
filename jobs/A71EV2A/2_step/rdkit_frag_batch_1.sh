@@ -35,7 +35,7 @@ export HOME_DIR="/data/xchem-fragalysis/kfieseler/A71EV2A/elabs/2_step/";
 export INPUT_SDF="/data/xchem-fragalysis/kfieseler/A71EV2A/clean_hits.sdf";
 export N_CORES=$(cat /proc/cpuinfo | grep processor | wc -l)
 export STEP="2_of_2"
-export BATCH_RANGE="0+"
+export BATCH_RANGE="0-100"
 export EXACT_TEMPLATE="A71EV2A-x0310_0A"
 
 echo "Running fragmenstein_batch_A71EV2A.py"
