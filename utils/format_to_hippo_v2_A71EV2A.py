@@ -230,7 +230,7 @@ def find_cmpd_dirs(home_directory):
 
 def contains_elab_csv(directory, num_steps):
     """Check if directory contains a .csv file with specific names."""
-    if num_steps is 1:
+    if num_steps == 1:
         suffix = '1_of_1'
     else:
         suffix = '2_of_2'
