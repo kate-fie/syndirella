@@ -253,6 +253,7 @@ def main():
             continue
         # directory = name of the elab compound
         try:
+            print('DIRECTORY:', directory)
             if args.rmsd is None:
                 rmsd_thresh = 2.0
             else: rmsd_thresh = float(args.rmsd)

@@ -31,21 +31,17 @@ cd /data/xchem-fragalysis/kfieseler/repos/elaborate
 
 pwd;
 export HOME_DIR="/data/xchem-fragalysis/kfieseler/D68EV3CPROA/elabs/rdkit_place/2_step/batch_1";
-export ELAB_SUFFIX="2_of_2"
-export OUTPUT_SUFFIX="output.csv"
-export RMSD_THRESHOLD=2.0
+export NUM_STEPS="1"
+export RMSD_THRESHOLD=50.0
 
-echo "Running format_to_hippo.py"
+echo "Running format_to_hippo_v2_A71EV2A.py"
 echo "HOME_DIR: $HOME_DIR"
-echo "ELAB_SUFFIX: $ELAB_SUFFIX"
-echo "OUTPUT_SUFFIX: $OUTPUT_SUFFIX"
+echo "NUM_STEPS: $NUM_STEPS"
 echo "RMSD_THRESHOLD: $RMSD_THRESHOLD"
 
-nice -19 python utils/format_to_hippo.py \
+nice -19 python utils/format_to_hippo_v2_A71EV2A.py \
 -d $HOME_DIR \
--e $ELAB_SUFFIX \
--o $OUTPUT_SUFFIX \
---rmsd $RMSD_THRESHOLD \
---remove;
+--num_steps $NUM_STEPS \
+--rmsd $RMSD_THRESHOLD;
 
 echo 'COMPLETE'
