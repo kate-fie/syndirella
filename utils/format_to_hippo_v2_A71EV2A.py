@@ -223,12 +223,10 @@ def find_cmpd_dirs(home_directory):
         for directory in directories:
             if directory.startswith('.'):  # Skip hidden directories
                 continue
-            cmpd_catalog, frag1, frag2 = extract_info(directory)
-            if cmpd_catalog is not None and frag1 is not None and frag2 is not None:
+            if 'batch' not in directory and 'output' not in directory and 'success' not in directory and 'results' not in directory:
                 full_dir_path = os.path.join(root, directory)
                 cmpd_dirs.append(full_dir_path)
     return cmpd_dirs
-
 
 def contains_elab_csv(directory, num_steps):
     """Check if directory contains a .csv file with specific names."""
