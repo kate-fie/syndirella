@@ -114,7 +114,7 @@ def searchAnalogues_2ndstep(df, results_dir, superstructure, rows_to_process=1, 
                 "Elaborated reactant has very little atoms, the full pipeline search will not be performed since that "
                 "functionality is not implemented yet...\n")
             continue
-        dir_names = ast.literal_eval(row['dir_name'])
+        dir_names = [row['dir_name']]
         # Remove colon from dir names
         dir_names = [dir_name.replace(':', '_') for dir_name in dir_names]
         reaction_dir_names = []
@@ -137,7 +137,7 @@ def searchAnalogues_2ndstep(df, results_dir, superstructure, rows_to_process=1, 
             if product_path is None:
                 print(f'NO PRODUCT CSV FOUND IN {dir_name}')
                 continue
-            product_df = pd.read_csv(product_path, index_col=0)
+            product_df = pd.read_csv(product_path)
             assert which_elab != 0, "The elaborated reactant has not been identified! Stopping..."
             output_name = f"{dir_name}_2nd_step"  # TODO: change this to be more descriptive
         try:
@@ -151,7 +151,8 @@ def searchAnalogues_2ndstep(df, results_dir, superstructure, rows_to_process=1, 
             df.at[row_num, 'Done_Time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             df.at[row_num, 'Analogs'] = len(results) if results is not None else 0
         except Exception as e:
-            print(f"Error processing row {i}: {e}")
+            tb = traceback.format_exc()
+            print(f"Error processing row {i}: {tb}")
             continue
         if results is None:
             print("No results found for this molecule.\n")
@@ -322,7 +323,7 @@ if __name__ == "__main__":
     #     searchAnalogues(df, args.results_dir, args.superstructure, step_num=2, rows_to_process=rows_to_process)
 
     if args.test and args.num_steps == 2:
-        df = pd.read_csv(args.input_csv, sep=',', header=0, index_col=0)
+        df = pd.read_csv(args.input_csv, sep=',', header=0)
         if args.step1 is not None:
             step1_df = pd.read_csv(args.step1, sep=',', header=0, index_col=0)
             if args.step2 is not None:
@@ -331,11 +332,11 @@ if __name__ == "__main__":
                 step2_df = input.editstep2(df, step1_df)
                 step2_df.to_csv(f'{args.input_csv.split(".")[0]}_2nd_step_TEST.csv', index=True)
         else:
-            df = pd.read_csv(args.input_csv, sep=',', header=0, index_col=0)
+            df = pd.read_csv(args.input_csv, sep=',', header=0)
             step1_df = input.editstep1(df)
             step2_df = input.editstep2(df, step1_df)
-            step1_df.to_csv(f'{args.input_csv.split(".")[0]}_1st_step_TEST.csv', index=True)
-            step2_df.to_csv(f'{args.input_csv.split(".")[0]}_2nd_step_TEST.csv', index=True)
+            step1_df.to_csv(f'{args.input_csv.split(".")[0]}_1st_step_TEST.csv', index=False)
+            step2_df.to_csv(f'{args.input_csv.split(".")[0]}_2nd_step_TEST.csv', index=False)
         # df_edit = editstep1forstep2(df)
         # searchAnalogues(df_edit, args.results_dir, args.superstructure, step_num=2)
 

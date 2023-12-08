@@ -546,8 +546,8 @@ def productsToReact(df, reactant_num, reactant_smarts, reaction_name, output_nam
     assert reactant_num is not None, 'Must provide reactant number to convert products to reactants.'
     # Function to concatenate JSON data
     def concat_json(row):
-        reactant1: list = ast.literal_eval(row['reactant1_metadata'])
-        reactant2: list = ast.literal_eval(row['reactant2_metadata'])
+        reactant1: list = ast.literal_eval(row['metadata_reactant1'])
+        reactant2: list = ast.literal_eval(row['metadata_reactant2'])
         return pd.Series({'metadata': [reactant1, reactant2]})
     def check_reactant_smarts(row):
         matched_reaction = checkSpecificReactionSmartInReactant(row['smi'], reaction_name, reactant_smarts)[0]
@@ -559,7 +559,9 @@ def productsToReact(df, reactant_num, reactant_smarts, reaction_name, output_nam
     # Creating a new DataFrame with the required columns
     product_react_df = pd.DataFrame({
         'smi': df['smiles'],
-        'num_atom_difference': df['num_atom_difference']
+        'num_atom_difference': df['num_atom_difference'],
+        'metadata_reactant1': df['metadata_reactant1'],
+        'metadata_reactant2': df['metadata_reactant2']
     })
     # Concatenate metadata
     product_react_df = pd.concat([product_react_df, df.apply(concat_json, axis=1)], axis=1)
