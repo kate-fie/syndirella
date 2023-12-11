@@ -114,7 +114,7 @@ def copy_successful_cases(output_dir_path, success_dir_path, rmsd_thresh, remove
     # Ensure success directory exists
     if not os.path.exists(success_dir_path):
         os.makedirs(success_dir_path)
-    # Move successful cases to success_dir
+    # Copy successful cases to success_dir
     for subdir in os.listdir(output_dir_path):
         if subdir.startswith('.'):  # Skip hidden files/directories
             continue
@@ -138,8 +138,10 @@ def copy_successful_cases(output_dir_path, success_dir_path, rmsd_thresh, remove
                                                 print(f"Deleted file: {file_path}")
                                         except Exception as e:
                                             print('Failed to delete %s. Reason: %s' % (file_path, e))
-                            shutil.move(subdir_path, success_dir_path)
+                            # Copy the directory instead of moving
+                            shutil.copytree(subdir_path, success_dir_path)
                             break
+
 
 def get_bound_unbound(data: dict) -> tuple:
     """Get the bound and unbound energy values from the JSON file. Accounts for different formats"""
@@ -237,6 +239,7 @@ def contains_elab_csv(directory, num_steps):
     for file in os.listdir(directory):
         if file.startswith('.'):  # Skip hidden files
             continue
+        print(file)
         if (file.endswith(".csv") and 'batch' not in file and 'success' not in file and suffix in file):
             elab_file_path = os.path.join(directory, file)
             return elab_file_path, True
