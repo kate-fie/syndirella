@@ -35,9 +35,10 @@ def config_parser():
 
 # -------------------------#
 
-def add_placement_data(elab_csv_path, success_csv_path, num_placements, placement_method):
+def add_placement_data(elab_csv_path, success_csv_path):
     # Read elab csv
     elab_df = pd.read_csv(elab_csv_path)
+    elab_df['name'] = elab_df['name'].str.replace('_', '-')
     # Read success csv
     success_df = pd.read_csv(success_csv_path)
     # Merge elab_df with success_df on 'name' column
@@ -48,6 +49,8 @@ def add_placement_data(elab_csv_path, success_csv_path, num_placements, placemen
     merged_df = merged_df.sort_values(by=['num_atom_difference'])
     # Write to success csv
     merged_df.to_csv(success_csv_path, index=False)
+    # Write elab_df to elab csv
+    elab_df.to_csv(elab_csv_path, index=False)
 
 def find_num_placement(output_dir_path):
     # Function to count the number of first-level subdirectories in output_dir_path
@@ -265,7 +268,7 @@ def main():
             # 7. Find total number of placements by getting num of subdirs in output_dir_path
             num_placements = find_num_placement(output_dir_path)
             # 8. Add placement data to elab.csv and success.csv
-            add_placement_data(elab_csv_path, success_csv_path, num_placements, placement_method)
+            add_placement_data(elab_csv_path, success_csv_path)
             # 9. Store number of successful placements and total number of placements per directory. Store success dir paths.
             total_success_dirs.append({success_dir_path: (num_success, num_placements)})
             print(f"SUCCESS: {directory}")
