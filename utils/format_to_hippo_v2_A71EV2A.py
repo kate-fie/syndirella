@@ -36,52 +36,27 @@ def config_parser():
 # -------------------------#
 
 def add_placement_data(elab_csv_path, success_csv_path, num_placements, placement_method):
-    """Writes column 'placed_w_fragmenstein' to elab_csv and success_csv with the number of placements and placement method"""
     # Read elab csv
     elab_df = pd.read_csv(elab_csv_path)
-    # Function to parse number after the last hyphen
-    def parse_number_from_name(name):
-        try:
-            last_value = name.split('-')[-1]
-            if last_value == 'base':
-                return -1
-            else:
-                return int(last_value)
-        except ValueError:
-            return None
-    # Add column 'placed_w_fragmenstein' based on num_placements
-    elab_df['placed_w_fragmenstein'] = elab_df['name'].apply(
-        lambda x: placement_method if parse_number_from_name(x) is not None and parse_number_from_name(x) <= num_placements else False
-    )
-    elab_df['name'] = elab_df['name'].str.replace('_', '-')
-    # Write to elab csv
-    elab_df.to_csv(elab_csv_path, index=False)
     # Read success csv
     success_df = pd.read_csv(success_csv_path)
     # Merge elab_df with success_df on 'name' column
     merged_df = pd.merge(success_df, elab_df, on='name', how='left')
+    # drop index
+    merged_df = merged_df.drop(columns=['index'])
     # order merged_df by 'num_atom_difference' column
     merged_df = merged_df.sort_values(by=['num_atom_difference'])
     # Write to success csv
     merged_df.to_csv(success_csv_path, index=False)
 
-def find_max_placement(output_dir_path, success_dir_path):
-    # Function to extract max value from a directory
-    def extract_max_from_dir(dir_path):
-        max_val = 0
-        if os.path.exists(dir_path):
-            for subdir in os.listdir(dir_path):
-                try:
-                    count = int(subdir.split('-')[-1])
-                    max_val = max(max_val, count)
-                except ValueError:
-                    pass  # Handle cases where the split part is not a number
-        return max_val
-    # Get max values from both directories
-    max_output = extract_max_from_dir(output_dir_path)
-    max_success = extract_max_from_dir(success_dir_path)
-    # Return the overall max
-    return max(max_output, max_success)
+def find_num_placement(output_dir_path):
+    # Function to count the number of first-level subdirectories in output_dir_path
+    num_subdirs = 0
+    if os.path.exists(output_dir_path):
+        for entry in os.listdir(output_dir_path):
+            if os.path.isdir(os.path.join(output_dir_path, entry)):
+                num_subdirs += 1
+    return num_subdirs
 
 def get_delta_delta_G(data: dict) -> float:
     # Get the delta delta G value from the JSON file. Accounts for different formats.
@@ -138,8 +113,14 @@ def copy_successful_cases(output_dir_path, success_dir_path, rmsd_thresh, remove
                                                 print(f"Deleted file: {file_path}")
                                         except Exception as e:
                                             print('Failed to delete %s. Reason: %s' % (file_path, e))
-                            # Copy the directory instead of moving
-                            shutil.copytree(subdir_path, success_dir_path)
+                            # Copy the directory, handle existing directory case
+                            destination_path = os.path.join(success_dir_path, subdir)
+                            try:
+                                shutil.copytree(subdir_path, destination_path)
+                            except FileExistsError:
+                                # Remove existing directory and re-copy
+                                shutil.rmtree(destination_path)
+                                shutil.copytree(subdir_path, destination_path)
                             break
 
 
@@ -168,7 +149,7 @@ def make_success_csv_row(subdir: str, data: dict) -> list:
     csv_row = [subdir, ddG, unbound, bound, rmsd]
     return csv_row
 
-def create_success_csv(success_dir_path, cmpd_catalog, frag1, frag2):
+def create_success_csv(success_dir_path):
     headers = ['name', 'ΔΔG', 'unbound', 'bound', 'mRMSD']
     collected_data = []
     for subdir in os.listdir(success_dir_path):
@@ -188,7 +169,7 @@ def create_success_csv(success_dir_path, cmpd_catalog, frag1, frag2):
                             placement_method = 'pyrosetta'
                         csv_row = make_success_csv_row(subdir, data)
                         collected_data.append(csv_row)
-    csv_file_path = os.path.join(success_dir_path, f'{cmpd_catalog}_{frag1}_{frag2}_success.csv')
+    csv_file_path = os.path.join(success_dir_path, f'{success_dir_path.split("/")[-2]}_success.csv')
     if collected_data:
         num_success = len(collected_data)
         with open(csv_file_path, 'w', newline='') as file:
@@ -230,7 +211,7 @@ def find_cmpd_dirs(home_directory):
                 cmpd_dirs.append(full_dir_path)
     return cmpd_dirs
 
-def contains_elab_csv(directory, num_steps):
+def contains_elab_csv(directory: str, num_steps: int):
     """Check if directory contains a .csv file with specific names."""
     if num_steps == 1:
         suffix = '1_of_1'
@@ -239,7 +220,6 @@ def contains_elab_csv(directory, num_steps):
     for file in os.listdir(directory):
         if file.startswith('.'):  # Skip hidden files
             continue
-        print(file)
         if (file.endswith(".csv") and 'batch' not in file and 'success' not in file and suffix in file):
             elab_file_path = os.path.join(directory, file)
             return elab_file_path, True
@@ -265,7 +245,8 @@ def main():
             if not os.path.exists(output_dir_path):
                 continue
             # 3. If there is no cmpd_catalog, frag1, frag2 in .csv, skip.
-            elab_csv_path, found = contains_elab_csv(directory, args.num_steps)
+            num_steps = int(args.num_steps)
+            elab_csv_path, found = contains_elab_csv(directory, num_steps)
             if not found:
                 print(f"No relevant .csv file found in {directory}")
                 continue
@@ -281,12 +262,12 @@ def main():
             if success_csv_path is None:
                 print(f"{directory} DOES NOT CONTAIN SUCCESSFUL PLACEMENTS")
                 continue
-            # 7. Find total number of placements by getting max of output vs success dirs.
-            num_placements = find_max_placement(output_dir_path, success_dir_path)
+            # 7. Find total number of placements by getting num of subdirs in output_dir_path
+            num_placements = find_num_placement(output_dir_path)
             # 8. Add placement data to elab.csv and success.csv
             add_placement_data(elab_csv_path, success_csv_path, num_placements, placement_method)
             # 9. Store number of successful placements and total number of placements per directory. Store success dir paths.
-            total_success_dirs.append({directory: (num_success, num_placements)})
+            total_success_dirs.append({success_dir_path: (num_success, num_placements)})
             print(f"SUCCESS: {directory}")
         except Exception as e:
             tb = traceback.format_exc()
