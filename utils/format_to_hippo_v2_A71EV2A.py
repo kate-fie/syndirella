@@ -44,7 +44,8 @@ def add_placement_data(elab_csv_path, success_csv_path):
     # Merge elab_df with success_df on 'name' column
     merged_df = pd.merge(success_df, elab_df, on='name', how='left')
     # drop index
-    merged_df = merged_df.drop(columns=['index'])
+    if 'index' in merged_df.columns:
+        merged_df = merged_df.drop(columns=['index'])
     # order merged_df by 'num_atom_difference' column
     merged_df = merged_df.sort_values(by=['num_atom_difference'])
     # Write to success csv
