@@ -20,7 +20,7 @@ from typing import List, Dict, Any, Optional
 def config_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', required=True, help='Home directory where csvs of elabs live.')
-    parser.add_argument('-t', required=True, help='Directory of templates to use. Name must contain fragalysis ID.')
+    parser.add_argument('-t', required=True, help='Directory of templates to use. Name must contain fragalysis id.')
     parser.add_argument('-i', required=True, help='SDF of all fragment hits for target.')
     parser.add_argument('--step', required=True, help='Step identifier to place elabs for. Must be present in csv name.')
     parser.add_argument('--batch_range', required=True,

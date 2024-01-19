@@ -364,7 +364,7 @@ def runReactionInAttachment(reactant1, reactant2, reactionName, refMol, ref_atta
 #
 #     attachment_region_idxs1 = expand2DIdxsToNeigs(reactant1, attachmentIdxs1, n_hops_from_attachment)
 #     attachment_region_idxs2 = expand2DIdxsToNeigs(reactant2, attachmentIdxs2, n_hops_from_attachment)
-#     rxn = reactions_rxns[reactionName]
+#     rxn = reaction_smarts[reactionName]
 #     products = rxn.RunReactants([reactant1, reactant2])
 #
 #     # if len(products) == 0:
