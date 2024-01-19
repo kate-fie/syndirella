@@ -1,4 +1,4 @@
-from utils.input import process_routes
+from syndirella.utils.input import process_routes
 import pandas as pd
 
 df = pd.read_csv('/Users/kate_fieseler/PycharmProjects/retrievesynthesizable/NCS1/d2r/smiles_routes_1_step.csv')

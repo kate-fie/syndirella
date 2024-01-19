@@ -9,22 +9,19 @@ import ast
 import os
 import sys
 import argparse
-import csv
 import pandas as pd
 from rdkit import Chem
-import datetime
 import numpy as np
 import glob2
 import traceback
 import datetime
 
 sys.path.append('/Users/kate_fieseler/PycharmProjects/chemUtils')
-import chemUtils
 
 from config import config
 from wholeMoleculePipeline import searchReactantAnalogues, searchExactReactantAnalogues
 from constants import REACTIONS_NAMES
-from utils import input
+from syndirella.utils import input
 
 
 def find_rows_to_process(df, batch_num, batch_size):
