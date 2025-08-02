@@ -28,6 +28,7 @@ def add_route_info(reaction_names: List[str],
     """
     This function formats the full route into seperate columns for each reactant.
     """
+    # TODO: Output the retrosynthesis tool used. Also output the original template code specified by aizynth if used.
     num_steps: int = len(reaction_names)
     try:
         elab_single_reactant = bool(elab_single_reactant)

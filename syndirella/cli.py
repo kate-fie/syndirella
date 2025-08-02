@@ -57,6 +57,10 @@ def config_parser(syndirella_base_path: str):
                         help="Only place scaffolds. Do not continue to elaborate.")
     parser.add_argument('--scaffold_place_num', type=int, default=5,
                         help="Number of times to attempt scaffold placement.")
+    parser.add_argument('--retro_tool', type=str, default='manifold',
+                        help="Retrosynthesis tool to use. Options: [manifold, aizynthfinder]")
+    parser.add_argument('--db_search_tool', type=str, default='manifold',
+                        help="Database search tool to use. Options: [manifold, arthor]")
     parser.add_argument('--profile', action='store_true', help="Run the pipeline with profiling.")
     parser.add_argument('--atom_diff_min', type=int, default=0,
                         help="Minimum atom difference between elaborations and scaffold to keep.")
@@ -107,18 +111,18 @@ def main():
     parser = config_parser(syndirella_base_path)
     args = parser.parse_args()
 
+    # Convert argparse Namespace to dictionary
+    settings = vars(args)
+
     # check for MANIFOLD API key
-    if not os.environ.get('MANIFOLD_API_KEY'):
+    if settings['retro_tool'] == 'manifold' and not os.environ.get('MANIFOLD_API_KEY'):
         logging.error("MANIFOLD_API_KEY environment variable not set.")
         sys.exit(1)
 
     # check for MANIFOLD API key
-    if not os.environ.get('MANIFOLD_API_URL'):
+    if settings['retro_tool'] == 'manifold' and not os.environ.get('MANIFOLD_API_URL'):
         logging.error("MANIFOLD_API_URL environment variable not set.")
         sys.exit(1)
-
-    # Convert argparse Namespace to dictionary
-    settings = vars(args)
 
     if settings['just_retro']:
         # Load the justretroquery module

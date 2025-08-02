@@ -21,7 +21,49 @@ The ``.json`` structure follows this format:
 
 - **Key (e.g., "Amidation")**: The name of the reaction (with ``_`` as spaces)
 
-- **Value (e.g., "[#6:1](=[#8:2])-[#8;H1].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3]>>[#6:1](=[#8:2])-[#7X3:3]")**: The reaction SMIRKS.
+- **Value**: A dictionary containing reaction metadata with the following fields:
+
+  - **smirks** (string): The reaction SMIRKS pattern
+
+    Example: ``"[#6:1](=[#8:2])-[#8;H1].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3]>>[#6:1](=[#8:2])-[#7X3:3]"``
+
+  - **source** (string): The source of the reaction
+
+    - ``"manual"``: Manually curated reactions
+    - ``"rxn-insight"``: Reactions from RXN insight paper
+
+  - **type** (string): The reaction hierarchy type
+
+    - ``"parent"``: Base reaction category
+    - ``"child"``: More specific variant of a parent reaction
+
+  - **parent** (string, optional): For child reactions, the name of the parent reaction
+
+    Example: ``"Amidation"``
+
+**Adding new reactions:**
+
+    1. Edit RXN_SMIRKS_CONSTANTS.json
+    2. Add your new reaction:
+
+    .. code-block:: bash
+
+        # Add a parent reaction
+        "New_reaction": {
+            "smirks": "[smirks pattern]",
+            "source": "user_defined",
+            "type": "parent"
+          }
+
+        # Add a child reaction to a parent
+        "New_reaction": {
+            "smirks": "[smirks pattern]",
+            "source": "user_defined",
+            "type": "child",
+            "parent": "parent_to_this_child"
+          }
+
+    3. Run pipeline - changes automatically detected
 
 
 `REACTANT_FILTER_CONSTANTS.json <https://github.com/kate-fie/syndirella/blob/main/syndirella/constants/REACTANT_FILTER_CONSTANTS.json>`_

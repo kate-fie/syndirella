@@ -51,6 +51,7 @@ class Library:
         self.atom_diff_min: int = atom_diff_min
         self.atom_diff_max: int = atom_diff_max
         self.elab_single_reactant_int: int | None = None
+        self.database_search: str = 'postera'
 
         self.logger = logging.getLogger(f"{__name__}")
         self.r1 = None

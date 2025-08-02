@@ -6,6 +6,7 @@ This module contains the Reaction class. One instance of this object is used to 
 """
 
 import logging
+import os
 from typing import (List, Dict, Tuple)
 
 from rdkit import Chem
@@ -13,7 +14,9 @@ from rdkit.Chem import rdFMCS
 
 import syndirella.fairy as fairy
 from syndirella.SMARTSHandler import SMARTSHandler
+from syndirella.cli_defaults import syndirella_base_path
 from syndirella.error import ReactionError
+from syndirella.route.SmirksLibraryManager import SmirksLibraryManager
 
 
 class Reaction():
@@ -37,9 +40,24 @@ class Reaction():
         self.reaction_pattern: Chem.rdChemReactions = self.smarts_handler.reaction_smarts[self.reaction_name]
         self.all_attach_ids: Dict[Chem.Mol, List[int]] | None = self.find_attachment_ids_for_all_reactants()
         self.matched_smarts_to_reactant, self.matched_smarts_index_to_reactant = self.find_reaction_atoms_for_all_reactants()
-
+        self._initialize_smirks_manager()
+        self.reaction_parent: str | None = self.smirks_manager.get_parent_of_child(
+            self.reaction_name) if self.smirks_manager.is_child(self.reaction_name) else None
         self.additional_rxn_options: List[Dict[str, str]] = fairy.load_additional_rxn_options()
         self.alt_reactions: List[Dict[str, str]] | None = self.alt_reaction()
+
+    def _initialize_smirks_manager(self, smirks_library_path: str = None):
+        """Initialize the SMIRKS library manager."""
+        if smirks_library_path is None:
+            base_dir = os.path.join(syndirella_base_path,
+                                    'syndirella', 'constants')
+            smirks_library_path = os.path.join(base_dir, 'RXN_SMIRKS_CONSTANTS.json')
+
+        # Initialize manager
+        self.smirks_manager = SmirksLibraryManager(
+            smirks_library_path=smirks_library_path,
+            logger=self.logger
+        )
 
     def alt_reaction(self) -> List[Dict[str, str]] | None:
         """
@@ -49,6 +67,10 @@ class Reaction():
         for rxn in self.additional_rxn_options:
             if rxn['name'] == self.reaction_name:
                 rxns.append(rxn)
+            if rxn['name'] == self.reaction_parent:
+                self.logger.warning(
+                    f"Found parent: {self.reaction_parent} in additional reactions.\n"
+                    "Functionality of additional reactions for parent reaction is not yet implemented.")
         return rxns
 
     def get_additional_reactions(self) -> List[Tuple[str, Tuple[str, str]]] | None:
@@ -79,8 +101,8 @@ class Reaction():
                             other_reactant: str = Chem.MolToSmiles(other_reactant)
                             reactants: Tuple[str, str] = (new_reactant, other_reactant)
                             new_reactions.append((reaction_name, reactants))
-                    else:
-                        self.logger.error(f"Cannot edit reactant for additional reaction {alt_rxn['replace_with']}.")
+                else:
+                    self.logger.error(f"Cannot edit reactant for additional reaction {alt_rxn['replace_with']}.")
         return new_reactions
 
     def check_reaction_can_produce_product(self,

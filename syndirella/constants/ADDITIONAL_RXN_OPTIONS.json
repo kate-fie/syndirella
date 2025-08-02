@@ -1,6 +1,6 @@
 [
   {
-    "name": "Amide_schotten-baumann",
+    "name": "Amide_Schotten-Baumann",
     "replace_with": "Amidation",
     "reactant_smarts_to_replace": "[#6X3;!$(C-N):1](=[OX1:2])-[#17,#9,#35:3]",
     "reactant_id_to_replace": 2,

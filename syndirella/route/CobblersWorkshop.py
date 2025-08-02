@@ -55,6 +55,8 @@ class CobblersWorkshop():
         self.first_library: Library = None
         self.final_library: Library = None
 
+        self.db_search_tool: str = None
+
     def check_product(self, product: str) -> str:
         """
         Checks scaffold can be converted to a molecule and can be sanitized. If not, logs an error.
@@ -232,16 +234,10 @@ class CobblersWorkshop():
             f"Assigning the reactant to elaborate as {elab_single_reactant_int} out of {self.reactants[0]}")
         return elab_single_reactant_int
 
-    def get_additional_routes(self, edit_route: bool = True) -> List | None:
+    def get_additional_routes(self) -> List | None:
         """
         This function is used to get an alternative route (as a CobblersWorkshop object) if it is needed such as
         containing alternative reactions or setting only one reactant to elaborate.
-
-        Args:
-        edit_route: bool
-            If True, the reactants in the route will be directly edited via SMARTS.
-            If False, an additional route containing the additional reactions specified from a Postera search will be
-                returned.
         """
         self.define_route()
         reaction_names_to_replace = []
@@ -266,6 +262,7 @@ class CobblersWorkshop():
         Route UUID: {self.route_uuid}
         Reaction Names: {self.reaction_names}
         Number of Steps: {self.num_steps}
+        
         """
         self.logger.info(route_message)
 

@@ -58,6 +58,11 @@ class TestCLI(unittest.TestCase):
         exit_code = self.run_main_with_args(args)
         self.assertEqual(exit_code, 0)
 
+    def test_aizynth_pipeline_argument(self):
+        args = ['syndirella', '--input', self.csv_path, '--output', self.output_dir, '--retro_tool', 'aizynthfinder']
+        exit_code = self.run_main_with_args(args)
+        self.assertEqual(exit_code, 0)
+
     def test_valid_just_retro_arguments(self):
         args = ['syndirella', '--input', self.csv_path, '--output', self.output_dir, '--just_retro']
         exit_code = self.run_main_with_args(args)

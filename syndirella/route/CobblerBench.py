@@ -36,7 +36,8 @@ class CobblerBench:
                  route_uuid: str,
                  atom_diff_min: int,
                  atom_diff_max: int,
-                 elab_single_reactant: bool):
+                 elab_single_reactant: bool,
+                 db_search_tool: str):
         self.product: Chem.Mol = Chem.MolFromSmiles(product)
         self.reactant_smiles: Tuple[str] | str = reactants
         self.reactants: Tuple[Chem.Mol] = self._make_reactant_mols(reactants)
@@ -52,6 +53,7 @@ class CobblerBench:
         self.atom_diff_max: int = atom_diff_max
         self.elab_single_reactant: bool = elab_single_reactant
         self.elab_single_reactant_int: int | None = None
+        self.db_search_tool: str = db_search_tool
 
         self.reaction: Reaction = None
         self.library = None

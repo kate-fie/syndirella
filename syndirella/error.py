@@ -159,3 +159,14 @@ class SingleReactantElabError(ChemicalErrorBase):
                  route_uuid: str | None = None):
         self.route_uuid = route_uuid
         super().__init__(message=message, inchi=inchi, smiles=smiles, mol=mol)
+
+
+class AiZynthFinderError(ChemicalErrorBase):
+    def __init__(self,
+                 message: str = "AiZynthFinder could not be successfully run.",
+                 inchi: str | None = None,
+                 smiles: str | None = None,
+                 mol: Chem.Mol | None = None,
+                 route_uuid: str | None = None):
+        self.route_uuid = route_uuid
+        super().__init__(message=message, inchi=inchi, smiles=smiles, mol=mol)

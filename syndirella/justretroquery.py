@@ -15,6 +15,8 @@ from syndirella.Postera import Postera
 from syndirella.error import APIQueryError
 from .cli_defaults import cli_default_settings
 
+# TODO: Test with AiZynthFinder
+
 logger = logging.getLogger(__name__)
 with open(cli_default_settings['rxn_smarts_path']) as f:
     reaction_smarts = json.load(f)

@@ -4,6 +4,9 @@ syndirella.run_pipeline.py
 
 This script contains the main pipeline for syndirella.
 """
+
+# TODO: Need to make this way more readable + simple.
+
 import datetime
 import logging
 import time
@@ -143,6 +146,8 @@ def elaborate_compound_with_manual_routes(product: str,
                                           only_scaffold_place: bool,
                                           scaffold_place: bool,
                                           elab_single_reactant: bool,
+                                          retro_tool: str,
+                                          db_search_tool: str,
                                           additional_info=None):
     """
     This function is used to elaborate a single compound using a manually defined route.
@@ -156,7 +161,8 @@ def elaborate_compound_with_manual_routes(product: str,
         workshop = CobblersWorkshop(product=product, reactants=reactants, reaction_names=reaction_names,
                                     num_steps=num_steps, output_dir=output_dir, filter=False,
                                     id=fairy.generate_inchi_ID(product, isomeric=False), atom_diff_min=atom_diff_min,
-                                    atom_diff_max=atom_diff_max, elab_single_reactant=elab_single_reactant)
+                                    atom_diff_max=atom_diff_max, elab_single_reactant=elab_single_reactant,
+                                    retro_tool=retro_tool)
         cobblers_workshops = [workshop]
         alternative_routes: List[CobblersWorkshop] | None = workshop.get_additional_routes(edit_route=True)
         if alternative_routes is not None:
@@ -186,6 +192,8 @@ def elaborate_compound_full_auto(product: str,
                                  only_scaffold_place: bool,
                                  scaffold_place: bool,
                                  elab_single_reactant: bool,
+                                 retro_tool: str,
+                                 db_search_tool: str,
                                  additional_info=None):
     """
     This function is used to elaborate a single compound.
@@ -199,7 +207,8 @@ def elaborate_compound_full_auto(product: str,
         cobbler = Cobbler(scaffold_compound=product,
                           output_dir=output_dir, atom_diff_min=atom_diff_min,
                           atom_diff_max=atom_diff_max,
-                          elab_single_reactant=elab_single_reactant)  # check that output_dirs can be made for different routes
+                          elab_single_reactant=elab_single_reactant,
+                          retro_tool=retro_tool)
         cobbler_workshops: List[CobblersWorkshop] = cobbler.get_routes()
         elaborate_from_cobbler_workshops(cobbler_workshops=cobbler_workshops, template_path=template_path,
                                          hits_path=hits_path, hits=hits, batch_num=batch_num,
@@ -208,7 +217,7 @@ def elaborate_compound_full_auto(product: str,
         end_time = time.time()
         elapsed_time = end_time - start_time
         logger.info(
-            f"Finished Syndirella 👑 pipeline for compound {product} | {inchi.MolToInchiKey(Chem.MolFromSmiles(product))} "
+            f"Finished Syndirella 👑pipeline for compound {product} | {inchi.MolToInchiKey(Chem.MolFromSmiles(product))} "
             f"after {datetime.timedelta(seconds=elapsed_time)}")
         logger.info("")
 
@@ -231,9 +240,6 @@ def run_pipeline(settings: Dict):
         hits: List[str] = check_inputs.get_exact_hit_names(row=row, metadata_path=metadata_path,
                                                            hits_path=hits_path)
 
-        # logger.warning("Assuming hit names in SDF exactly match input CSV")
-        # hits = [v for k,v in row.to_dict().items() if k.startswith("hit")]
-
         try:
             if manual_routes:
                 reactants, reaction_names, num_steps = check_inputs.format_manual_route(row)
@@ -254,7 +260,9 @@ def run_pipeline(settings: Dict):
                     scaffold_place_num=scaffold_place_num,
                     only_scaffold_place=only_scaffold_place,
                     scaffold_place=scaffold_place,
-                    elab_single_reactant=elab_single_reactant
+                    elab_single_reactant=elab_single_reactant,
+                    retro_tool=retro_tool,
+                    db_search_tool=db_search_tool
                 )
             else:
                 elaborate_compound_full_auto(
@@ -271,7 +279,9 @@ def run_pipeline(settings: Dict):
                     scaffold_place_num=scaffold_place_num,
                     only_scaffold_place=only_scaffold_place,
                     scaffold_place=scaffold_place,
-                    elab_single_reactant=elab_single_reactant
+                    elab_single_reactant=elab_single_reactant,
+                    retro_tool=retro_tool,
+                    db_search_tool=db_search_tool
                 )
         except Exception as e:
             tb = traceback.format_exc()
@@ -299,6 +309,8 @@ def run_pipeline(settings: Dict):
         atom_diff_max: int = settings['atom_diff_max']
         scaffold_place_num: int = settings['scaffold_place_num']
         long_code_column: str = settings['long_code_column']
+        retro_tool: str = settings['retro_tool']
+        db_search_tool: str = settings['db_search_tool']
     except KeyError as e:
         logger.critical(f"Missing critical argument to run pipeline: {e}")
 

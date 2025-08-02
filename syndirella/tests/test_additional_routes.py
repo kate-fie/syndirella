@@ -38,7 +38,7 @@ class TestAdditionalRouteGeneration(unittest.TestCase):
                                     self.num_steps, self.output_dir, self.filter, id=self.id,
                                     elab_single_reactant=self.elab_single_reactant, atom_diff_max=self.atom_diff_max,
                                     atom_diff_min=self.atom_diff_min)
-        routes = workshop.get_additional_routes(edit_route=True)
+        routes = workshop.get_additional_routes()
         self.assertIsInstance(routes, list)
 
 
@@ -56,12 +56,6 @@ class TestElabSingleReactant(unittest.TestCase):
         self.atom_diff_max = 10
         if os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
-        # self.template_path =
-        # self.hits_path =
-        # self.hits =
-        # self.batch_num =
-        # self.additional_info =
-        # self.scaffold_placements =
 
     def test_get_additional_routes(self):
         logging.basicConfig(level=logging.INFO)
@@ -69,7 +63,7 @@ class TestElabSingleReactant(unittest.TestCase):
                                     self.num_steps, self.output_dir, self.filter, id=self.id,
                                     elab_single_reactant=self.elab_single_reactant, atom_diff_min=self.atom_diff_min,
                                     atom_diff_max=self.atom_diff_max)
-        routes = workshop.get_additional_routes(edit_route=True)
+        routes = workshop.get_additional_routes()
         self.assertIsInstance(routes, list)
 
     def test_get_final_library(self):
@@ -117,7 +111,7 @@ class TestAdditionalRouteandSingleElab(unittest.TestCase):
                                     self.num_steps, self.output_dir, self.filter, id=self.id,
                                     elab_single_reactant=self.elab_single_reactant, atom_diff_min=self.atom_diff_min,
                                     atom_diff_max=self.atom_diff_max)
-        routes = workshop.get_additional_routes(edit_route=True)
+        routes = workshop.get_additional_routes()
         self.assertIsInstance(routes, list)
         self.assertTrue(len(routes) == 3)  # one route for the original and two for the new
         route0 = workshop

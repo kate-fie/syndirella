@@ -28,13 +28,14 @@ class SMARTSHandler:
         else:
             with open(cli_default_settings['rxn_smarts_path']) as f:
                 reaction_smirks = json.load(f)
-        self.reaction_smarts = {name: ReactionFromSmarts(val) for name, val in reaction_smirks.items()}
+        self.reaction_smarts = {name: ReactionFromSmarts(data['smirks']) for name, data in reaction_smirks.items()}
         self.reactant1_dict = OrderedDict()
         self.reactant2_dict = OrderedDict()
         self.product_smarts = OrderedDict()
         self.n_reactants_per_reaction = OrderedDict()
-        for name, smart in reaction_smirks.items():
-            reactants, prod = smart.split(">>")
+        for name, data in reaction_smirks.items():
+            smirks = data['smirks']
+            reactants, prod = smirks.split(">>")
             try:
                 react1, react2 = reactants.split(".")
             except ValueError:

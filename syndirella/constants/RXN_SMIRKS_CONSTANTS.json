@@ -1,35 +1,623 @@
 {
-  "Amidation": "[#6:1](=[#8:2])-[#8;H1].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3]>>[#6:1](=[#8:2])-[#7X3:3]",
-  "Amide_Schotten-Baumann": "[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3].[#6X3;!$(C-N):1](=[OX1])[#17,#9,#35]>>[#6:1](=[#8:2])-[#7:3]",
-  "Reductive_amination": "[#6:2](=[#8])(-[#6:1]).[#7;H2,H1:3]>>[#6:2](-[#6:1])-[#7:3]",
-  "N-nucleophilic_aromatic_substitution": "[#6:3]-[#7;H3,H2,H1:2].[c:1]-[F,Cl,Br,I]>>[#6:3]-[#7:2]-[c:1]",
-  "Suzuki_coupling": "[#6:1]-[Cl,Br,I].[#6:2]-[B](-[O])(-[O])>>[#6:1]-[#6:2]",
-  "Formation_of_urea_from_two_amines": "[N&X3;H2,H1;!$(NC=O);!$(NS):3].[N&X3;H2,H1;!$(NC=O);!$(NS):4]>>[#7&X3:3]-[#6](=[#8])-[#7&X3:4]",
-  "Sulfonamide_Schotten-Baumann_with_amine_(intermolecular)": "[#16X4:1](=[OX1:2])(=[OX1:3])([#6,#7:4])[#17,#9,#35].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3]>>[#16X4:1](=[OX1:2])(=[OX1:3])([#6,#7:4])-[#7:5]",
-  "Buchwald-Hartwig_amination": "[ar:1]-[Cl,Br,I].[#7&X3;H2,H1;!$(NC=*);!$(NS);!$(NN):7]>>[ar:1]-[N:7]",
-  "Nucleophilic_substitution_with_thiol": "[Cl,Br,I]-[C;H2,H1;+0:1].[SH;+0:2]>>[S&X2;H0;D2;+0:2]-[C&X4;D2;+0:1]",
-  "Mitsunobu_reaction_with_amine_alcohol_and_thioalcohol": "[OH]-[#6&X4:1].[NX3;H2,H1;!$(NC=O):2]>>[NX3;!$(NC=O):2]-[#6&X4:1]",
-  "Amide_Schotten-Baumann_with_amine": "[#6:2][#6X3;!$(C-N):1](=[OX1:3])[#17,#9,#35].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):4]>>[#6:2]-[#6:1](=[OX1:3])-[#7:4]",
-  "Ester_amidation": "C-[O;R0]-[C;H0;D3;+0;R0:1](-[#6:2])=[O;D1;H0:3].[N;H1,H2;+0:5]>>[N&X3;+0:5]-[C;H0;D3;+0:1](-[#6:2])=[O;D1;H0:3]",
-  "Nucleophilic_substitution_with_amine": "[Cl,Br,I]-[C;H2,H1;+0:1].[#7&X3;H2,H1;+0:5]>>[#7&X3;+0:5]-[C&X4;+0:1]",
-  "N-Boc_deprotection": "[#7&X3:2]-[#6](=[#8])-[#8]-[#6](-[#6;H3])(-[#6;H3])(-[#6;H3])>>[#7&X3:2]",
-  "Buchwald-Hartwig_amidation_with_amide-like_nucleophile": "[Cl,Br,I]-[ar:1].[CX3:7](-[NH2;D1;+0:8])=[O,S;D1;H0:9]>>[CX3:7](=[O,S;D1;H0:9])-[NH;D2;+0:8]-[ar:1]",
-  "Steglich_esterification": "[OH]-[C;H0;D3;+0:1]=[O;D1;H0:3].[CX4;+0:7]-[OH;D1;+0:9]>>[CX4:7]-[O;H0;D2;+0:9]-[C;H0;D3;+0:1]=[O;D1;H0:3]",
-  "N-Bn_deprotection": "[#7&X3:2]-[#6&H2]-[c]1[c&H1][c&H1][c&H1][c&H1][c&H1]1>>[#7&X3:2]",
-  "Williamson_ether_synthesis": "[Cl,Br,I]-[#6:1].[#6;+0:2]-[OH;D1;+0:3]>>[#6X4:1]-[O;H0;D2;+0:3]-[#6X4+0:2]",
-  "Epoxide_+_amine_coupling": "[#6:1]-[CH;D3;+0:2]1-[CH2;D2;+0:3]-[O;H0;D2;+0:4]-1.[N;H2,H1;+0:6]-[#6:7]>>[#6:1]-[C;+0:2](-[OH;D1;+0:4])-[C&X4;+0:3]-[N&X3;+0:6]-[#6:7]",
-  "Nucleophilic_substitution": "[Cl,Br]-[#6;H2,H1,H0;+0:1].[OH;+0:2]>>[O&X2;H0;D2;+0:2]-[#6&X4;D2;+0:1]",
-  "TBS_alcohol_deprotection": "[#6:1]-[#8&H0:2]-[#14](-[#6&H3])(-[#6&H3])-[#6](-[#6&H3])(-[#6&H3])(-[#6&H3])>>[#6:1]-[#8:2]",
-  "Benzyl_alcohol_deprotection": "[#8&X2:2]-[#6&H2]-[c]1[c&H1][c&H1][c&H1][c&H1][c&H1]1>>[#8&X2:2]",
-  "Formation_of_urea_by_displacement_of_imidazole_by_amine": "[#7:1]-[C](=[#8X1])[nX3]1[c&H1X3][c&H1X3][nX2][c&H1X3]1.[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):2]>>[#7:1]-[C](=[#8X1])-[#7:2]",
-  "Chan-Lam_coupling_(amination)": "[N;H1,H2:1](-[A])-[a,A].[c:2]-[B](-[O])(-[O])>>[N:1]-[c:2]",
-  "Hantzsch_thiazole_synthesis": "[a,A:1]-[C](=[S:4])-[N&H2].[a,A:3]-[C:5](=[O])-[C;H1:6](-[$([Cl,Br,I]),$(OS(=O)(=O)C),$(OS(=O)(=O)c1ccc(C)cc1)])-[a,A:2]>>[c]-1([a,A:1])-[s:4]-[c:6](-[a,A:2])-[c:5](-[a,A:3])-[n]-1",
-  "Heck_reaction_(intermolecular)": "[c,C][C:1]=[C:2].[Br]-[c:3]>>[c,C][C:1]=[C:2]-[c:3]",
-  "Sonogashira_coupling": "[$([c:1]),$([c,C:1]=[c,C:2])]-[Cl,Br,I,F].[C:4]#[C:5]-[c,C:6]>>[c:1]-[C:4]#[C:5]-[c,C:6]",
-  "Iodo_N-arylation": "[c:1]-[I].[n,N;R:2]:,-[c,C;R:3]>>[c:1]-[n,N;R:2]:,-[c,C;R:3]",
-  "Alpha_alkylation_of_ester/amide": "[C;R0:1]-[Cl,Br].[c,C:3][N,O:4]-[c,C:7](=[O:5])-[c,C;R0:6]>>[C:1]-[C:6]-[c:7](=[O:5])-[N,O:4][c,C:3]",
-  "Alpha_alkylation_of_ester/amide_alcohol": "[C;R0:1]-[O&H1].[c,C:3][N,O:4]-[c,C:7](=[O:5])-[c,C;R0:6]>>[C:1]-[C:6]-[C:7](=[O:5])-[N,O:4][c,C:3]",
-  "Minisci_reaction_with_carboxylic_acid_(intermolecular)": "[C:1]-[C](=[O])-[OH].[n]:[c:2]>>[C:1]-[c:2]:[n]",
-  "S-nucleophilic_aromatic_substitution": "[c,C:1]-[F,Cl,Br,I].[SH:2]-[A:3]>>[c,C:1]-[S:2]-[A:3]",
-  "Benzimidazole_synthesis": "[#7]-[#6]-1=[#6](-[#7])-[#6]=[#6]-[#6]=[#6]-1.[#8;H]-[#6](-[$([#1,*])])=O>>[$([#1,*])]-[#6]-1=[#7]-[#6]-2=[#6](-[#7]-1)-[#6]=[#6]-[#6]=[#6]-2"
+  "Amidation": {
+    "smirks": "[#6:1](=[#8:2])-[#8;H1].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3]>>[#6:1](=[#8:2])-[#7X3:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Amide_Schotten-Baumann": {
+    "smirks": "[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3].[#6X3;!$(C-N):1](=[OX1])[#17,#9,#35]>>[#6:1](=[#8:2])-[#7:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Reductive_amination": {
+    "smirks": "[#6:2](=[#8])(-[#6:1]).[#7;H2,H1:3]>>[#6:2](-[#6:1])-[#7:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "N-nucleophilic_aromatic_substitution": {
+    "smirks": "[#6:3]-[#7;H3,H2,H1:2].[c:1]-[F,Cl,Br,I]>>[#6:3]-[#7:2]-[c:1]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Suzuki_coupling": {
+    "smirks": "[#6:1]-[Cl,Br,I].[#6:2]-[B](-[O])(-[O])>>[#6:1]-[#6:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Formation_of_urea_from_two_amines": {
+    "smirks": "[N&X3;H2,H1;!$(NC=O);!$(NS):3].[N&X3;H2,H1;!$(NC=O);!$(NS):4]>>[#7&X3:3]-[#6](=[#8])-[#7&X3:4]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Sulfonamide_Schotten-Baumann_with_amine_(intermolecular)": {
+    "smirks": "[#16X4:1](=[OX1:2])(=[OX1:3])([#6,#7:4])[#17,#9,#35].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3]>>[#16X4:1](=[OX1:2])(=[OX1:3])([#6,#7:4])-[#7:5]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Buchwald-Hartwig_amination": {
+    "smirks": "[ar:1]-[Cl,Br,I].[#7&X3;H2,H1;!$(NC=*);!$(NS);!$(NN):7]>>[ar:1]-[N:7]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Nucleophilic_substitution_with_thiol": {
+    "smirks": "[Cl,Br,I]-[C;H2,H1;+0:1].[SH;+0:2]>>[S&X2;H0;D2;+0:2]-[C&X4;D2;+0:1]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Mitsunobu_reaction_with_amine_alcohol_and_thioalcohol": {
+    "smirks": "[OH]-[#6&X4:1].[NX3;H2,H1;!$(NC=O):2]>>[NX3;!$(NC=O):2]-[#6&X4:1]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Amide_Schotten-Baumann_with_amine": {
+    "smirks": "[#6:2][#6X3;!$(C-N):1](=[OX1:3])[#17,#9,#35].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):4]>>[#6:2]-[#6:1](=[OX1:3])-[#7:4]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Ester_amidation": {
+    "smirks": "C-[O;R0]-[C;H0;D3;+0;R0:1](-[#6:2])=[O;D1;H0:3].[N;H1,H2;+0:5]>>[N&X3;+0:5]-[C;H0;D3;+0:1](-[#6:2])=[O;D1;H0:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Nucleophilic_substitution_with_amine": {
+    "smirks": "[Cl,Br,I]-[C;H2,H1;+0:1].[#7&X3;H2,H1;+0:5]>>[#7&X3;+0:5]-[C&X4;+0:1]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "N-Boc_deprotection": {
+    "smirks": "[#7&X3:2]-[#6](=[#8])-[#8]-[#6](-[#6;H3])(-[#6;H3])(-[#6;H3])>>[#7&X3:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Buchwald-Hartwig_amidation_with_amide-like_nucleophile": {
+    "smirks": "[Cl,Br,I]-[ar:1].[CX3:7](-[NH2;D1;+0:8])=[O,S;D1;H0:9]>>[CX3:7](=[O,S;D1;H0:9])-[NH;D2;+0:8]-[ar:1]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Steglich_esterification": {
+    "smirks": "[OH]-[C;H0;D3;+0:1]=[O;D1;H0:3].[CX4;+0:7]-[OH;D1;+0:9]>>[CX4:7]-[O;H0;D2;+0:9]-[C;H0;D3;+0:1]=[O;D1;H0:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "N-Bn_deprotection": {
+    "smirks": "[#7&X3:2]-[#6&H2]-[c]1[c&H1][c&H1][c&H1][c&H1][c&H1]1>>[#7&X3:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Williamson_ether_synthesis": {
+    "smirks": "[Cl,Br,I]-[#6:1].[#6;+0:2]-[OH;D1;+0:3]>>[#6X4:1]-[O;H0;D2;+0:3]-[#6X4+0:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Epoxide_+_amine_coupling": {
+    "smirks": "[#6:1]-[CH;D3;+0:2]1-[CH2;D2;+0:3]-[O;H0;D2;+0:4]-1.[N;H2,H1;+0:6]-[#6:7]>>[#6:1]-[C;+0:2](-[OH;D1;+0:4])-[C&X4;+0:3]-[N&X3;+0:6]-[#6:7]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Nucleophilic_substitution": {
+    "smirks": "[Cl,Br]-[#6;H2,H1,H0;+0:1].[OH;+0:2]>>[O&X2;H0;D2;+0:2]-[#6&X4;D2;+0:1]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "TBS_alcohol_deprotection": {
+    "smirks": "[#6:1]-[#8&H0:2]-[#14](-[#6&H3])(-[#6&H3])-[#6](-[#6&H3])(-[#6&H3])(-[#6&H3])>>[#6:1]-[#8:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Benzyl_alcohol_deprotection": {
+    "smirks": "[#8&X2:2]-[#6&H2]-[c]1[c&H1][c&H1][c&H1][c&H1][c&H1]1>>[#8&X2:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Formation_of_urea_by_displacement_of_imidazole_by_amine": {
+    "smirks": "[#7:1]-[C](=[#8X1])[nX3]1[c&H1X3][c&H1X3][nX2][c&H1X3]1.[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):2]>>[#7:1]-[C](=[#8X1])-[#7:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Chan-Lam_coupling_(amination)": {
+    "smirks": "[N;H1,H2:1](-[A])-[a,A].[c:2]-[B](-[O])(-[O])>>[N:1]-[c:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Hantzsch_thiazole_synthesis": {
+    "smirks": "[a,A:1]-[C](=[S:4])-[N&H2].[a,A:3]-[C:5](=[O])-[C;H1:6](-[$([Cl,Br,I]),$(OS(=O)(=O)C),$(OS(=O)(=O)c1ccc(C)cc1)])-[a,A:2]>>[c]-1([a,A:1])-[s:4]-[c:6](-[a,A:2])-[c:5](-[a,A:3])-[n]-1",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Heck_reaction_(intermolecular)": {
+    "smirks": "[c,C][C:1]=[C:2].[Br]-[c:3]>>[c,C][C:1]=[C:2]-[c:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Sonogashira_coupling": {
+    "smirks": "[$([c:1]),$([c,C:1]=[c,C:2])]-[Cl,Br,I,F].[C:4]#[C:5]-[c,C:6]>>[c:1]-[C:4]#[C:5]-[c,C:6]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Iodo_N-arylation": {
+    "smirks": "[c:1]-[I].[n,N;R:2]:,-[c,C;R:3]>>[c:1]-[n,N;R:2]:,-[c,C;R:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Alpha_alkylation_of_ester/amide": {
+    "smirks": "[C;R0:1]-[Cl,Br].[c,C:3][N,O:4]-[c,C:7](=[O:5])-[c,C;R0:6]>>[C:1]-[C:6]-[c:7](=[O:5])-[N,O:4][c,C:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Alpha_alkylation_of_ester/amide_alcohol": {
+    "smirks": "[C;R0:1]-[O&H1].[c,C:3][N,O:4]-[c,C:7](=[O:5])-[c,C;R0:6]>>[C:1]-[C:6]-[C:7](=[O:5])-[N,O:4][c,C:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Minisci_reaction_with_carboxylic_acid_(intermolecular)": {
+    "smirks": "[C:1]-[C](=[O])-[OH].[n]:[c:2]>>[C:1]-[c:2]:[n]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "S-nucleophilic_aromatic_substitution": {
+    "smirks": "[c,C:1]-[F,Cl,Br,I].[SH:2]-[A:3]>>[c,C:1]-[S:2]-[A:3]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Benzimidazole_synthesis": {
+    "smirks": "[#7]-[#6]-1=[#6](-[#7])-[#6]=[#6]-[#6]=[#6]-1.[#8;H]-[#6](-[$([#1,*])])=O>>[$([#1,*])]-[#6]-1=[#7]-[#6]-2=[#6](-[#7]-1)-[#6]=[#6]-[#6]=[#6]-2",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Carboxylic_acid_with_primary_amine_to_amide": {
+    "smirks": "[CX3;+0:2](=[O;H0;D1;+0:3])-[O;H1;D1;+0].[#7;H2;D1;+0:5]>>[CX3;+0:2](=[O;H0;D1;+0:3])-[#7;H1;D2;+0:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amidation"
+  },
+  "Schotten-Baumann_to_ester": {
+    "smirks": "[Cl,F,Br,I]-[C;H0;D3;+0:1](=[O,S;D1;H0:2])-[*:3].[OH;D1;+0:4]-[*:5]>>[O,S;D1;H0:2]=[C;H0;D3;+0:1](-[*:3])-[O;H0;D2;+0:4]-[*:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann"
+  },
+  "Acyl_chloride_with_ammonia_to_amide": {
+    "smirks": "[*:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[Cl]>>[*:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[N;H2;D1;+0]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann"
+  },
+  "Acyl_chloride_with_primary_amine_to_amide_(Schotten-Baumann)": {
+    "smirks": "[*:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[Cl].[#7;H2;!$(N[O,N]);D1;+0:5]>>[*:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[#7;H1;D2;+0:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann"
+  },
+  "Ester_with_ammonia_to_amide": {
+    "smirks": "[*:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[O;H0;D2;+0]>>[*:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[N;H2;D1;+0]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann"
+  },
+  "Nitrile_to_amide": {
+    "smirks": "[C;H0;D2;+0:0]#[N;H0;D1;+0:1]>>[C;H0;D3;+0:0](=[O;H0;D1;+0])-[N;H2;D1;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann"
+  },
+  "Schmidt_ketone_amide": {
+    "smirks": "[*:0]-[C;H0;D3;+0:1](=[O;H0;D1;+0:2])-[*:3]>>[*:0]-[C;H0;D3;+0:1](=[O;H0;D1;+0:2])-[N;H1;D2;+0]-[*:3]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann"
+  },
+  "Schmidt_aldehyde_amide": {
+    "smirks": "[*:0]-[C;H1;D2;+0:1](=[O;H0;D1;+0:2])>>[*:0]-[C;H0;D3;+0:1](=[O;H0;D1;+0:2])-[N;H2;D1;+0]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann"
+  },
+  "{Schotten-Baumann_amide}": {
+    "smirks": "[C;$(C=O):1][OH1].[N;$(N[#6]);!$(N=*);!$([N-]);!$(N#*);!$([ND3]);!$([ND4]);!$(N[O,N]);!$(N[C,S]=[S,O,N]):2]>>[C:1][N+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann"
+  },
+  "Reductive_amination_with_aldehyde": {
+    "smirks": "[#6;+0:1]-[N;H2;D1;+0:2].[*:3]-[C;H1;D2;+0:4](=[O;H0;D1;+0])>>[*:3]-[C;H2;D2;+0:4]-[N;H1;D2;+0:2]-[#6;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Reductive_amination"
+  },
+  "Reductive_amination_with_ketone": {
+    "smirks": "[#6;+0:1]-[N;H2;D1;+0:2].[*:3]-[C;H0;D3;+0:4](=[O;H0;D1;+0])-[*:5]>>[*:3]-[C;H1;D3;+0:4](-[*:5])-[N;H1;D2;+0:2]-[#6;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Reductive_amination"
+  },
+  "{reductive_amination}": {
+    "smirks": "[#6:4]-[C;H1,$([CH0](-[#6])[#6]):1]=[OD1].[N;H2,$([NH1;D2](C)C);!$(N-[#6]=[*]):3]-[C:5]>>[#6:4][C:1]-[N:3]-[C:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Reductive_amination"
+  },
+  "Buchwald-Hartwig/Ullmann-Goldberg/N-arylation_primary_amine": {
+    "smirks": "[c;H0;D3;+0:0]-[F,Cl,Br,I].[#6;+0:1]-[N;H2;D1;+0:2]>>[c;H0;D3;+0:0]-[N;H1;D2;+0:2]-[#6;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "N-nucleophilic_aromatic_substitution"
+  },
+  "Buchwald-Hartwig/Ullmann-Goldberg/N-arylation_secondary_amine": {
+    "smirks": "[c;H0;D3;+0:0]-[F,Cl,Br,I].[#6;+0:1]-[N;H1;D2;+0:2]>>[c;H0;D3;+0:0]-[N;H0;D3;+0:2]-[#6;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "N-nucleophilic_aromatic_substitution"
+  },
+  "Suzuki_coupling_with_boronic_acids": {
+    "smirks": "[#6;+0:1]-[B;H0;D3;+0](-[O;H1;D1;+0])-[O;H1;D1;+0].[#6;$([#6]=[#6]),$([#6]~[#6]:[#6]);+0:2]-[O;H1;D1;+0]>>[#6;$([#6]:[#6]),$([#6]=[#6]),$([#6]#[#6]);+0:1]-[#6;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "Suzuki_coupling_with_boronic_acids_OTf": {
+    "smirks": "[#6;+0:1]-[B;H0;D3;+0](-[O;H1;D1;+0])-[O;H1;D1;+0].[#6;$([#6]=[#6]),$([#6]~[#6]:[#6]);+0:2]-[O;H0;D2;+0]-[S;H0;D4;+0](=[O;H0;D1;+0])(=[O;H0;D1;+0])-[C;H0;D4;+0](-[F])(-[F])-[F]>>[#6;$([#6]:[#6]),$([#6]=[#6]),$([#6]#[#6]);+0:1]-[#6;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "Suzuki_coupling_with_sulfonic_esters": {
+    "smirks": "[#6;$([#6]:[#6]),$([#6]=[#6]),$([#6]#[#6]);+0:1]-[B;H0;D3;+0](-[O;H1;D1;+0])-[O;H1;D1;+0].[#6;$([#6]=[#6]),$([#6]~[#6]:[#6]);+0:2]-[O;H0;D2;+0]-[S;+0](=[O;H0;D1;+0])(=[O;H0;D1;+0])-[#6;$([#6]~[#6]:[#6]),$([#6]-[#9]);+0:3]>>[#6;$([#6]=[#6]),$([#6]~[#6]:[#6]);+0:2]-[#6;$([#6]:[#6]),$([#6]=[#6]),$([#6]#[#6]);+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "Suzuki_coupling_with_boronic_esters": {
+    "smirks": "[#6;$([#6]:[#6]),$([#6]=[#6]),$([#6]#[#6]);+0:1]-[B;H0;D3;+0]1-[O;H0;D2;+0]-[#6;+0]~[#6;+0]~[#6;0]-[O;H0;D2;+0]1.[#6;$([#6]=[#6]),$([#6]~[#6]:[#6]),$([#6]:[#6]),$([#6]~n);+0:2]-[Cl,Br,I]>>[#6;$([#6]:[#6]),$([#6]=[#6]),$([#6]#[#6]);+0:1]-[#6;$([#6]=[#6]),$([#6]~[#6]:[#6]),$([#6]:[#6]),$([#6]~n);+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "Deboronation_of_boronic_acids": {
+    "smirks": "[#6;+0:1]-[B;H0;D3;+0](-[O;H1;D1;+0])-[O;H1;D1;+0]>>[#6;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "Negishi_coupling": {
+    "smirks": "[#6:1]-[Cl,Br,I].[Cl,Br,I]-[Zn]-[#6:2]>>[#6:2]-[#6:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "Oxidative_Heck_reaction": {
+    "smirks": "[C;H2;D1;+0:0]=[C;H1;D2;+0:1]-[#6:2].[#6;$([#6]=[#6]),$(c:c):3]-[B](-O)-O>>[#6:2]-[C;H1;D2;+0:1]=[C;H1;D1;+0:0]-[#6:3]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "Hiyama-Denmark_Coupling": {
+    "smirks": "[#6X3;$(C=C),$(c:c);+0:1]-[Si;D4;+0]-[O;H1;D1;+0].[c;H0;D3;+0:2]-[F,Cl,Br,I]>>[#6;+0:1]-[c;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "{Suzuki}": {
+    "smirks": "[#6;H0;D3;$([#6](~[#6])~[#6]):1]B(O)O.[#6;H0;D3;$([#6](~[#6])~[#6]):2][Cl,Br,I]>>[#6:2][#6:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Suzuki_coupling"
+  },
+  "Sulfonamide_synthesis_(Schotten-Baumann)_primary_amine": {
+    "smirks": "[#6,#7,Cl;+0:0]-[S;H0;D4;+0:1](=[O;H0;D1;+0:2])(=[O;H0;D1;+0:3])-[F,Cl,Br,I,OH].[#6;+0:4]-[N;H2;D1;+0:5]>>[#6,#7,Cl;+0:0]-[S;H0;D4;+0:1](=[O;H0;D1;+0:2])(=[O;H0;D1;+0:3])-[N;H1;D2;+0:5]-[#6;+0:4]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Sulfonamide_Schotten-Baumann_with_amine_(intermolecular)"
+  },
+  "Sulfonamide_synthesis_(Schotten-Baumann)_secondary_amine": {
+    "smirks": "[#6,#7,Cl;+0:0]-[S;H0;D4;+0:1](=[O;H0;D1;+0:2])(=[O;H0;D1;+0:3])-[F,Cl,Br,I,OH].[#6;+0:4]-[N;H1;D2;+0:5]>>[#6,#7,Cl;+0:0]-[S;H0;D4;+0:1](=[O;H0;D1;+0:2])(=[O;H0;D1;+0:3])-[N;H0;D3;+0:5]-[#6;+0:4]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Sulfonamide_Schotten-Baumann_with_amine_(intermolecular)"
+  },
+  "N-arylation_(Buchwald-Hartwig/Ullmann-Goldberg)": {
+    "smirks": "[Cl,Br,I]-[c;$(c1:[c,n]:[c,n]:[c,n]:[c,n]:[c,n]:1):1].[N;$([N]-[#6])&!$(N=*)&!$([N-])&!$(N#*)&!$([ND3])&!$([ND4])&!$(N[O])&!$(N[C,S]=[S,O,N]),H2&$(Nc1:[c,n]:[c,n]:[c,n]:[c,n]:[c,n]:1):2]>>[c:1]-[N:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Buchwald-Hartwig_amination"
+  },
+  "S-methylation": {
+    "smirks": "[S;H1;D1;+0:1].[*]-[C;H3;D1;+0:2]>>[S;H0;D2;+0:1]-[C;H3;D1;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Nucleophilic_substitution_with_thiol"
+  },
+  "Schmidt_reaction_acid_amine": {
+    "smirks": "[#6;+0:0]-[C;H0;D3;+0](=[O;H0;D1;+0])-[O;H1;D1;+0]>>[#6;+0:0]-[N;H2;D1;+0]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Mitsunobu_reaction_with_amine_alcohol_and_thioalcohol"
+  },
+  "Reductive_amination_with_alcohol": {
+    "smirks": "[#6;+0:1]-[N;H2;D1;+0:2].[#6;!$(C(=O)O);+0:4]-[O;H1;D1;+0]>>[#6;+0:1]-[N;H1;D2;+0:2]-[#6;+0:4]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Mitsunobu_reaction_with_amine_alcohol_and_thioalcohol"
+  },
+  "Acyl_chloride_with_secondary_amine_to_amide": {
+    "smirks": "[*:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[Cl].[#7;H1;D2;+0:5]>>[*:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[#7;H0;D3;+0:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Amide_Schotten-Baumann_with_amine"
+  },
+  "Aminolysis_of_esters": {
+    "smirks": "[#6:0]-[C;H0;D3;+0:1](=[O;H0;D1;+0:2])-[O;H0;D2;+0:3].[N;H1,H2;+0:4]>>[#6:0]-[C;H0;D3;+0:1](=[O;H0;D1;+0:2])-[N;+0:4]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Ester_amidation"
+  },
+  "Ester_with_primary_amine_to_amide": {
+    "smirks": "[#6:1]-[C;H0;D3;+0:2](=[O;!$(OC(C)(C)C);H0;D1;+0:3])-[O;H0;D2;+0].[#7;H2;D1;+0:5]>>[#6:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[#7;H1;D2;+0:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Ester_amidation"
+  },
+  "Ester_with_secondary_amine_to_amide": {
+    "smirks": "[#6:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[O;!$(OC(C)(C)C);H0;D2;+0:4].[#7;H1;D2;+0:5]>>[#6:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[#7;H0;D3;+0:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Ester_amidation"
+  },
+  "Ester_to_carboxylate": {
+    "smirks": "[C;D3;H0;+0:2](=[O;D1;H0:3])-[O;D2;H0;+0:4]-[C;X4;+0]>>[C;D3;H0;+0:2](-[O-;H0;D1:4])=[O;D1;H0:3]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Ester_amidation"
+  },
+  "N-alkylation_of_primary_amines_with_alkyl_halides": {
+    "smirks": "[#7;H2;D1;+0:1].[C;+0:2]-[F,Cl,Br,I]>>[#7;H1;D2;+0:1]-[C;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Nucleophilic_substitution_with_amine"
+  },
+  "N-alkylation_of_secondary_amines_with_alkyl_halides": {
+    "smirks": "[#7;H1;D2;+0:1].[C;+0:2]-[F,Cl,Br,I]>>[#7;H0;D3;+0:1]-[C;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Nucleophilic_substitution_with_amine"
+  },
+  "N-methylation": {
+    "smirks": "[#7;H1;D2;+0:1].[*]-[C;H3;D1;+0:2]>>[#7;H0;D3;+0:1]-[C;H3;D1;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Nucleophilic_substitution_with_amine"
+  },
+  "Boc_amine_deprotection": {
+    "smirks": "[C;H3;D1;+0]-[C;H0;D4;+0](-[C;H3;D1;+0])(-[C;H3;D1;+0])-[O;H0;D2;+0]-[C;H0;D3;+0](=[O;H0;D1;+0])-[#7;H0,H1;+0:1]>>[#7;H1,H2;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "N-Boc_deprotection"
+  },
+  "Boc_amine_deprotection_of_guanidine": {
+    "smirks": "[C;H3;D1;+0]-[C;H0;D4;+0](-[C;H3;D1;+0])(-[C;H3;D1;+0])-[O;H0;D2;+0]-[C;H0;D3;+0](=[O;H0;D1;+0])-[#7;H0;+0:1]=[C;H0;D3;+0:2]-[#7;H1;+0:3]-[C;H0;D3;+0](=[O;H0;D1;+0])-[O;H0;D2;+0]-[C;H0;D4;+0](-[C;H3;D1;+0])(-[C;H3;D1;+0])-[C;H3;D1;+0]>>[#7;H1;+0:1]=[C;H0;D3;+0:2]-[#7;H2;+0:3]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "N-Boc_deprotection"
+  },
+  "Boc_amine_deprotection_to_NH-NH2": {
+    "smirks": "[C;H3;D1;+0]-[C;H0;D4;+0](-[C;H3;D1;+0])(-[C;H3;D1;+0])-[O;H0;D2;+0]-[C;H0;D3;+0](=[O;H0;D1;+0])-[#7;H0;+0:1]-[#7;H1;+0:2]-[C;H0;D3;+0](=[O;H0;D1;+0])-[O;H0;D2;+0]-[C;H0;D4;+0](-[C;H3;D1;+0])(-[C;H3;D1;+0])-[C;H3;D1;+0]>>[#7;H1;+0:1]-[#7;H2;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "N-Boc_deprotection"
+  },
+  "{Buchwald-Hartwig}": {
+    "smirks": "[Cl,Br,I][c;$(c1:[c,n]:[c,n]:[c,n]:[c,n]:[c,n]:1):1].[N;$(NC)&!$(N=*)&!$([N-])&!$(N#*)&!$([ND3])&!$([ND4])&!$(N[c,O])&!$(N[C,S]=[S,O,N]),H2&$(Nc1:[c,n]:[c,n]:[c,n]:[c,n]:[c,n]:1):2]>>[c:1][N:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Buchwald-Hartwig_amidation_with_amide-like_nucleophile"
+  },
+  "Esterification_of_Carboxylic_Acids": {
+    "smirks": "[CX3;+0:2](-[O;H1;D1;+0])=[O;D1;H0:3].[Cl]-[C;D2,D3;+0]-[Cl]>>[C:4]-[O;H0;D2;+0:5]-[CX3;+0:2](=[O;D1;H0:3])",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Steglich_esterification"
+  },
+  "Transesterification": {
+    "smirks": "[C;+0]-[O;H0;D2;+0:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[C;+0:4].[C;+0:5]-[O;H1;D1;+0:6]>>[C;+0:5]-[O;H0;D2;+0:6]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[C;+0:4]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Steglich_esterification"
+  },
+  "Protection_of_carboxylic_acid": {
+    "smirks": "[C;H0;D3;+0:1](=[O;H0;D1;+0:2])-[O;H1;D1;+0:3]>>[C;H0;D3;+0:1](=[O;H0;D1;+0:2])-[O;H0;D2;+0:3]-[C;$(C(C)(C)C);H0;D4;+0]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Steglich_esterification"
+  },
+  "Oxidation_of_alcohol_and_aldehyde_to_ester": {
+    "smirks": "[#6;+0:0]-[O;H1;D1;+0:1].[C;H1;D2;+0:2](=[O;H0;D1;+0:3])-[#6;+0:4]>>[#6;+0:0]-[O;H0;D2;+0:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[#6;+0:4]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Steglich_esterification"
+  },
+  "Esterification_of_hydrazones": {
+    "smirks": "[#6;$([#6]-[#6]),$([#6]:[#6]);H0,H1;+0:0]=[N;H0;D2;+0]-[N;H2;D1;+0].[#6:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[O;H1;D1;+0:4]>>[#6:1]-[C;H0;D3;+0:2](=[O;H0;D1;+0:3])-[O;H0;D2;+0:4]-[#6;$([#6]-[#6]),$([#6]:[#6]);+0:0]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Steglich_esterification"
+  },
+  "Mitsunobu_esterification": {
+    "smirks": "[#6;D3;+0:1]-[O;H1;D1;+0].[C;H0;D3;+0:3](=[O;H0;D1;+0:4])-[O;H1;D1;+0:5]>>[C;H0;D3;+0:3](=[O;H0;D1;+0:4])-[O;H0;D2;+0:5]-[#6;D3;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Steglich_esterification"
+  },
+  "Williamson_Ether_Synthesis": {
+    "smirks": "[#6;+0:1]-[O;H1;D1;+0:2].[#6;+0:3]-[F,Br,I,Cl]>>[#6;+0:1]-[O;H0;D2;+0:2]-[#6;+0:3]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Williamson_ether_synthesis"
+  },
+  "Alcohol_to_ether": {
+    "smirks": "[C;H2,H3;+0:0]-[O;H1;D1;+0].[C;+0:1]-[O;H1;D1;+0:2]>>[C;+0:0]-[O;H0;D2;+0:2]-[C;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Williamson_ether_synthesis"
+  },
+  "Mitsunobu_aryl_ether": {
+    "smirks": "[O;H1;D1;+0:1]-[CX4;+0:2].[O;H1;D1;+0]-[c;H0;D3;+0:5]>>[#6;+0:5]-[O;H0;D2;+0:1]-[CX4;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Williamson_ether_synthesis"
+  },
+  "{Williamson_ether}": {
+    "smirks": "[#6;$([#6]~[#6]);!$([#6]=O):2][#8;H1:3].[Cl,Br,I][#6;H2;$([#6]~[#6]):4]>>[CH2:4][O:3][#6:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Williamson_ether_synthesis"
+  },
+  "Ring_opening_of_epoxide_with_amine": {
+    "smirks": "[C;X4;+0:3]1-[C;H2;D2;+0:4]-[O;H0;D2;+0:5]-1.[NH;D2;+0:8]>>[C;X4;+0:3](-[OH;D1;+0:5])-[CH2;D2;+0:4]-[N;H0;D3;+0:8]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Epoxide_+_amine_coupling"
+  },
+  "Primary_alkyl_halide_to_alcohol": {
+    "smirks": "[C;H2;+0:0]-[Cl,Br,I]>>[C;H2;+0:0]-[O;H1;D1;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Nucleophilic_substitution"
+  },
+  "Secondary_alkyl_halide_to_alcohol": {
+    "smirks": "[C;H1;+0:0]-[Cl,Br,I]>>[C;H1;+0:0]-[O;H1;D1;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Nucleophilic_substitution"
+  },
+  "Nucleophilic_substitution_OH_-_alkyl_silane": {
+    "smirks": "[C;H2;D2;+0:0]-[Si;H0;D4;+0].[C;+0:1]-[O;H1;D1;+0:2]>>[C;+0:1]-[C;H2;D2;+0:0]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Nucleophilic_substitution"
+  },
+  "O-methylation": {
+    "smirks": "[O;H1;D1;+0:1].[*]-[C;H3;D1;+0:2]>>[O;H0;D2;+0:1]-[C;H3;D1;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Nucleophilic_substitution"
+  },
+  "Ether_cleavage_to_primary_alcohol": {
+    "smirks": "[C;!H3;+0:0]-[O;H0;D2;+0:1]-[C;+0:2]>>[C;H2;D2;+0:0]-[O;H1;D1;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "TBS_alcohol_deprotection"
+  },
+  "Hydroxyl_benzyl_deprotection": {
+    "smirks": "[#6;!$(CC(=O));+0:0]-[O;H0;D2;+0:1]-[C;H2;D2;+0]-[c;H0;D3;+0]1:[c;H1;D2;+0]:[c;H1;D2;+0]:[c;H1;D2;+0]:[c;H1;D2;+0]:[c;H1;D2;+0]:1>>[#6;+0:0]-[O;H1;D1;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Benzyl_alcohol_deprotection"
+  },
+  "Carboxyl_benzyl_deprotection": {
+    "smirks": "[#6;$(CC(=O));+0:0]-[O;H0;D2;+0:1]-[C;H2;D2;+0]-[c;H0;D3;+0]1:[c;H1;D2;+0]:[c;H1;D2;+0]:[c;H1;D2;+0]:[c;H1;D2;+0]:[c;H1;D2;+0]:1>>[#6;+0:0]-[O;H1;D1;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Benzyl_alcohol_deprotection"
+  },
+  "Urea_synthesis_via_isocyanate_and_primary_amine": {
+    "smirks": "[*:1]-[N;H0;D2;+0:2]=[C;H0;D2;+0:3]=[O;H0;D1;+0:4].[#6;+0:5]-[N;H2;D1;+0:6]>>[*:1]-[N;H1;D2;+0:2]-[C;H0;D3;+0:3](=[O;H0;D1;+0:4])-[N;H1;D2;+0:6]-[#6;+0:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Formation_of_urea_by_displacement_of_imidazole_by_amine"
+  },
+  "Chan-Lam_alcohol": {
+    "smirks": "[c;D3;+0:1]-[B;H0;D3;+0](-[O;H1;D1;+0])-[O;H1;D1;+0].[O;$(OC),$(O-N=C);H1;D1;+0:2]>>[c;D3;+0:1]-[O;H0;D2;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Chan-Lam_coupling_(amination)"
+  },
+  "Chan-Lam_amine": {
+    "smirks": "[c;D3;+0:1]-[B;H0;D3;+0](-[O;H1;D1;+0])-[O;H1;D1;+0].[N;H2;D1;+0:2]>>[c;D3;+0:1]-[N;H1;D2;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Chan-Lam_coupling_(amination)"
+  },
+  "Chan-Lam_etherification": {
+    "smirks": "O-B(-O)-[c;H0;D3;+0:1].[OH;D1;+0:6]-[c;D3;H0;+0:7]>>[c;D3;H0;+0:7]-[O;H0;D2;+0:6]-[c;H0;D3;+0:1]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Chan-Lam_coupling_(amination)"
+  },
+  "{thiazole}": {
+    "smirks": "[#6:6]-[C;R0:1](=[OD1])-[CH1;R0:5](-[#6:7])-[*;#17,#35,#53].[NH2:2]-[C:3]=[SD1:4]>>[c:1]2(-[#6:6]):[n:2]:[c:3]:[s:4][c:5]([#6:7]):2",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Hantzsch_thiazole_synthesis"
+  },
+  "Sonogashira_acetylene_aryl_halide": {
+    "smirks": "[c:0]-[Cl,Br,I].[C;H1;D1;+0:1]#[C;H1;D1;+0:2]>>[c:0]-[C;H0;D2;+0:1]#[C;H1;D1;+0:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Sonogashira_coupling"
+  },
+  "Sonogashira_alkyne_aryl_halide": {
+    "smirks": "[c:0]-[Cl,Br,I].[C;H1;D1;+0:1]#[C;H0;D2;+0:2]-[#6,Si;+0:3]>>[c:0]-[C;H0;D2;+0:1]#[C;H0;D2;+0:2]-[#6,Si;+0:3]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Sonogashira_coupling"
+  },
+  "{decarboxylative_coupling}": {
+    "smirks": "[c;$(c1[c;$(c[C,S,N](=[OD1])[*;R0;!OH1])]cccc1):1][C;$(C(=O)[O;H1])].[c;$(c1aaccc1):2][Cl,Br,I]>>[c:1][c:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Sonogashira_coupling"
+  },
+  "Benzothiazole_formation_from_ester/carboxylic_acid": {
+    "smirks": "[S;H1;D1;+0:1]-[c:2]:[c:3]-[N;H2;D1;+0:4].[#6:5]-[C;H0;D3;+0:6](=[O;H0;D1;+0])-[O]>>[s;H0;D2;+0:1]1:[c:2]:[c:3]:[n;H0;D2;+0:4]:[c;H0;D3;+0:6]1-[#6:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Minisci_reaction_with_carboxylic_acid_(intermolecular)"
+  },
+  "Benzimidazole_formation_from_ester/carboxylic_acid": {
+    "smirks": "[N;H2;D1;+0:1]-[c:2]:[c:3]-[N;H2;D1;+0:4].[#6:5]-[C;H0;D3;+0:6](=[O;H0;D1;+0])-[O]>>[n:1]1:[c:2]:[c:3]:[n:4]:[c:6]1-[#6:5]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Minisci_reaction_with_carboxylic_acid_(intermolecular)"
+  },
+  "{benzimidazole_derivatives_carboxylic-acid/ester}": {
+    "smirks": "[c;r6:1](-[NH1;$(N-[#6]):2]):[c;r6:3](-[NH2:4]).[#6:6]-[C;R0:5](=[OD1])-[#8;H1,$(O-[CH3])]>>[c:3]2:[c:1]:[n:2]:[c:5](-[#6:6]):[n:4]@2",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Minisci_reaction_with_carboxylic_acid_(intermolecular)"
+  },
+  "{benzoxazole_carboxylic-acid}": {
+    "smirks": "[c;r6:1](-[OH1:2]):[c;r6:3](-[NH2:4]).[#6:6]-[C;R0:5](=[OD1])-[OH1]>>[c:3]2:[c:1]:[o:2]:[c:5](-[#6:6]):[n:4]@2",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Minisci_reaction_with_carboxylic_acid_(intermolecular)"
+  },
+  "Carboxylic_acid_to_amide_conversion": {
+    "smirks": "[O;H1;D1;+0]-[C;H0;D3;+0:1](=[O;D1;H0:2]).[N;H3;D0;+0:6]>>[NH2;D1;+0:6]-[C;H0;D3;+0:1](=[O;D1;H0:2])",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Minisci_reaction_with_carboxylic_acid_(intermolecular)"
+  },
+  "Ullmann-Goldberg_Substitution_thiol": {
+    "smirks": "[c;D3;H0;+0:1]-[Cl,Br,I].[*:3]-[S;H1;D1;+0:4]>>[c;D3;H0;+0:1]-[S;H0;D2;+0:2]-[*:3]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "S-nucleophilic_aromatic_substitution"
+  },
+  "thioether_nucl_sub": {
+    "smirks": "[*:0]-[S;H1;D1;+0:1].[*:2]-[F,Cl,Br,I]>>[*:0]-[S;H0;D2;+0:1]-[*:2]",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "S-nucleophilic_aromatic_substitution"
+  },
+  "Benzimidazole_aldehyde": {
+    "smirks": "[c;+0:1]1:[c;+0:2]:[c;+0:3]:[c;+0:4]:[c;D3;+0:5](-[N;H2;D1;+0:7]):[c;D3;+0:6]:1-[N;H2;D1;+0:8].[#6;$([CH3]),$([c;D3]);+0:9]-[CX3;H1;D2;$(C=O);+0:10]=[O;H0;D1;+0]>>[c;+0:1]1:[c;+0:2]:[c;+0:3]:[c;+0:4]:[c;D3;+0:5]2:[n;H1;D2;+0:7]:[c;H0;D3;+0:10](-[#6;+0:9]):[n;H0;D2;+0:8]:[c;D3;+0:6]:12",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Benzimidazole_synthesis"
+  },
+  "{imidazole}": {
+    "smirks": "[C;$(C([#6])[#6;!$([#6]Br)]):4](=[OD1])[CH;$(C([#6])[#6]):5]Br.[#7;H2:3][C;$(C(=N)(N)[c,#7]):2]=[#7;H1;D1:1]>>[C:4]1=[CH0:5][NH:3][C:2]=[N:1]1",
+    "source": "rxn-insight",
+    "type": "child",
+    "parent": "Benzimidazole_synthesis"
+  }
 }

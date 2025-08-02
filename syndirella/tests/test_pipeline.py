@@ -27,13 +27,23 @@ class TestPipelineIntegration(unittest.TestCase):
             'scaffold_place': True,
             'scaffold_place_num': 1,
             'long_code_column': 'Long code',
-            'manual': False
+            'manual': False,
         }
         if os.path.exists(self.settings['output']):
             shutil.rmtree(self.settings['output'])
 
-    def test_pipeline_creates_output(self):
+    def test_pipeline_creates_output_aizynthfinder(self):
         print('This will take a while... I would get a coffee if I were you')
+        self.settings['retro_tool'] = 'aizynthfinder'
+        logging.basicConfig(level=logging.INFO)
+        run_pipeline(settings=self.settings)
+        self.assertTrue(os.path.exists(self.settings['output']))
+        files = os.listdir(self.settings['output'])
+        self.assertGreater(len(files), 0)
+
+    def test_pipeline_creates_output_manifold(self):
+        print('This will take a while... I would get a coffee if I were you')
+        self.settings['retro_tool'] = 'manifold'
         logging.basicConfig(level=logging.INFO)
         run_pipeline(settings=self.settings)
         self.assertTrue(os.path.exists(self.settings['output']))

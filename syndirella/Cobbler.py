@@ -2,8 +2,7 @@
 """
 syndirella.cobbler.Cobbler.py
 
-This module contains the Cobbler class. It is used to perform retrosynthetic analysis of the scaffold compound. It handles
-Postera searches, including multiple elaboration searches.
+This module contains the Cobbler class. It is used to perform retrosynthetic analysis of the scaffold compound.
 """
 import logging
 import os
@@ -12,6 +11,7 @@ from typing import (List, Dict)
 from rdkit import Chem
 
 import syndirella.fairy as fairy
+from aizynth.AiZynthManager import AiZynthManager
 from syndirella.Postera import Postera
 from syndirella.SMARTSHandler import SMARTSHandler
 from syndirella.error import NoSynthesisRoute, APIQueryError
@@ -28,35 +28,64 @@ class Cobbler:
                  output_dir: str,
                  atom_diff_min: int,
                  atom_diff_max: int,
-                 elab_single_reactant: bool):
+                 elab_single_reactant: bool,
+                 retro_tool: str = 'manifold'):
         self.scaffold_compound: str = scaffold_compound
         self.id: str = fairy.generate_inchi_ID(self.scaffold_compound, isomeric=False)
         self.atom_diff_min: int = atom_diff_min
         self.atom_diff_max: int = atom_diff_max
         self.elab_single_reactant: bool = elab_single_reactant
 
+        self.retro_tool: str = self._check_retro_tool(retro_tool)
+
         # Manifold API
-        self.url = os.environ["MANIFOLD_API_URL"]
-        self.api_key = os.environ["MANIFOLD_API_KEY"]
+        if self.retro_tool == 'manifold':
+            self.url = os.environ["MANIFOLD_API_URL"]
+            self.api_key = os.environ["MANIFOLD_API_KEY"]
         self.reaction_names = SMARTSHandler().reaction_smarts.keys()
         self.n_reactants_per_reaction = SMARTSHandler().n_reactants_per_reaction
         self.output_dir = output_dir
         self.logger = logging.getLogger(f"{__name__}")
 
+    def _check_retro_tool(self, retro_tool: str) -> str:
+        """
+        Check if the specified retro tool exists.
+        """
+        if retro_tool not in ['manifold', 'aizynthfinder']:
+            raise NoSynthesisRoute(
+                message=f'The specified retrosynthesis tool: {retro_tool} is not supported.',
+                inchi=self.id,
+                smiles=self.scaffold_compound
+            )
+        return retro_tool
+
+    def _perform_retrosynthesis_search(self) -> List[Dict[str, List[Dict[str, str]]]]:
+        """
+        Perform the retrosynthesis search with the specified tool.
+        """
+        if self.retro_tool == 'manifold':
+            postera_search: Postera = Postera()
+            routes: List[Dict[str, List[Dict[str, str]]]] | None = postera_search.perform_route_search(
+                compound=self.scaffold_compound)
+            if routes is None:  # if the API query failed
+                raise APIQueryError(
+                    message=f"API retrosynthesis query failed for {self.scaffold_compound}.",
+                    inchi=self.id,
+                    smiles=self.scaffold_compound)
+        elif self.retro_tool == 'aizynthfinder':
+            aizynth_search: AiZynthManager = AiZynthManager()
+            routes: List[Dict[str, List[Dict[str, str]]]] = aizynth_search.perform_route_search(
+                target_smiles=self.scaffold_compound,
+                matching_strategy='best_overall')
+        return routes
+
     def get_routes(self) -> List[CobblersWorkshop]:
         """
-        This function is used to get the routes for the scaffold compound. Main function that is called.
+        This function is used to get the routes for the scaffold compound. The main function that is called.
         """
-        postera_search: Postera = Postera()
-        routes: List[Dict[str, List[Dict[str, str]]]] | None = postera_search.perform_route_search(
-            compound=self.scaffold_compound)
-        if routes is None:  # if the API query failed
-            raise APIQueryError(
-                message=f"API retrosynthesis query failed for {self.scaffold_compound}.",
-                inchi=self.id,
-                smiles=self.scaffold_compound)
+        routes: List[Dict[str, List[Dict[str, str]]]] = self._perform_retrosynthesis_search()
         route: CobblersWorkshop = self.get_route(routes)
-        additional_routes: List[CobblersWorkshop] = route.get_additional_routes(edit_route=True)
+        additional_routes: List[CobblersWorkshop] = route.get_additional_routes()
         if additional_routes is not None:
             cobblers_workshops = [route] + additional_routes
         else:
@@ -68,10 +97,10 @@ class Cobbler:
         From Postera routes, choose the route, then create the cobblers workshop.
         """
         route: List[Dict] = self.choose_route(routes)
-        cobblers_workshop: CobblersWorkshop = self.create_cobblers_workshop_from_Postera(route)
+        cobblers_workshop: CobblersWorkshop = self.create_cobblers_workshop_from_route(route)
         return cobblers_workshop
 
-    def create_cobblers_workshop_from_Postera(self, route: List[Dict]) -> CobblersWorkshop:
+    def create_cobblers_workshop_from_route(self, route: List[Dict]) -> CobblersWorkshop:
         """
         Creates a cobblers workshop from a route.
         """
@@ -111,6 +140,11 @@ class Cobbler:
             else:
                 not_allowed_reactions = [name for name in reaction_names if name not in self.reaction_names]
                 self.logger.debug(f'Reactions in route that were not found in SMIRKS list: {not_allowed_reactions}')
+        if len(passing_routes) == 0:
+            raise NoSynthesisRoute(
+                message=f'No routes returned contained all Syndirella reactions for {self.scaffold_compound}.',
+                inchi=self.id,
+                smiles=self.scaffold_compound)
         return passing_routes
 
     def filter_routes(self, routes: List[List[Dict]]) -> List[List[Dict]]:
@@ -132,6 +166,11 @@ class Cobbler:
                     reaction_name_n_reactants.items()]):
                 continue
             passing_routes.append(route)
+        if len(passing_routes) == 0:
+            raise NoSynthesisRoute(
+                message=f'Filtered out all routes due to single atom reactants or intramolecular reactions for {self.scaffold_compound}.',
+                inchi=self.id,
+                smiles=self.scaffold_compound)
         return passing_routes
 
     def choose_route(self, routes: List[Dict[str, List[Dict[str, str]]]]) -> List[Dict]:
@@ -157,10 +196,3 @@ class Cobbler:
         for i, reaction in enumerate(reaction_names):
             self.logger.info(f'\n Step {i + 1}: \n {reactants[i]} -> {reaction}')
         self.logger.info(f'Final product: {product}')
-
-    def save(self):
-        """
-        Pickle cobbler object, so it can be read later.
-        """
-        # TODO: Finish this function
-        pass
