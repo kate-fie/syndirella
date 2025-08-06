@@ -6,11 +6,12 @@ import unittest
 
 import pandas as pd
 
-from syndirella.Cobbler import Cobbler
-from syndirella.fairy import generate_inchi_ID
+from syndirella.route.Cobbler import Cobbler
+from syndirella.utils.fairy import generate_inchi_ID
 from syndirella.route.CobblersWorkshop import CobblersWorkshop
 from syndirella.route.Library import Library
 from syndirella.slipper.Slipper import Slipper
+from syndirella.constants import DatabaseSearchTool
 
 
 def handle_file_path(user_path):
@@ -37,7 +38,7 @@ class TestAdditionalRouteGeneration(unittest.TestCase):
         workshop = CobblersWorkshop(self.product, self.reactants, self.reaction_names,
                                     self.num_steps, self.output_dir, self.filter, id=self.id,
                                     elab_single_reactant=self.elab_single_reactant, atom_diff_max=self.atom_diff_max,
-                                    atom_diff_min=self.atom_diff_min)
+                                    atom_diff_min=self.atom_diff_min, db_search_tool=DatabaseSearchTool.MANIFOLD)
         routes = workshop.get_additional_routes()
         self.assertIsInstance(routes, list)
 
@@ -62,7 +63,7 @@ class TestElabSingleReactant(unittest.TestCase):
         workshop = CobblersWorkshop(self.product, self.reactants, self.reaction_names,
                                     self.num_steps, self.output_dir, self.filter, id=self.id,
                                     elab_single_reactant=self.elab_single_reactant, atom_diff_min=self.atom_diff_min,
-                                    atom_diff_max=self.atom_diff_max)
+                                    atom_diff_max=self.atom_diff_max, db_search_tool=DatabaseSearchTool.MANIFOLD)
         routes = workshop.get_additional_routes()
         self.assertIsInstance(routes, list)
 
@@ -71,7 +72,7 @@ class TestElabSingleReactant(unittest.TestCase):
         workshop = CobblersWorkshop(self.product, self.reactants, self.reaction_names,
                                     self.num_steps, self.output_dir, self.filter, id=self.id,
                                     elab_single_reactant=self.elab_single_reactant, atom_diff_min=self.atom_diff_min,
-                                    atom_diff_max=self.atom_diff_max)
+                                    atom_diff_max=self.atom_diff_max, db_search_tool=DatabaseSearchTool.MANIFOLD)
         final_library = workshop.get_final_library()
         slipper = Slipper(library=final_library)
         slipper.get_products()
@@ -82,7 +83,7 @@ class TestElabSingleReactant(unittest.TestCase):
         workshop = CobblersWorkshop(self.product, self.reactants, self.reaction_names,
                                     self.num_steps, self.output_dir, self.filter, id=self.id,
                                     elab_single_reactant=self.elab_single_reactant, atom_diff_min=self.atom_diff_min,
-                                    atom_diff_max=self.atom_diff_max)
+                                    atom_diff_max=self.atom_diff_max, db_search_tool=DatabaseSearchTool.MANIFOLD)
         cobbler_bench = workshop.get_cobbler_bench(0)  # first and only step
         current_library = cobbler_bench.find_analogues()
         df1 = current_library.analogues_dataframes['r1'][0]
@@ -110,7 +111,7 @@ class TestAdditionalRouteandSingleElab(unittest.TestCase):
         workshop = CobblersWorkshop(self.product, self.reactants, self.reaction_names,
                                     self.num_steps, self.output_dir, self.filter, id=self.id,
                                     elab_single_reactant=self.elab_single_reactant, atom_diff_min=self.atom_diff_min,
-                                    atom_diff_max=self.atom_diff_max)
+                                    atom_diff_max=self.atom_diff_max, db_search_tool=DatabaseSearchTool.MANIFOLD)
         routes = workshop.get_additional_routes()
         self.assertIsInstance(routes, list)
         self.assertTrue(len(routes) == 3)  # one route for the original and two for the new

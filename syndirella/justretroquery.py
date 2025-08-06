@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-syndirella.fairy.py
+syndirella.justretroquery.py
 
 This module provides functions to output retrosynthesis queries for a given list of scaffolds.
 """
@@ -11,11 +11,10 @@ from typing import Dict, List
 
 import pandas as pd
 
-from syndirella.Postera import Postera
-from syndirella.error import APIQueryError
+from syndirella.database.Postera import Postera
+from syndirella.utils.error import APIQueryError
+from syndirella.constants import RetrosynthesisTool, DEFAULT_RETROSYNTHESIS_TOOL
 from .cli_defaults import cli_default_settings
-
-# TODO: Test with AiZynthFinder
 
 logger = logging.getLogger(__name__)
 with open(cli_default_settings['rxn_smarts_path']) as f:
@@ -72,31 +71,90 @@ def format_routes(routes: List[Dict[str, List[Dict[str, str]]]]) -> Dict:
     return passing_routes
 
 
-def retro_search(scaffold: str) -> pd.DataFrame:
+def retro_search(scaffold: str, retro_tool: RetrosynthesisTool = DEFAULT_RETROSYNTHESIS_TOOL) -> pd.DataFrame:
     """
     Perform retrosynthesis search on the given scaffold and formats outputs.
+    
+    Args:
+        scaffold: SMILES string of the scaffold to search
+        retro_tool: Retrosynthesis tool to use (Manifold or AiZynthFinder)
+    
+    Returns:
+        DataFrame with retrosynthesis route information
     """
-    postera = Postera()
-    routes: List[Dict[str, List[Dict[str, str]]]] | None = postera.perform_route_search(scaffold)
-    if routes is None:
-        logger.critical(f"API retrosynthesis query failed for {scaffold}.")
-        raise APIQueryError(message=f"API retrosynthesis query failed for {scaffold}.", smiles=scaffold)
+    logger.info(f"Performing retrosynthesis search for {scaffold} using {retro_tool}")
+    
+    if retro_tool == RetrosynthesisTool.MANIFOLD:
+        # Use Postera/Manifold for retrosynthesis
+        postera = Postera()
+        routes: List[Dict[str, List[Dict[str, str]]]] | None = postera.perform_route_search(scaffold)
+        if routes is None:
+            logger.critical(f"API retrosynthesis query failed for {scaffold}.")
+            raise APIQueryError(message=f"API retrosynthesis query failed for {scaffold}.", smiles=scaffold)
+    elif retro_tool == RetrosynthesisTool.AIZYNTHFINDER:
+        # Use AiZynthFinder for retrosynthesis
+        try:
+            from syndirella.aizynth.AiZynthManager import AiZynthManager
+            aizynth_search = AiZynthManager()
+            routes: List[Dict[str, List[Dict[str, str]]]] = aizynth_search.perform_route_search(
+                target_smiles=scaffold,
+                matching_strategy='best_overall'
+            )
+            # Convert AiZynthFinder format to expected format
+            routes = _convert_aizynth_routes(routes)
+        except ImportError:
+            logger.error("AiZynthFinder not available. Falling back to Manifold.")
+            postera = Postera()
+            routes: List[Dict[str, List[Dict[str, str]]]] | None = postera.perform_route_search(scaffold)
+            if routes is None:
+                logger.critical(f"API retrosynthesis query failed for {scaffold}.")
+                raise APIQueryError(message=f"API retrosynthesis query failed for {scaffold}.", smiles=scaffold)
+    else:
+        raise ValueError(f"Unsupported retrosynthesis tool: {retro_tool}")
+    
     formatted_routes: Dict = format_routes(routes)
-    logger.info(len(formatted_routes))
+    logger.info(f"Found {len(formatted_routes)} formatted routes")
     to_add = {'smiles': scaffold}
     for route, details in formatted_routes.items():
         to_add[route] = details
     return pd.DataFrame([to_add])  # each dictionary is a single row
 
 
-def process_df(df: pd.DataFrame):
+def _convert_aizynth_routes(aizynth_routes: List[Dict]) -> List[Dict]:
+    """
+    Convert AiZynthFinder route format to the expected format.
+    
+    Args:
+        aizynth_routes: Routes from AiZynthFinder
+        
+    Returns:
+        Converted routes in expected format
+    """
+    # TODO: Fix this
+    converted_routes = []
+    for route in aizynth_routes:
+        # Convert AiZynthFinder format to expected format
+        # This is a placeholder - actual conversion depends on AiZynthFinder output format
+        converted_route = {
+            'reactions': route.get('reactions', [])
+        }
+        converted_routes.append(converted_route)
+    return converted_routes
+
+
+def process_df(df: pd.DataFrame, retro_tool: RetrosynthesisTool = DEFAULT_RETROSYNTHESIS_TOOL):
     """
     Process the input DataFrame and create output df with retrosynthesis information.
+    
+    Args:
+        df: Input DataFrame with 'smiles' column
+        retro_tool: Retrosynthesis tool to use
     """
-    logger.info(f"Processing DataFrame with len {len(df)}")
+    logger.info(f"Processing DataFrame with len {len(df)} using {retro_tool}")
     route_infos = []
     for i, scaffold in enumerate(df['smiles']):
-        route_info: pd.DataFrame = retro_search(scaffold)
+        logger.info(f"Processing scaffold {i+1}/{len(df)}: {scaffold}")
+        route_info: pd.DataFrame = retro_search(scaffold, retro_tool)
         route_infos.append(route_info)
     # format the DataFrame
     route_info_df = pd.concat(route_infos)
@@ -115,12 +173,15 @@ def run_justretroquery(settings: Dict):
     try:
         csv_path: str = settings['input']
         output_dir: str = settings['output']
+        retro_tool = RetrosynthesisTool.from_string(settings.get('retro_tool', DEFAULT_RETROSYNTHESIS_TOOL.value))
     except KeyError as e:
         raise KeyError(f"Missing critical argument to run justretroquery: {e}")
 
+    logger.info(f"Starting justretroquery with retrosynthesis tool: {retro_tool}")
+    
     df: pd.DataFrame = pd.read_csv(csv_path)
 
-    df: pd.DataFrame = process_df(df)
+    df: pd.DataFrame = process_df(df, retro_tool)
 
     saved_path: str = save_df(df, output_dir, csv_path)
 

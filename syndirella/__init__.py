@@ -9,7 +9,7 @@ __email__ = "kate.k.fieseler@gmail.com"
 __date__ = "2024"
 __license__ = "MIT"
 __citation__ = ""
-from .version import __version__
+from .utils.version import __version__
 
 ##################################################################################################################
 

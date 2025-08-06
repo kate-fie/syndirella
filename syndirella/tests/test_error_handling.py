@@ -4,10 +4,11 @@ import os
 import shutil
 import unittest
 
-from syndirella.error import NoSynthesisRoute, SingleReactantElabError
-from syndirella.fairy import generate_inchi_ID
+from syndirella.utils.error import NoSynthesisRoute, SingleReactantElabError
+from syndirella.utils.fairy import generate_inchi_ID
 from syndirella.pipeline import elaborate_compound_full_auto
 from syndirella.route.CobblersWorkshop import CobblersWorkshop
+from syndirella.constants import DatabaseSearchTool
 
 
 def handle_file_path(user_path):
@@ -17,7 +18,6 @@ def handle_file_path(user_path):
 
 
 class TestErrorHandlingNoSynthesisRoute(unittest.TestCase):
-    # TODO: Need to check when getting AiZynthFinder functionality
     def setUp(self):
         self.output_csv_path = 'outputs/test_error_handling/no_synthesis_route/output.csv'
         self.product = 'Cn1cc(C(=O)NCS(=O)(=O)c2ncc[nH]2)c2ccccc21'
@@ -78,7 +78,52 @@ class TestErrorNoSingleElabReact(unittest.TestCase):
                                         self.num_steps, self.output_dir, self.filter, id=self.id,
                                         elab_single_reactant=self.elab_single_reactant,
                                         atom_diff_min=self.atom_diff_min,
-                                        atom_diff_max=self.atom_diff_max)
+                                        atom_diff_max=self.atom_diff_max,
+                                        db_search_tool=DatabaseSearchTool.MANIFOLD)
+
+
+class TestUSPTOTemplateValidationError(unittest.TestCase):
+    def setUp(self):
+        from syndirella.utils.error import USPTOTemplateValidationError
+        self.error_class = USPTOTemplateValidationError
+
+    def test_uspto_template_validation_error_creation(self):
+        """Test that USPTOTemplateValidationError can be created with proper attributes."""
+        error = self.error_class(
+            message="Test USPTO template validation error",
+            smiles="CC(=O)N(C)c1ccc(NCc2cccc(C(C)C)c2)cn1",
+            num_routes_found=5,
+            num_routes_with_valid_templates=2
+        )
+        
+        self.assertEqual(error.message, "Test USPTO template validation error")
+        self.assertEqual(error.smiles, "CC(=O)N(C)c1ccc(NCc2cccc(C(C)C)c2)cn1")
+        self.assertEqual(error.num_routes_found, 5)
+        self.assertEqual(error.num_routes_with_valid_templates, 2)
+        self.assertIsInstance(error, Exception)
+
+    def test_uspto_template_validation_error_default_values(self):
+        """Test that USPTOTemplateValidationError has proper default values."""
+        error = self.error_class()
+        
+        self.assertEqual(error.message, "USPTO template validation failed.")
+        self.assertIsNone(error.smiles)
+        self.assertEqual(error.num_routes_found, 0)
+        self.assertEqual(error.num_routes_with_valid_templates, 0)
+
+    def test_uspto_template_validation_error_inheritance(self):
+        """Test that USPTOTemplateValidationError properly inherits from ChemicalErrorBase."""
+        from syndirella.utils.error import ChemicalErrorBase
+        
+        error = self.error_class(
+            message="Test error",
+            smiles="CC(=O)N(C)c1ccc(NCc2cccc(C(C)C)c2)cn1",
+            num_routes_found=3,
+            num_routes_with_valid_templates=1
+        )
+        
+        self.assertIsInstance(error, ChemicalErrorBase)
+        self.assertIsInstance(error, Exception)
 
 
 if __name__ == '__main__':

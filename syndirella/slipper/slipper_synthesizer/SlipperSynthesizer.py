@@ -13,8 +13,8 @@ from rdkit import DataStructs
 from rdkit.Chem import rdFMCS
 from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
 
-import syndirella.fairy as fairy
-from syndirella.error import *
+import syndirella.utils.fairy as fairy
+from syndirella.utils.error import *
 from syndirella.route.Library import Library
 from syndirella.slipper.slipper_synthesizer.Labeler import Labeler
 

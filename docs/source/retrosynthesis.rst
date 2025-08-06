@@ -11,7 +11,7 @@ Basic usage:
 
 .. code-block:: python
 
-    from aizynth.AiZynthManager import AiZynthManager
+    from syndirella.aizynth.AiZynthManager import AiZynthManager
     manager = AiZynthManager()
     routes = manager.perform_route_search(smiles, matching_strategy="best_overall")
 

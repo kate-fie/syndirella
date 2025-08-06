@@ -12,8 +12,9 @@ from rdkit import Chem
 
 from .Library import Library
 from .Reaction import Reaction
-from ..SMARTSHandler import SMARTSHandler
-from ..error import ReactionError, SMARTSError
+from .SMARTSHandler import SMARTSHandler
+from syndirella.utils.error import ReactionError, SMARTSError
+from ..constants import DatabaseSearchTool, DEFAULT_DATABASE_SEARCH_TOOL
 
 
 class CobblerBench:
@@ -25,36 +26,37 @@ class CobblerBench:
     """
 
     def __init__(self,
-                 product: str,
-                 reactants: Tuple[str] | str,
+                 scaffold: str,
                  reaction_name: str,
+                 reactant_smiles: Tuple[str] | str,
                  output_dir: str,
+                 filter: bool,
                  id: str,
                  num_steps: int,
                  current_step: int,
-                 filter: bool,
-                 route_uuid: str,
                  atom_diff_min: int,
                  atom_diff_max: int,
                  elab_single_reactant: bool,
-                 db_search_tool: str):
-        self.product: Chem.Mol = Chem.MolFromSmiles(product)
-        self.reactant_smiles: Tuple[str] | str = reactants
-        self.reactants: Tuple[Chem.Mol] = self._make_reactant_mols(reactants)
+                 route_uuid: str,
+                 elab_single_reactant_int: int | None = None,
+                 db_search_tool: DatabaseSearchTool = DEFAULT_DATABASE_SEARCH_TOOL):
+        self.product: Chem.Mol = Chem.MolFromSmiles(scaffold)
         self.reaction_name: str = reaction_name
+        self.reactant_smiles: Tuple[str] | str = reactant_smiles
+        self.reactants: Tuple[Chem.Mol] = self._make_reactant_mols(reactant_smiles)
         self.output_dir: str = output_dir
         self.smarts_handler: SMARTSHandler = SMARTSHandler()
         self.id: str = id
-        self.num_steps: int = num_steps
-        self.current_step: int = current_step
         self.filter: bool = filter
-        self.route_uuid: str = route_uuid
         self.atom_diff_min: int = atom_diff_min
         self.atom_diff_max: int = atom_diff_max
         self.elab_single_reactant: bool = elab_single_reactant
-        self.elab_single_reactant_int: int | None = None
-        self.db_search_tool: str = db_search_tool
-
+        self.elab_single_reactant_int: int | None = elab_single_reactant_int
+        self.db_search_tool: DatabaseSearchTool = db_search_tool
+        self.num_steps: int = num_steps
+        self.current_step: int = current_step
+        self.route_uuid: str = route_uuid
+        
         self.reaction: Reaction = None
         self.library = None
         self.additional_reactions: List[Tuple[str, Tuple[str, str]]] = ()
@@ -76,13 +78,13 @@ class CobblerBench:
         """
         This function is used to check the reaction is valid.
         """
-        if self.reaction_name not in self.smarts_handler.reaction_smarts.keys():
+        if self.reaction_name not in self.smarts_handler.reaction_smarts:
             self.logger.error(f"Reaction name {self.reaction_name} not found in SMARTS handler.")
             raise SMARTSError(message=f"Reaction name {self.reaction_name} not found in SMARTS handler.",
                               smiles=self.product,
                               route_uuid=self.route_uuid,
                               inchi=self.id)
-        reaction = Reaction(product=self.product,
+        reaction = Reaction(scaffold=self.product,
                             reactants=self.reactants,
                             reaction_name=self.reaction_name,
                             smarts_handler=self.smarts_handler,
@@ -95,7 +97,7 @@ class CobblerBench:
         """
         try:
             self.reaction = self.check_reaction()
-        except ValueError or SMARTSError as e:
+        except (ValueError, SMARTSError) as e:
             self.logger.error(f"Reaction {self.reaction_name} could not be defined.")
             if isinstance(e, ValueError):
                 message = e.args[0]
@@ -124,18 +126,20 @@ class CobblerBench:
         """
         This function is used to find analogues of any step along the route.
         """
-        # If having problems might have to define_reaction here again (tried to do it when bench is created)
-        # self.define_reaction()
         # Find the analogues of reactants
-        self.library = Library(reaction=self.reaction,
-                               output_dir=self.output_dir,
-                               id=self.id,
-                               num_steps=self.num_steps,
-                               current_step=self.current_step,
-                               filter=self.filter,
-                               route_uuid=self.route_uuid,
-                               atom_diff_min=self.atom_diff_min,
-                               atom_diff_max=self.atom_diff_max)
-        self.library.elab_single_reactant_int = self.elab_single_reactant_int
+        self.library = Library(
+            reaction=self.reaction,
+            output_dir=self.output_dir,
+            id=self.id,
+            num_steps=self.num_steps,  # Single step for this bench
+            current_step=self.current_step,
+            filter=self.filter,
+            route_uuid=self.route_uuid,  # Will be set by parent
+            atom_diff_min=self.atom_diff_min,
+            atom_diff_max=self.atom_diff_max,
+            db_search_tool=self.db_search_tool,
+            elab_single_reactant_int=self.elab_single_reactant_int,
+            elab_single_reactant=self.elab_single_reactant
+        )
         self.library.create_library()
         return self.library

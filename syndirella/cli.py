@@ -11,6 +11,8 @@ import sys
 import traceback
 from typing import Dict, Any
 
+from syndirella.constants import DatabaseSearchTool, RetrosynthesisTool, DEFAULT_DATABASE_SEARCH_TOOL, DEFAULT_RETROSYNTHESIS_TOOL
+
 
 def setup_logging(level=logging.INFO):
     """
@@ -32,6 +34,28 @@ def load_pipeline_module(syndirella_base_path: str, module_relative_path: str):
     pipeline = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(pipeline)
     return pipeline
+
+
+def validate_api_credentials(settings: Dict[str, Any]):
+    """
+    Validate API credentials based on selected tools.
+    """
+    retro_tool = RetrosynthesisTool.from_string(settings.get('retro_tool', DEFAULT_RETROSYNTHESIS_TOOL.value))
+    db_search_tool = DatabaseSearchTool.from_string(settings.get('db_search_tool', DEFAULT_DATABASE_SEARCH_TOOL.value))
+    
+    # Validate Manifold credentials if using manifold for retrosynthesis
+    if retro_tool == RetrosynthesisTool.MANIFOLD:
+        if not os.environ.get('MANIFOLD_API_KEY'):
+            logging.error("MANIFOLD_API_KEY environment variable not set.")
+            sys.exit(1)
+        if not os.environ.get('MANIFOLD_API_URL'):
+            logging.error("MANIFOLD_API_URL environment variable not set.")
+            sys.exit(1)
+    
+    # Validate Arthor credentials if using arthor for database search
+    if db_search_tool == DatabaseSearchTool.ARTHOR:
+        if not os.environ.get('ARTHOR_API_URL'):
+            logging.warning("ARTHOR_API_URL environment variable not set. Using default: https://arthor.docking.org")
 
 
 def config_parser(syndirella_base_path: str):
@@ -57,10 +81,12 @@ def config_parser(syndirella_base_path: str):
                         help="Only place scaffolds. Do not continue to elaborate.")
     parser.add_argument('--scaffold_place_num', type=int, default=5,
                         help="Number of times to attempt scaffold placement.")
-    parser.add_argument('--retro_tool', type=str, default='manifold',
-                        help="Retrosynthesis tool to use. Options: [manifold, aizynthfinder]")
-    parser.add_argument('--db_search_tool', type=str, default='manifold',
-                        help="Database search tool to use. Options: [manifold, arthor]")
+    parser.add_argument('--retro_tool', type=str, default=DEFAULT_RETROSYNTHESIS_TOOL.value,
+                        choices=[tool.value for tool in RetrosynthesisTool],
+                        help="Retrosynthesis tool to use.")
+    parser.add_argument('--db_search_tool', type=str, default=DEFAULT_DATABASE_SEARCH_TOOL.value,
+                        choices=[tool.value for tool in DatabaseSearchTool],
+                        help="Database search tool to use.")
     parser.add_argument('--profile', action='store_true', help="Run the pipeline with profiling.")
     parser.add_argument('--atom_diff_min', type=int, default=0,
                         help="Minimum atom difference between elaborations and scaffold to keep.")
@@ -114,15 +140,8 @@ def main():
     # Convert argparse Namespace to dictionary
     settings = vars(args)
 
-    # check for MANIFOLD API key
-    if settings['retro_tool'] == 'manifold' and not os.environ.get('MANIFOLD_API_KEY'):
-        logging.error("MANIFOLD_API_KEY environment variable not set.")
-        sys.exit(1)
-
-    # check for MANIFOLD API key
-    if settings['retro_tool'] == 'manifold' and not os.environ.get('MANIFOLD_API_URL'):
-        logging.error("MANIFOLD_API_URL environment variable not set.")
-        sys.exit(1)
+    # Validate API credentials based on selected tools
+    validate_api_credentials(settings)
 
     if settings['just_retro']:
         # Load the justretroquery module

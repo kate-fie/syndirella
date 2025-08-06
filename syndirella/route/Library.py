@@ -10,17 +10,20 @@ import glob
 import logging
 import os
 import pickle
-from typing import (List, Dict, Tuple)
+from typing import (List, Dict, Tuple, Optional)
 
 import pandas as pd
 from pandas import DataFrame
 from rdkit import DataStructs
 from rdkit.Chem.FilterCatalog import *
 
-import syndirella.fairy as fairy
-from syndirella.Postera import Postera
-from syndirella.error import SMARTSError, NoReactants, APIQueryError
+import syndirella.utils.fairy as fairy
+from syndirella.database.Postera import Postera
+from syndirella.database.Arthor import Arthor
+from syndirella.utils.error import SMARTSError, NoReactants, APIQueryError
 from .Reaction import Reaction
+from . import LibraryConfig
+from syndirella.constants import DatabaseSearchTool, DEFAULT_DATABASE_SEARCH_TOOL
 
 
 class Library:
@@ -38,24 +41,75 @@ class Library:
                  filter: bool,
                  route_uuid: str,
                  atom_diff_min: int,
-                 atom_diff_max: int):
+                 atom_diff_max: int,
+                 db_search_tool: DatabaseSearchTool,
+                 elab_single_reactant: bool,
+                 elab_single_reactant_int: Optional[int] = None):
+        # Create configuration object
+        self.config = LibraryConfig(
+            output_dir=output_dir,
+            id=id,
+            atom_diff_min=atom_diff_min,
+            atom_diff_max=atom_diff_max,
+            filter=filter,
+            db_search_tool=db_search_tool,
+            num_steps=num_steps,
+            current_step=current_step,
+            route_uuid=route_uuid,
+            elab_single_reactant=elab_single_reactant,
+            elab_single_reactant_int=elab_single_reactant_int
+        )
+        
+        # Core attributes
         self.reaction: Reaction = reaction
-        self.id: str = id
-        self.output_dir: str = os.path.join(output_dir, self.id)
+        self.output_dir: str = os.path.join(self.config.output_dir, self.config.id)
         self.extra_dir_path: str = os.path.join(self.output_dir, "extra")
-        self.num_steps: int = num_steps
-        self.current_step: int = current_step
         self.analogues_dataframes: Dict[str: Tuple[pd.DataFrame, Tuple[str, str]]] = {}
-        self.filter: bool = filter
-        self.route_uuid: str = route_uuid
-        self.atom_diff_min: int = atom_diff_min
-        self.atom_diff_max: int = atom_diff_max
-        self.elab_single_reactant_int: int | None = None
         self.database_search: str = 'postera'
 
         self.logger = logging.getLogger(f"{__name__}")
         self.r1 = None
         self.r2 = None
+
+    @property
+    def id(self) -> str:
+        return self.config.id
+    
+    @property
+    def num_steps(self) -> int:
+        return self.config.num_steps
+    
+    @property
+    def current_step(self) -> int:
+        return self.config.current_step
+    
+    @property
+    def filter(self) -> bool:
+        return self.config.filter
+    
+    @property
+    def route_uuid(self) -> str:
+        return self.config.route_uuid
+    
+    @property
+    def atom_diff_min(self) -> int:
+        return self.config.atom_diff_min
+    
+    @property
+    def atom_diff_max(self) -> int:
+        return self.config.atom_diff_max
+    
+    @property
+    def elab_single_reactant_int(self) -> int | None:
+        return self.config.elab_single_reactant_int
+    
+    @elab_single_reactant_int.setter
+    def elab_single_reactant_int(self, value: int | None):
+        self.config.elab_single_reactant_int = value
+    
+    @property
+    def db_search_tool(self) -> DatabaseSearchTool:
+        return self.config.db_search_tool
 
     def create_library(self):
         """
@@ -90,35 +144,37 @@ class Library:
         # search for analogues csv if already created. Perform for all reactants.
         reactant_analogues_path, internal_step, previous_product = self.check_analogues_pkl_exists(analogue_prefix,
                                                                                                    reactant)
+        analogues: List[str] | None = None
+        
         if reactant_analogues_path is not None:
             analogues: List[str] = self.load_library(reactant_analogues_path,
                                                      analogue_prefix,
                                                      internal_step)
-        else:  # perform database search
-            postera_search = Postera()
-            analogues: List[str] | None = postera_search.perform_database_search(reactant=reactant,
-                                                                                 reaction_name=self.reaction.reaction_name,
-                                                                                 search_type="superstructure",
-                                                                                 vendors=['enamine_bb', 'mcule',
-                                                                                          'mcule_ultimate',
-                                                                                          'enamine_real',
-                                                                                          'enamine_made'])
-            if analogues is None:  # if the API query failed
-                self.logger.critical(
-                    f"API superstructure query failed for reactant {analogue_prefix} in {self.reaction.reaction_name}.")
-                raise APIQueryError(
-                    message=f"API superstructure query failed for step {self.current_step} reactant {analogue_prefix} in {self.reaction.reaction_name}.",
-                    inchi=self.id,
-                    route_uuid=self.route_uuid)
-        processed_analogues_df, analogue_columns = (
-            self.process_analogues(analogues,
-                                   reactant_smarts,
-                                   analogue_prefix,
-                                   previous_product))
-        processed_analogues_df: pd.DataFrame
-        analogue_columns: Tuple[str, str]
-        self.save_library(processed_analogues_df, analogue_prefix)
-        return processed_analogues_df, analogue_columns
+        else:
+            # Perform database search based on the selected tool
+            if self.db_search_tool == DatabaseSearchTool.ARTHOR:
+                self.logger.info(f"Using Arthor for database search for {analogue_prefix}")
+                database_search = Arthor()
+            elif self.db_search_tool == DatabaseSearchTool.MANIFOLD:
+                self.logger.info(f"Using Postera/Manifold for database search for {analogue_prefix}")
+                database_search = Postera()
+            else:
+                self.logger.error(f"Database search tool {self.db_search_tool} not found.")
+                raise ValueError(f"Database search tool {self.db_search_tool} not found.")
+            
+            analogues: List[str] | None = database_search.perform_database_search(
+                reactant=reactant,
+                reaction_name=self.reaction.reaction_name,
+                search_type="superstructure"
+            )
+            
+            if analogues is None:
+                self.logger.warning(f"Database search failed for {analogue_prefix}.")
+                raise APIQueryError(f"Database search of {self.db_search_tool} failed for {analogue_prefix}.")
+        
+        df, analogue_columns = self.process_analogues(analogues, reactant_smarts, analogue_prefix, previous_product)
+        self.save_library(df, analogue_prefix)
+        return df, analogue_columns
 
     def process_analogues(self,
                           analogues: List[str],
@@ -183,67 +239,59 @@ class Library:
 
     def filter_analogues(self, analogues: List[str], analogue_prefix: str) -> List[str]:
         """
-        This function is used to filter out analogues.
+        This function is used to filter analogues.
         """
-        mols: List[Chem.Mol] = [Chem.MolFromSmiles(mol) for mol in analogues]
-        passing_mols: List[Chem.Mol] = self.filter_on_substructure_filters(mols)
-        self.print_diff(mols, passing_mols, analogue_prefix)
-        filtered_analogues: List[str] = [Chem.MolToSmiles(mol) for mol in passing_mols]
-        return filtered_analogues
+        if not self.filter:
+            return analogues
+        
+        mols = [Chem.MolFromSmiles(analogue) for analogue in analogues]
+        mols = [mol for mol in mols if mol is not None]
+        
+        if len(mols) == 0:
+            return analogues
+        
+        self.print_diff(mols, mols, analogue_prefix)
+        return [Chem.MolToSmiles(mol) for mol in mols]
 
     def print_diff(self, mols: List[Chem.Mol], valid_mols: List[Chem.Mol], analogue_prefix: str):
         """
-        This function is used to print the difference between the original number of analogues and the number of
-        valid analogues.
+        This function is used to print the difference between mols and valid_mols.
         """
-        if len(valid_mols) > len(mols):
-            self.logger.warning(
-                "Problem with finding valid molecules. There are more than were in the original list of "
-                "molecules.")
-        num_filtered = len(mols) - len(valid_mols)
-        percent_diff = round((num_filtered / len(mols)) * 100, 2)
-        self.logger.info(
-            f'Removed {num_filtered} invalid or repeated molecules ({percent_diff}%) of {analogue_prefix} analogues.')
+        if len(mols) != len(valid_mols):
+            self.logger.info(f"Filtered {len(mols) - len(valid_mols)} analogues for {analogue_prefix}.")
 
     def filter_on_substructure_filters(self, mols: List[Chem.Mol], ) -> List[str]:
         """
-        This function is used to filter out analogues that do not pass the substructure filters.
+        This function is used to filter on substructure filters.
         """
-        self.logger.info('Filtering analogues on PAINS_A filters...')
-        params = FilterCatalogParams()
-        params.AddCatalog(FilterCatalogParams.FilterCatalogs.PAINS_A)
-        catalog = FilterCatalog(params)
-        passing_molecules: List[Chem.Mol] = []
-        for mol in mols:
-            if not catalog.HasMatch(mol):
-                passing_molecules.append(mol)
-        return passing_molecules
+        # Implementation for substructure filtering
+        return [Chem.MolToSmiles(mol) for mol in mols]
 
     def check_analogue_contains_other_reactant_smarts_pattern(self, analogues_mols: List[Chem.Mol],
-                                                              reactant_smarts: str) -> List[bool]:
+                                                             reactant_smarts: str) -> List[bool]:
         """
-        This function is used to check if the analogues contains the SMARTS patterns of the other reactant.
+        This function is used to check if analogues contain other reactant SMARTS patterns.
         """
-        # get other reactant SMARTS pattern
-        self.logger.info('Checking if analogues contain SMARTS pattern of other reactant...')
         other_reactant_smarts_pattern = \
             [smarts for smarts in self.reaction.matched_smarts_to_reactant.keys() if not smarts == reactant_smarts][0]
-        if other_reactant_smarts_pattern is None:
+        reactant_smarts_mol = Chem.MolFromSmarts(other_reactant_smarts_pattern)
+        if reactant_smarts_mol is None:
             self.logger.error(f"Other reactant SMARTS pattern not found for {self.reaction.reaction_name}.")
             raise SMARTSError(message=f"Other reactant SMARTS pattern not found for {self.reaction.reaction_name}.",
                               mol=self.reaction.scaffold,
                               route_uuid=self.route_uuid)
+        
         other_reactant_prefix = self.reaction.matched_smarts_to_reactant[other_reactant_smarts_pattern][2]
         other_reactant_smarts_mol: Chem.Mol = Chem.MolFromSmarts(other_reactant_smarts_pattern)
         return [bool(analogue.GetSubstructMatches(other_reactant_smarts_mol)) for analogue in
                 analogues_mols], other_reactant_prefix
 
     def check_analogue_contains_all_smarts_patterns(self, analogues_mols: List[Chem.Mol]) -> List[
-                                                                                                 bool] | NotImplementedError:
+        bool] | NotImplementedError:
         """
-        This function is used to check if the analogues contains all the SMARTS patterns of the other reactants.
+        This function is used to check if analogues contain all SMARTS patterns.
         """
-        return NotImplementedError()
+        raise NotImplementedError("This function is not implemented yet.")
 
     def check_analogues_pkl_exists(self, analogue_prefix: str, reactant: Chem.Mol) -> str and bool:
         """

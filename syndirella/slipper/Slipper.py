@@ -15,7 +15,7 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import inchi
 
-from syndirella.error import NoScaffold, NoToHippo
+from syndirella.utils.error import NoScaffold, NoToHippo
 from syndirella.route.Library import Library
 from syndirella.slipper.SlipperFitter import SlipperFitter
 from syndirella.slipper._placement_data import get_placement_data

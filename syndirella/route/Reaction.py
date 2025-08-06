@@ -12,10 +12,10 @@ from typing import (List, Dict, Tuple)
 from rdkit import Chem
 from rdkit.Chem import rdFMCS
 
-import syndirella.fairy as fairy
-from syndirella.SMARTSHandler import SMARTSHandler
+import syndirella.utils.fairy as fairy
+from syndirella.route.SMARTSHandler import SMARTSHandler
 from syndirella.cli_defaults import syndirella_base_path
-from syndirella.error import ReactionError
+from syndirella.utils.error import ReactionError
 from syndirella.route.SmirksLibraryManager import SmirksLibraryManager
 
 
@@ -26,14 +26,14 @@ class Reaction():
     """
 
     def __init__(self,
-                 product: Chem.Mol,
+                 scaffold: Chem.Mol,
                  reactants: List[Chem.Mol],
                  reaction_name: str,
                  smarts_handler: SMARTSHandler,
                  route_uuid: str):
         self.route_uuid: str = route_uuid
         self.logger = logging.getLogger(f"{__name__}")
-        self.scaffold: Chem.Mol = product
+        self.scaffold: Chem.Mol = scaffold
         self.reactants: List[Chem.Mol] = reactants
         self.reaction_name: str = reaction_name
         self.smarts_handler: SMARTSHandler = smarts_handler
