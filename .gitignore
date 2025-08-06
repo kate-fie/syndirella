@@ -7,6 +7,7 @@ old_README.md
 /syndirella_input_template_old.csv
 /syndirella_input_template_manual_old.csv
 /syndirella/constants/ADDITIONAL_RXN_OPTIONS.json
+/syndirella/constants/uspto_template_lookup.json
 setup.py
 requirements.txt
 
