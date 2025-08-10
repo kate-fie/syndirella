@@ -7,6 +7,10 @@ old_README.md
 /syndirella_input_template_old.csv
 /syndirella_input_template_manual_old.csv
 /syndirella/constants/uspto_template_lookup.json
+/syndirella/aizynth/config.yml
+/syndirella/aizynth/*.onnx
+/syndirella/aizynth/*.csv*
+/syndirella/aizynth/*.hdf5
 setup.py
 requirements.txt
 
@@ -27,5 +31,6 @@ iris/
 /nbs/
 /debug/
 
-aizynth/
 ASKCOSv2/
+
+.vscode/
