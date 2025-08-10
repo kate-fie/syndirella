@@ -47,10 +47,9 @@ class CobblersWorkshop():
         self.reactants: List[Tuple[str]] = self.check_reactants(reactants)
         self.atom_diff_min: int = atom_diff_min
         self.atom_diff_max: int = atom_diff_max
+        self.num_steps: int = num_steps
         self.elab_single_reactant_int: int | None = None
         self.elab_single_reactant: bool = self.check_and_assign_elab_setting(elab_single_reactant)
-
-        self.num_steps: int = num_steps
         self.output_dir: str = output_dir
         self.filter: bool = filter
         self.atoms_ids_expansion: dict = atoms_ids_expansion  # should only be internal step

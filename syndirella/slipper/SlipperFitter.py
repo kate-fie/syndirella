@@ -469,6 +469,9 @@ class SlipperFitter:
         """
         This function saves the placements as a .pkl.gz (not to a .csv to save space).
         """
+        # Ensure output directory exists
+        os.makedirs(self.output_dir, exist_ok=True)
+        
         self.placements.to_pickle(os.path.join(self.output_dir,
                                                f'{id}_{route_uuid}_fragmenstein_placements.pkl.gz'))
         # self.placements.to_csv(os.path.join(self.output_dir,

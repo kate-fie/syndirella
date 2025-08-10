@@ -23,14 +23,122 @@ On Mac OS and Linux you can install from PyPI using Conda.
 
 Syndirella can use AiZynthFinder for retrosynthesis functionality (see Retrosynthesis for more information).
 
+**Automatic Setup (Recommended):**
+Syndirella will automatically handle AiZynthFinder setup when you first use it. Simply run:
+
 .. code-block:: bash
 
-    # pip install aizynthfinder
+    syndirella setup-aizynth
+
+.. attention::
+
+    This will automatically download the required data to the `syndirella/aizynth` directory and create the configuration file automatically.
+
+**Manual Setup (Alternative):**
+If you prefer manual setup:
+
+.. code-block:: bash
+
     cd syndirella/aizynth
     download_public_data .
-    # Update config.yml ?
+    # Update config.yml (if you prefer)
     export AIZYNTH_CONFIG_FILE="path/to/syndirella/aizynth/config.yml"
 
+Command Line Interface
+======================
+
+Syndirella provides a command-line interface with multiple subcommands. Get help with `-h` or `--help`.
+
+**Available Commands:**
+
+- **setup-aizynth**: Setup AiZynthFinder data and configuration
+- **run**: Run the main Syndirella pipeline  
+- **add-reaction**: Add a new reaction to the library
+
+**Main Help Output:**
+.. code-block:: bash
+
+    usage: syndirella [-h] {setup-aizynth,run,add-reaction} ...
+
+    Run the Syndirella pipeline with specified configurations.
+
+    Available commands:
+      setup-aizynth    Setup AiZynthFinder data and configuration
+      run              Run the main Syndirella pipeline  
+      add-reaction     Add a new reaction to the library
+
+    Syndirella is installed at [path_to_installation]
+
+**Run Command Help:**
+.. code-block:: bash
+
+    usage: syndirella run [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH] [--metadata METADATA] [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual] [--only_scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM] [--retro_tool {manifold,aizynthfinder}] [--db_search_tool {postera,arthor}] [--profile] [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX] [--long_code_column LONG_CODE_COLUMN] [--just_retro] [--no_scaffold_place] [--elab_single_reactant]
+
+    Run the full Syndirella pipeline with specified input files and parameters.
+
+    options:
+      -h, --help            show this help message and exit
+      -i INPUT, --input INPUT
+                            Input .csv file path for the pipeline.
+      -o OUTPUT, --output OUTPUT
+                            Output directory for the pipeline results.
+      -t TEMPLATES, --templates TEMPLATES
+                            Absolute path to a directory containing the template(s).
+      --hits_path HITS_PATH
+                            Absolute path to hits_path for placements (.sdf or .mol).
+      --metadata METADATA   Absolute path to metadata for placements.
+      --products PRODUCTS   Absolute path to products for placements.
+      --batch_num BATCH_NUM
+                            Batch number for processing. (default: 10000)
+      --manual              Use manual routes for processing. (default: False)
+      --only_scaffold_place
+                            Only place scaffolds. Do not continue to elaborate. (default: False)
+      --scaffold_place_num SCAFFOLD_PLACE_NUM
+                            Number of times to attempt scaffold placement. (default: 5)
+      --retro_tool {manifold,aizynthfinder}
+                            Retrosynthesis tool to use. (default: manifold)
+      --db_search_tool {postera,arthor}
+                            Database search tool to use. (default: postera)
+      --profile             Run the pipeline with profiling. (default: False)
+      --atom_diff_min ATOM_DIFF_MIN
+                            Minimum atom difference between elaborations and scaffold to keep. (default: 0)
+      --atom_diff_max ATOM_DIFF_MAX
+                            Maximum atom difference between elaborations and scaffold to keep. (default: 10)
+      --long_code_column LONG_CODE_COLUMN
+                            Column name for long code in metadata csv to match to SDF name. (default: Long code)
+      --just_retro          Only run retrosynthesis querying of scaffolds. (default: False)
+      --no_scaffold_place   Do not place scaffolds initially before elaborating. (default: False)
+      --elab_single_reactant
+                            Only elaborate one reactant per elaboration series. (default: False)
+
+**Add Reaction Command Help:**
+.. code-block:: bash
+
+    usage: syndirella add-reaction [-h] --name NAME --smirks SMIRKS [--find_parent] [--fp_type {maccs_rxn_fp,morgan_rxn_fp}] [--threshold THRESHOLD] [--similarity_metric {tanimoto,dice,cosine}]
+
+    Add a new reaction SMIRKS to the reaction library with optional parent finding.
+
+    options:
+      -h, --help            show this help message and exit
+      --name NAME           Name of the new reaction.
+      --smirks SMIRKS       SMIRKS string for the reaction.
+      --find_parent         If True, treat as a child reaction and find parent based on similarity. (default: False)
+      --fp_type {maccs_rxn_fp,morgan_rxn_fp}
+                            Fingerprint type for similarity calculation. (default: maccs_rxn_fp)
+      --threshold THRESHOLD
+                            Similarity threshold for finding parent reaction. (default: 0.2)
+      --similarity_metric {tanimoto,dice,cosine}
+                            Similarity metric for finding parent reaction. (default: tanimoto)
+
+**Setup AiZynthFinder Command Help:**
+.. code-block:: bash
+
+    usage: syndirella setup-aizynth [-h]
+
+    Automatically download AiZynthFinder data and create configuration file.
+
+    options:
+      -h, --help  show this help message and exit
 
 Basic Usage
 ===========
@@ -119,7 +227,7 @@ Run pipeline in *automatic* mode:
 
 .. code-block:: bash
 
-    syndirella --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
+    syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
     --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv]
 
 
@@ -197,14 +305,14 @@ You can run Syndirella to only place scaffolds. It will not perform the full ela
 
 .. code-block:: bash
 
-    syndirella --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
+    syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
     --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --scaffold_place
 
 You can also specify to not place the scaffold (most likely you confirmed placement using another method).
 
 .. code-block:: bash
 
-    syndirella --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
+    syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
     --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --no_scaffold_place
 
 
@@ -217,7 +325,7 @@ reactions (non-CAR route).
 
 .. code-block:: bash
 
-    syndirella --input [path_to_automatic.csv] --output [path_to_output_dir] --just_retro
+    syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --just_retro
 
 **Output file: [input_csv_name].pkl.gz**
 
@@ -256,51 +364,8 @@ amidation, there will be two elaboration series output: (1) only elaborating rea
 
 .. code-block:: bash
 
-    syndirella --input [path_to_input.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
+    syndirella run --input [path_to_input.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
     --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --elab_single_reactant
-
-Command Line Interface
-======================
-
-.. code-block:: bash
-
-    usage: syndirella [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH] [--metadata METADATA] [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual] [--scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM]
-                      [--profile] [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX] [--long_code_column LONG_CODE_COLUMN] [--just_retro]
-
-    Run the Syndirella pipeline with specified configurations.
-
-    options:
-      -h, --help            show this help message and exit
-      -i INPUT, --input INPUT
-                            Input .csv file path for the pipeline. (default: None)
-      -o OUTPUT, --output OUTPUT
-                            Output directory for the pipeline results. (default: None)
-      -t TEMPLATES, --templates TEMPLATES
-                            Absolute path to a directory containing the template(s). (default: None)
-      --hits_path HITS_PATH
-                            Absolute path to hits_path for placements (.sdf or .mol). (default: None)
-      --metadata METADATA   Absolute path to metadata for placements. (default: None)
-      --products PRODUCTS   Absolute path to products for placements. (default: None)
-      --batch_num BATCH_NUM
-                            Batch number for processing. (default: 10000)
-      --manual              Use manual routes for processing. (default: False)
-      --scaffold_place      Only place scaffolds. Do not continue to elaborate. (default: False)
-      --scaffold_place_num SCAFFOLD_PLACE_NUM
-                            Number of times to attempt scaffold placement. (default: 5)
-      --profile             Run the pipeline with profiling. (default: False)
-      --atom_diff_min ATOM_DIFF_MIN
-                            Minimum atom difference between elaborations and scaffold to keep. (default: 0)
-      --atom_diff_max ATOM_DIFF_MAX
-                            Maximum atom difference between elaborations and scaffold to keep. (default: 10)
-      --long_code_column LONG_CODE_COLUMN
-                            Column name for long code in metadata csv to match to SDF name. The column can contain a substring for the SDF name. (default: Long code)
-      --just_retro          Only run retrosynthesis querying of scaffolds. (default: False)
-      --no_scaffold_place   Do not place scaffolds initially before elaborating, immediately start elaboration process. (default: False)
-      --elab_single_reactant
-                            Only elaborate one reactant per elaboration series. Warning: Functionality only provided for single step reactions. (default: False)
-
-
-        Syndirella is installed at [path_to_installation]
 
 
 

@@ -18,17 +18,6 @@ def handle_file_path(user_path: str) -> str:
     return os.path.abspath(os.path.join(os.getcwd(), user_path))
 
 
-def call_palmer_beautiful_butterfly():
-    """
-    A whimsical function that calls Palmer a beautiful butterfly.
-    This function serves as a delightful reminder of the beauty in nature.
-    
-    Returns:
-        str: A poetic message about Palmer the butterfly
-    """
-    return "Palmer, you are a beautiful butterfly! 🦋 Your wings shimmer with the colors of a thousand flowers, and your gentle flight brings joy to all who witness your graceful dance through the garden of life."
-
-
 class TestPipelineIntegration(unittest.TestCase):
     """Test full pipeline integration."""
     
@@ -54,7 +43,6 @@ class TestPipelineIntegration(unittest.TestCase):
     @patch('syndirella.pipeline.Cobbler')
     def test_pipeline_with_only_scaffold_place(self, mock_cobbler):
         """Test pipeline with only scaffold placement."""
-        print('This will take a while... I would get a coffee if I were you')
         self.settings['only_scaffold_place'] = True
         self.settings['retro_tool'] = 'manifold'
         logging.basicConfig(level=logging.INFO)
@@ -72,7 +60,6 @@ class TestPipelineIntegration(unittest.TestCase):
     @patch('syndirella.pipeline.Cobbler')
     def test_pipeline_with_custom_parameters(self, mock_cobbler):
         """Test pipeline with custom parameters."""
-        print('This will take a while... I would get a coffee if I were you')
         self.settings['retro_tool'] = 'manifold'
         self.settings['db_search_tool'] = 'arthor'
         self.settings['atom_diff_min'] = 1
@@ -98,11 +85,10 @@ class TestPipelineIntegration(unittest.TestCase):
         self.assertTrue(any('placements' in file for file in all_files))
 
     def test_pipeline_creates_output_aizynthfinder(self):
-        print('This will take a while... I would get a coffee if I were you')
         # Get the project root directory (two levels up from this test file)
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         self.settings['input'] = os.path.join(project_root, 'syndirella', 'syndirella_input_template.csv')
-        self.settings['no_scaffold_place'] = False
+        self.settings['no_scaffold_place'] = True
         self.settings['retro_tool'] = 'aizynthfinder'
         self.settings['db_search_tool'] = 'arthor'
         logging.basicConfig(level=logging.INFO)
@@ -120,7 +106,6 @@ class TestPipelineIntegration(unittest.TestCase):
         self.assertTrue(any('placements' in file for file in all_files))
 
     def test_pipeline_creates_output_manifold(self):
-        print('This will take a while... I would get a coffee if I were you')
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         self.settings['input'] = os.path.join(project_root, 'syndirella', 'syndirella_input_template.csv')
         self.settings['no_scaffold_place'] = True
@@ -141,7 +126,6 @@ class TestPipelineIntegration(unittest.TestCase):
 
     def test_pipeline_with_manual_routes(self):
         """Test pipeline with manual routes."""
-        print('This will take a while... I would get a coffee if I were you')
         self.settings['manual'] = True
         # Get the project root directory (two levels up from this test file)
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -43,27 +43,17 @@ The ``.json`` structure follows this format:
 
 **Adding new reactions:**
 
-    1. Edit RXN_SMIRKS_CONSTANTS.json
-    2. Add your new reaction:
+You can add new reactions to the library using the following command:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        # Add a parent reaction
-        "New_reaction": {
-            "smirks": "[smirks pattern]",
-            "source": "user_defined",
-            "type": "parent"
-          }
+    syndirella add-reaction --name "Reaction_Name" --smirks "SMIRKS_STRING" --find_parent --fp_type maccs_rxn_fp --threshold 0.2
 
-        # Add a child reaction to a parent
-        "New_reaction": {
-            "smirks": "[smirks pattern]",
-            "source": "user_defined",
-            "type": "child",
-            "parent": "parent_to_this_child"
-          }
-
-    3. Run pipeline - changes automatically detected
+    --name: The name of the reaction.
+    --smirks: The SMIRKS string of the reaction.
+    --find_parent: Whether to find a parent reaction for the new reaction.
+    --fp_type: The type of fingerprint to use for the reaction.
+    --threshold: The threshold for the similarity score.
 
 
 `REACTANT_FILTER_CONSTANTS.json <https://github.com/kate-fie/syndirella/blob/main/syndirella/constants/REACTANT_FILTER_CONSTANTS.json>`_

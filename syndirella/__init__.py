@@ -6,7 +6,7 @@ __doc__ = \
     """
 __author__ = "Kate Fieseler. [Github](https://github.com/kate-fie)"
 __email__ = "kate.k.fieseler@gmail.com"
-__date__ = "2024"
+__date__ = "2025"
 __license__ = "MIT"
 __citation__ = ""
 from .utils.version import __version__

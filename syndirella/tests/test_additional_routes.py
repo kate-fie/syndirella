@@ -134,14 +134,13 @@ class TestAutoSingleElabHippo(unittest.TestCase):
         self.output_dir = 'outputs/test_additional_routes/single_elab'
         self.hits_names = ['CHIKV_MacB-x1444_A_401_CHIKV_MacB-x0300+A+401+1',
                            'CHIKV_MacB-x0692_C_401_CHIKV_MacB-x0300+A+401+1']
-        self.hits_path = 'inputs/test_error_handling/CHIKV_Mac_combined.sdf'
-        self.template_path = handle_file_path('inputs/test_error_handling/cx0270a_apo-desolv.pdb')
+        self.hits_path = handle_file_path('syndirella/tests/inputs/test_error_handling/CHIKV_Mac_combined.sdf')
+        self.template_path = handle_file_path('syndirella/tests/inputs/test_error_handling/cx0270a_apo-desolv.pdb')
         self.additional_info = {'compound_set': 'test'}
-        self.csv_path = 'inputs/test_error_handling/single_elab.csv'
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+        self.csv_path = handle_file_path('syndirella/tests/inputs/test_error_handling/single_elab.csv')
         if os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
+        os.makedirs(self.output_dir, exist_ok=True)
 
     def test_full_hippo(self):
         logging.basicConfig(level=logging.INFO, handlers=[logging.StreamHandler()])

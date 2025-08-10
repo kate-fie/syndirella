@@ -114,7 +114,7 @@ class TestSlipperFitterHelperMethods(unittest.TestCase):
         # This method should not raise any exceptions
         self.slipper_fitter._print_diff(orig_df, input_df, "test")
 
-    @patch('syndirella.fairy.generate_inchi_ID')
+    @patch('syndirella.utils.fairy.generate_inchi_ID')
     def test_add_hits(self, mock_generate_id):
         """Test add_hits method."""
         mock_generate_id.return_value = 'test_id'
@@ -166,7 +166,7 @@ class TestSlipperFitterScaffoldChecking(unittest.TestCase):
     @patch.object(SlipperFitter, 'setup_Fragmenstein')
     @patch.object(SlipperFitter, '_place_scaffold')
     @patch.object(SlipperFitter, '_prep_scaffold_input_df')
-    @patch('syndirella.fairy.generate_inchi_ID')
+    @patch('syndirella.utils.fairy.generate_inchi_ID')
     @patch('os.path.exists')
     def test_check_scaffold_success(self, mock_exists, mock_generate_id, mock_prep_df, mock_place, mock_setup):
         """Test successful scaffold checking."""
@@ -191,7 +191,7 @@ class TestSlipperFitterScaffoldChecking(unittest.TestCase):
     @patch.object(SlipperFitter, 'setup_Fragmenstein')
     @patch.object(SlipperFitter, '_place_scaffold')
     @patch.object(SlipperFitter, '_prep_scaffold_input_df')
-    @patch('syndirella.fairy.generate_inchi_ID')
+    @patch('syndirella.utils.fairy.generate_inchi_ID')
     @patch('os.path.exists')
     def test_check_scaffold_failure(self, mock_exists, mock_generate_id, mock_prep_df, mock_place, mock_setup):
         """Test failed scaffold checking."""
@@ -216,7 +216,7 @@ class TestSlipperFitterScaffoldChecking(unittest.TestCase):
     @patch.object(SlipperFitter, 'setup_Fragmenstein')
     @patch.object(SlipperFitter, '_place_scaffold')
     @patch.object(SlipperFitter, '_prep_scaffold_input_df')
-    @patch('syndirella.fairy.generate_inchi_ID')
+    @patch('syndirella.utils.fairy.generate_inchi_ID')
     def test_check_scaffold_invalid_input_df(self, mock_generate_id, mock_prep_df, mock_place, mock_setup):
         """Test scaffold checking with invalid input dataframe."""
         # Mock setup with invalid dataframe (no hits)

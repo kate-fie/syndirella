@@ -4,6 +4,7 @@ import unittest
 
 from syndirella.aizynth.AiZynthManager import AiZynthManager
 from syndirella.route.Cobbler import Cobbler
+from syndirella.constants import RetrosynthesisTool
 
 
 # Configure logging at the application level
@@ -37,6 +38,7 @@ class TestAiZynthManagerSingle(unittest.TestCase):
         self.logger = setup_logging(log_level=logging.INFO)
 
     def test_get_for_target(self, target_smiles: str = 'C1CCN(C(=O)NC2CCC2)CC1'):
+        # Use the default constructor since we fixed the path issue
         manager = AiZynthManager()
         manager.logger = self.logger
         output_path = f'{target_smiles}.json'
@@ -46,6 +48,7 @@ class TestAiZynthManagerSingle(unittest.TestCase):
 
     def test_route_analysis_export(self, target_smiles: str = 'C1CCN(C(=O)NC2CCC2)CC1'):
         """Test the new route analysis export functionality."""
+        # Use the default constructor since we fixed the path issue
         manager = AiZynthManager()
         manager.logger = self.logger
         
@@ -68,6 +71,7 @@ class TestAiZynthManagerSingle(unittest.TestCase):
             # Test direct export method
             if routes:
                 analysis_data = manager.export_route_analysis_to_json(
+                    target_smiles,
                     routes, 
                     f'{target_smiles}_direct_analysis.json'
                 )
@@ -93,7 +97,7 @@ class TestAiZynthManagerSingle(unittest.TestCase):
             # If route search fails, that's okay for testing
             self.logger.warning(f"Route search failed (expected in test environment): {e}")
             # Still test the export method with empty routes
-            analysis_data = manager.export_route_analysis_to_json([], f'{target_smiles}_empty_analysis.json')
+            analysis_data = manager.export_route_analysis_to_json(target_smiles, [], f'{target_smiles}_empty_analysis.json')
             self.assertEqual(analysis_data, [])
 
 
@@ -106,7 +110,7 @@ class TestCobbler(unittest.TestCase):
             atom_diff_min=0,
             atom_diff_max=10,
             elab_single_reactant=False,
-            retro_tool='aizynthfinder'
+            retro_tool=RetrosynthesisTool.AIZYNTHFINDER  # Use the enum instead of string
         )
 
     def test_get_routes(self):

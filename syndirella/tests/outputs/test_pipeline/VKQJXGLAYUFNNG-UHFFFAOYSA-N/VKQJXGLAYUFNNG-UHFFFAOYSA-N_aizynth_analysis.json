@@ -1,0 +1,168 @@
+[
+  {
+    "input_smiles": "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1",
+    "original_aizynth_route": {
+      "reaction_tree": {
+        "reaction_smiles": [
+          "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.O=C(O)c1cc2ccsc2[nH]1"
+        ],
+        "metadata": [
+          {
+            "reaction_smiles": "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.O=C(O)c1cc2ccsc2[nH]1",
+            "template_code": 18509,
+            "template": "[C:4]-[NH;D2;+0:5]-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3]>>O-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3].[C:4]-[NH2;D1;+0:5]",
+            "metadata": {
+              "template_hash": "6edddb96acff29882c350d455506be3262813b4f8d724f3b689c4f37027e384c",
+              "classification": "0.0 Unrecognized",
+              "library_occurence": 15277,
+              "policy_probability": 0.00570000009611249,
+              "policy_probability_rank": 9,
+              "policy_name": "uspto",
+              "template_code": 18509,
+              "template": "[C:4]-[NH;D2;+0:5]-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3]>>O-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3].[C:4]-[NH2;D1;+0:5]",
+              "mapped_reaction_smiles": "[O:1]=[C:2]([NH:3][CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1)[c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1>>[NH2:3][CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1.[O:1]=[C:2]([c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1)[OH:20]"
+            }
+          }
+        ]
+      },
+      "route_metadata": "{'created_at_iteration': 2, 'is_solved': True}",
+      "node": "<aizynthfinder.search.mcts.node.MctsNode object at 0x33136b760>",
+      "score": {
+        "state score": 0.9976287063411217
+      },
+      "all_score": "{'state score': 0.9976287063411217}",
+      "reaction_mappings": {
+        "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.O=C(O)c1cc2ccsc2[nH]1": "Carboxylic_acid_with_primary_amine_to_amide"
+      }
+    }
+  },
+  {
+    "input_smiles": "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1",
+    "original_aizynth_route": {
+      "reaction_tree": {
+        "reaction_smiles": [
+          "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.COC(=O)c1cc2ccsc2[nH]1"
+        ],
+        "metadata": [
+          {
+            "reaction_smiles": "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.COC(=O)c1cc2ccsc2[nH]1",
+            "template_code": 32600,
+            "template": "[#7;a:4]:[c:3]-[C;H0;D3;+0:1](=[O;D1;H0:2])-[NH;D2;+0:6]-[C:5]>>C-O-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3]:[#7;a:4].[C:5]-[NH2;D1;+0:6]",
+            "metadata": {
+              "template_hash": "c3e0bb8297b9e34d215d41dd417d94859252a8f5281a69738066701178e5e3f8",
+              "classification": "0.0 Unrecognized",
+              "library_occurence": 1107,
+              "policy_probability": 0.001500000013038516,
+              "policy_probability_rank": 29,
+              "policy_name": "uspto",
+              "template_code": 32600,
+              "template": "[#7;a:4]:[c:3]-[C;H0;D3;+0:1](=[O;D1;H0:2])-[NH;D2;+0:6]-[C:5]>>C-O-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3]:[#7;a:4].[C:5]-[NH2;D1;+0:6]",
+              "mapped_reaction_smiles": "[O:1]=[C:2]([NH:3][CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1)[c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1>>[NH2:3][CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1.[O:1]=[C:2]([c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1)[O:20][CH3:21]"
+            }
+          }
+        ]
+      },
+      "route_metadata": "{'created_at_iteration': 5, 'is_solved': True}",
+      "node": "<aizynthfinder.search.mcts.node.MctsNode object at 0x3310d1810>",
+      "score": {
+        "state score": 0.9976287063411217
+      },
+      "all_score": "{'state score': 0.9976287063411217}",
+      "reaction_mappings": {
+        "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.COC(=O)c1cc2ccsc2[nH]1": "Ester_amidation"
+      }
+    }
+  },
+  {
+    "input_smiles": "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1",
+    "original_aizynth_route": {
+      "reaction_tree": {
+        "reaction_smiles": [
+          "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.CCOC(=O)c1cc2ccsc2[nH]1"
+        ],
+        "metadata": [
+          {
+            "reaction_smiles": "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.CCOC(=O)c1cc2ccsc2[nH]1",
+            "template_code": 17469,
+            "template": "[#7;a:4]:[c:3]-[C;H0;D3;+0:1](=[O;D1;H0:2])-[NH;D2;+0:6]-[C:5]>>C-C-O-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3]:[#7;a:4].[C:5]-[NH2;D1;+0:6]",
+            "metadata": {
+              "template_hash": "68d85db05241cd6fd34d1b27aa37f4ab528c291e120db00aafba09862acbd460",
+              "classification": "0.0 Unrecognized",
+              "library_occurence": 114,
+              "policy_probability": 0.0007999999797903001,
+              "policy_probability_rank": 49,
+              "policy_name": "uspto",
+              "template_code": 17469,
+              "template": "[#7;a:4]:[c:3]-[C;H0;D3;+0:1](=[O;D1;H0:2])-[NH;D2;+0:6]-[C:5]>>C-C-O-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3]:[#7;a:4].[C:5]-[NH2;D1;+0:6]",
+              "mapped_reaction_smiles": "[O:1]=[C:2]([NH:3][CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1)[c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1>>[NH2:3][CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1.[O:1]=[C:2]([c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1)[O:20][CH2:21][CH3:22]"
+            }
+          }
+        ]
+      },
+      "route_metadata": "{'created_at_iteration': 9, 'is_solved': True}",
+      "node": "<aizynthfinder.search.mcts.node.MctsNode object at 0x330f9a470>",
+      "score": {
+        "state score": 0.9976287063411217
+      },
+      "all_score": "{'state score': 0.9976287063411217}",
+      "reaction_mappings": {
+        "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>NC1CC(C(F)(F)F)C1.CCOC(=O)c1cc2ccsc2[nH]1": "Ester_amidation"
+      }
+    }
+  },
+  {
+    "input_smiles": "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1",
+    "original_aizynth_route": {
+      "reaction_tree": {
+        "reaction_smiles": [
+          "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>O=C(c1cc2ccsc2[nH]1)N(Cc1ccccc1)C1CC(C(F)(F)F)C1",
+          "O=C(c1cc2ccsc2[nH]1)N(Cc1ccccc1)C1CC(C(F)(F)F)C1>>FC(F)(F)C1CC(NCc2ccccc2)C1.O=C(O)c1cc2ccsc2[nH]1"
+        ],
+        "metadata": [
+          {
+            "reaction_smiles": "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>O=C(c1cc2ccsc2[nH]1)N(Cc1ccccc1)C1CC(C(F)(F)F)C1",
+            "template_code": 38041,
+            "template": "[C:1]-[NH;D2;+0:2]-[C:3]>>[C:1]-[N;H0;D3;+0:2](-[C:3])-C-c1:c:c:c:c:c:1",
+            "metadata": {
+              "template_hash": "e51db5c1dc755e5f151b40f485812594edcde18be92792e91cb0e522842b6a19",
+              "classification": "0.0 Unrecognized",
+              "library_occurence": 4647,
+              "policy_probability": 0.0008999999845400453,
+              "policy_probability_rank": 46,
+              "policy_name": "uspto",
+              "template_code": 38041,
+              "template": "[C:1]-[NH;D2;+0:2]-[C:3]>>[C:1]-[N;H0;D3;+0:2](-[C:3])-C-c1:c:c:c:c:c:1",
+              "mapped_reaction_smiles": "[O:1]=[C:2]([NH:3][CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1)[c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1>>[O:1]=[C:2]([N:3]([CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1)[CH2:20][c:21]1[cH:22][cH:23][cH:24][cH:25][cH:26]1)[c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1"
+            }
+          },
+          {
+            "reaction_smiles": "O=C(c1cc2ccsc2[nH]1)N(Cc1ccccc1)C1CC(C(F)(F)F)C1>>FC(F)(F)C1CC(NCc2ccccc2)C1.O=C(O)c1cc2ccsc2[nH]1",
+            "template_code": 956,
+            "template": "[#7;a:4]:[c:3]-[C;H0;D3;+0:1](=[O;D1;H0:2])-[N;H0;D3;+0:6](-[C:5])-[C:7]>>O-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3]:[#7;a:4].[C:5]-[NH;D2;+0:6]-[C:7]",
+            "metadata": {
+              "template_hash": "05bbfb64a233cfd0ae57df5a5fff42aa38aa637c1bdc7c2703349421d117b5d3",
+              "classification": "0.0 Unrecognized",
+              "library_occurence": 1878,
+              "policy_probability": 0.19580000638961792,
+              "policy_probability_rank": 0,
+              "policy_name": "uspto",
+              "template_code": 956,
+              "template": "[#7;a:4]:[c:3]-[C;H0;D3;+0:1](=[O;D1;H0:2])-[N;H0;D3;+0:6](-[C:5])-[C:7]>>O-[C;H0;D3;+0:1](=[O;D1;H0:2])-[c:3]:[#7;a:4].[C:5]-[NH;D2;+0:6]-[C:7]",
+              "mapped_reaction_smiles": "[O:1]=[C:2]([N:3]([CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1)[CH2:20][c:21]1[cH:22][cH:23][cH:24][cH:25][cH:26]1)[c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1>>[NH:3]([CH:4]1[CH2:5][CH:6]([C:7]([F:8])([F:9])[F:10])[CH2:11]1)[CH2:20][c:21]1[cH:22][cH:23][cH:24][cH:25][cH:26]1.[O:1]=[C:2]([c:12]1[cH:13][c:14]2[cH:15][cH:16][s:17][c:18]2[nH:19]1)[OH:27]"
+            }
+          }
+        ]
+      },
+      "route_metadata": "{'created_at_iteration': 8, 'is_solved': True}",
+      "node": "<aizynthfinder.search.mcts.node.MctsNode object at 0x3310d0d90>",
+      "score": {
+        "state score": 0.994039853898894
+      },
+      "all_score": "{'state score': 0.994039853898894}",
+      "reaction_mappings": {
+        "O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1>>O=C(c1cc2ccsc2[nH]1)N(Cc1ccccc1)C1CC(C(F)(F)F)C1": "N-Bn_deprotection",
+        "O=C(c1cc2ccsc2[nH]1)N(Cc1ccccc1)C1CC(C(F)(F)F)C1>>FC(F)(F)C1CC(NCc2ccccc2)C1.O=C(O)c1cc2ccsc2[nH]1": "Amidation"
+      }
+    }
+  }
+]

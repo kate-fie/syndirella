@@ -298,14 +298,22 @@ class Library:
         This function is used to check if the analogue library has already been created and saved as a .pkl file.
         """
         internal_step = False
+        previous_product = False
+        
         if self.current_step != 1 and (self.current_step == self.num_steps or self.current_step < self.num_steps):
             self.logger.info(
                 'Since this is an internal or final step looking for the products .pkl from previous step...')
-            pkl_path: str = self._find_products_pkl_name(reactant)
-            if pkl_path is not None:
-                internal_step = True
-                previous_product = True
-                return pkl_path, internal_step, previous_product  # returns path to products .pkl.gz since is reactant
+            try:
+                pkl_path: str = self._find_products_pkl_name(reactant)
+                if pkl_path is not None:
+                    internal_step = True
+                    previous_product = True
+                    return pkl_path, internal_step, previous_product  # returns path to products .pkl.gz since is reactant
+            except NoReactants as e:
+                # If NoReactants is raised, it means either no product files found or correct product not contained
+                # Don't raise immediately, fall back to analogue search
+                self.logger.info(f'No suitable products found from previous step for {analogue_prefix}. Falling back to analogue search.')
+    
         if self.current_step != 1 and self.current_step < self.num_steps:
             self.logger.info('Looking for analogue library .pkl.gz if already created...')
             pkl_path: str = self._find_analogues_pkl_name(analogue_prefix)
@@ -313,6 +321,7 @@ class Library:
                 internal_step = True
                 previous_product = False
                 return pkl_path, internal_step, previous_product  # returns path to analogue .pkl.gz and is internal step
+    
         if self.current_step == 1:
             self.logger.info('Looking for analogue library .pkl.gz if already created...')
             pkl_path: str = self._find_analogues_pkl_name(analogue_prefix)
@@ -320,6 +329,7 @@ class Library:
                 internal_step = False
                 previous_product = False
                 return pkl_path, internal_step, previous_product  # returns path to analogue .pkl.gz and is first step
+    
         previous_product = False
         os.makedirs(self.extra_dir_path, exist_ok=True)
         return None, internal_step, previous_product
@@ -338,14 +348,27 @@ class Library:
 
     def _find_products_pkl_name(self, reactant: Chem.Mol) -> str:
         """
-        This function is used to find the name of the products .pkl file by comparing the reactant to the scaffold with
-        bit vector similarity.
+        This function is used to find the name of the products .pkl file by comparing the reactant to the scaffold with similarity.
+        Raises NoReactants if no suitable product is found.
         """
         product_pkls: List[str] = glob.glob(f"{self.extra_dir_path}/"
                                             f"{self.id}_{self.route_uuid}_*products_{self.current_step - 1}of"
                                             f"{self.num_steps}.pkl.gz")
+        
+        # If no product files found at all, raise NoReactants (steps not connected)
+        if not product_pkls:
+            self.logger.info(f"Could not find any products .pkl from previous step.")
+            raise NoReactants(
+                message="Could not find any products .pkl from previous step.",
+                route_uuid=self.route_uuid,
+                inchi=self.id,
+                mol=self.reaction.scaffold
+            )
+        
+        found_file = None
         for i, path in enumerate(product_pkls):
             self.logger.info(f"Found {path} as the potential products .pkl from previous step.")
+            found_file = path
             # Find if the reactant is the same as the scaffold
             df = pd.read_pickle(path)
             # Iterate through the top 100 products
@@ -357,12 +380,18 @@ class Library:
                     fairy.get_morgan_fingerprint(product_mol))
                 # If a perfect match is found, return the path
                 if similarity_score == 1:
-                    self.logger.info(f"Found {path} as the products .pkl from previous step.")
+                    self.logger.info(f"Found {path} as the products .pkl from previous step and correct product is contained.")
                     return path
-        self.logger.info(f"Could not find any products .pkl from previous step.")
-        raise NoReactants(message=f"Could not find any products .pkl from previous step.",
-                          route_uuid=self.route_uuid,
-                          inchi=self.id)
+        
+        # If we get here, we found product files but none contained the correct product
+        # Don't raise NoReactants here, let the calling function handle it
+        self.logger.info(f"Found {len(product_pkls)} product files from previous step, but correct product was not contained in any of them.")
+        raise NoReactants(
+            message=f"Found product files from previous step, but correct product was not contained.",
+            route_uuid=self.route_uuid,
+            inchi=self.id,
+            mol=self.reaction.scaffold
+        )
 
     def save_library(self, df: pd.DataFrame, analogue_prefix: str):
         """

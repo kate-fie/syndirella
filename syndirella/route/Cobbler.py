@@ -77,12 +77,18 @@ class Cobbler:
                     inchi=self.id,
                     smiles=self.scaffold_compound)
         elif self.retro_tool == RetrosynthesisTool.AIZYNTHFINDER:
+            # Use the default constructor since we fixed the path issue
             aizynth_search: AiZynthManager = AiZynthManager()
+            
+            # Create scaffold-specific directory for analysis file
+            scaffold_dir = os.path.join(self.output_dir, self.id)
+            os.makedirs(scaffold_dir, exist_ok=True)
+            
             routes: List[Dict[str, List[Dict[str, str]]]] = aizynth_search.perform_route_search(
                 target_smiles=self.scaffold_compound,
                 matching_strategy='best_overall',
                 save_analysis=True,
-                analysis_output_path=os.path.join(self.output_dir, f'{self.id}_aizynth_analysis.json'))
+                analysis_output_path=os.path.join(scaffold_dir, f'{self.id}_aizynth_analysis.json'))
         return routes
 
     def get_routes(self) -> List[CobblersWorkshop]:
@@ -113,10 +119,10 @@ class Cobbler:
         product: str = self.scaffold_compound
         reactants: List[Tuple[str]] = []
         reaction_names: List[str] = []
-        for step in route:
+        num_steps: int = len(route)
+        for i, step in enumerate(route):
             reactants.append(tuple(step['reactantSmiles']))
-            reaction_names.append(step['name'].replace(' ', '_'))
-        num_steps: int = len(reaction_names)
+            reaction_names.append(step['name'].replace(' ', '_'))       
         cobblers_workshop: CobblersWorkshop = CobblersWorkshop(scaffold=product,
                                                                 reactants=reactants,
                                                                 reaction_names=reaction_names,
@@ -172,6 +178,9 @@ class Cobbler:
             if any([reaction_name in self.n_reactants_per_reaction.keys() and n_reactants !=
                     self.n_reactants_per_reaction[reaction_name] for reaction_name, n_reactants in
                     reaction_name_n_reactants.items()]):
+                continue
+            last_product: str = [reaction['productSmiles'] for reaction in route][-1]
+            if fairy.generate_inchi_ID(last_product, isomeric=False) != self.id: # last product isn't correct
                 continue
             passing_routes.append(route)
         if len(passing_routes) == 0:

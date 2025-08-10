@@ -13,7 +13,6 @@ syndirella_base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 
 # Append the specific paths to the scaffold path
-print(syndirella_base_path)
 rxn_smarts_path = os.path.join(syndirella_base_path, "syndirella/constants/RXN_SMIRKS_CONSTANTS.json")
 reactant_filters_path = os.path.join(syndirella_base_path, "syndirella/constants/REACTANT_FILTER_CONSTANTS.json")
 additional_rxn_options_path = os.path.join(syndirella_base_path, "syndirella/constants/ADDITIONAL_RXN_OPTIONS.json")

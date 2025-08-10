@@ -21,6 +21,10 @@ Strategies:
     - "parent_only": Use only original Syndirella SMIRKS
     - "all_above_threshold": Use any SMIRKS above similarity threshold
 
+.. attention::
+
+    An output file will be created in the output directory listing all information about the routes found by AiZynthFinder. 
+
 Manifold
 --------
 

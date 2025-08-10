@@ -5,8 +5,12 @@ SmirksLibraryManager Module - Manages structured SMIRKS library with metadata an
 import json
 import logging
 import os
+import numpy as np
+import pandas as pd
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
+
+from syndirella.utils.classifier import get_fp, classify_reaction, calc_cosine_similarity, calc_jaccard_similarity
 
 
 class SmirksLibraryManager:
@@ -275,7 +279,196 @@ class SmirksLibraryManager:
 
         return summary
 
-    def check_new_smirks(self):
-        """Checks if a new SMIRKS was added to the constants that is not included in the uspto lookup."""
-        # TODO: Add this functionality
-        return NotImplementedError
+    def add_reaction_to_library(self, name: str, smirks: str, find_parent: bool = False, 
+                               fp_type: str = 'maccs_rxn_fp', threshold: float = 0.2,
+                               similarity_metric: str = 'cosine') -> Dict[str, Any]:
+        """Add a new reaction to the library with similarity analysis."""
+        # Save original data for potential rollback
+        original_smirks_data = self.smirks_data.copy()
+        original_uspto_data = self.uspto_lookup.copy()
+        
+        try:
+            # Calculate fingerprint for new reaction
+            fp_type_clean = fp_type.replace('_rxn_fp', '').upper()
+            new_reaction_fp = get_fp(smirks, fp=fp_type_clean, concatenate=True)
+            
+            # Convert existing reactions to DataFrame for similarity calculation
+            reaction_data = []
+            for rxn_name, rxn_info in self.smirks_data.items():
+                if isinstance(rxn_info, dict) and 'smirks' in rxn_info:
+                    rxn_smirks = rxn_info['smirks']
+                else:
+                    rxn_smirks = rxn_info
+                    
+                rxn_fp = get_fp(rxn_smirks, fp=fp_type_clean, concatenate=True)
+                reaction_data.append({
+                    'name': rxn_name,
+                    'smirks': rxn_smirks,
+                    'reaction_fp': rxn_fp
+                })
+            
+            smirks_df = pd.DataFrame(reaction_data)
+            
+            # Find similar reactions if find_parent is True
+            parent_reaction = None
+            if find_parent:
+                similar_reactions = classify_reaction(
+                    new_reaction_fp, 
+                    smirks_df, 
+                    similarity_metric, 
+                    top_n=5, 
+                    threshold=threshold
+                )
+                
+                if similar_reactions:
+                    best_match = similar_reactions[0]
+                    self.logger.info(f"Found similar reaction: {best_match['name']} (similarity: {best_match['similarity']:.3f})")
+                    parent_reaction = best_match['name']
+                else:
+                    self.logger.info("No similar parent reaction found above threshold.")
+            
+            # Add new reaction to smirks_data (in memory only)
+            new_reaction_info = {
+                "smirks": smirks,
+                "source": "manual",
+                "type": "child" if find_parent and parent_reaction else "parent",
+                "parent": parent_reaction if find_parent and parent_reaction else None
+            }
+            
+            self.smirks_data[name] = new_reaction_info
+            
+            # Find similar USPTO templates
+            similar_templates = []
+            for template_code, template_info in self.uspto_lookup.items():
+                if 'uspto_template' in template_info:
+                    template_rxn_fp = get_fp(template_info['uspto_template'], fp=fp_type_clean, concatenate=True)
+                    if similarity_metric == 'cosine':
+                        sim = calc_cosine_similarity(new_reaction_fp, template_rxn_fp)
+                    elif similarity_metric == 'jaccard':
+                        sim = calc_jaccard_similarity(new_reaction_fp, template_rxn_fp)
+                    else:
+                        raise ValueError(f"Unknown similarity metric: {similarity_metric}")
+
+                    if sim >= threshold:
+                        similar_templates.append({
+                            'template_code': template_code,
+                            'similarity': sim,
+                            'mapped_reaction': template_info['uspto_template']
+                        })
+
+                # if 'mappings' in template_info:
+                #     for mapping in template_info['mappings']:
+                #         if 'reaction_name' in mapping and mapping['reaction_name'] in self.smirks_data:
+                #             mapped_rxn_smirks = self.smirks_data[mapping['reaction_name']]['smirks']
+                #             mapped_rxn_fp = get_fp(mapped_rxn_smirks, fp=fp_type_clean, concatenate=True)
+                            
+                #             if similarity_metric == 'cosine':
+                #                 sim = calc_cosine_similarity(new_reaction_fp, mapped_rxn_fp)
+                #             elif similarity_metric == 'jaccard':
+                #                 sim = calc_jaccard_similarity(new_reaction_fp, mapped_rxn_fp)
+                #             else:
+                #                 raise ValueError(f"Unknown similarity metric: {similarity_metric}")
+                            
+                #             if sim >= threshold:
+                #                 similar_templates.append({
+                #                     'template_code': template_code,
+                #                     'similarity': sim,
+                #                     'mapped_reaction': mapping['reaction_name']
+                #                 })
+            
+            # Sort by similarity
+            similar_templates.sort(key=lambda x: x['similarity'], reverse=True)
+            
+            # Add new reaction to similar USPTO templates (in memory only)
+            for template_info in similar_templates:
+                template_code = template_info['template_code']
+                similarity = template_info['similarity']
+                
+                if template_code not in self.uspto_lookup:
+                    self.uspto_lookup[template_code] = {
+                        'uspto_template': '',
+                        'similarity_method': similarity_metric,
+                        'mappings': []
+                    }
+                
+                new_mapping = {
+                    'reaction_name': name,
+                    'similarity': similarity,
+                    'fp_type': fp_type,
+                    'threshold': threshold
+                }
+                
+                self.uspto_lookup[template_code]['mappings'].append(new_mapping)
+                self.logger.info(f"Added reaction '{name}' to USPTO template {template_code} (similarity: {similarity:.3f})")
+            
+            # Validate the updated data structure
+            self._validate_updated_data(name, new_reaction_info, similar_templates)
+            
+            # Only after validation passes, save to files
+            self._save_updated_files()
+            
+            self.logger.info(f"Successfully added reaction '{name}' with {len(similar_templates)} USPTO template matches")
+            
+            return {
+                'reaction_name': name,
+                'parent_reaction': parent_reaction,
+                'similar_templates': similar_templates
+            }
+            
+        except Exception as e:
+            # Rollback changes on any error
+            self.logger.error(f"Error adding reaction '{name}': {e}")
+            self.logger.info("Rolling back changes...")
+            self.smirks_data = original_smirks_data
+            self.uspto_lookup = original_uspto_data
+            raise
+    
+    def _validate_updated_data(self, name: str, new_reaction_info: Dict, similar_templates: List[Dict]):
+        """Validate the updated data structure before saving."""
+        # Validate SMIRKS data
+        if name not in self.smirks_data:
+            raise ValueError(f"Reaction '{name}' was not properly added to smirks_data")
+        
+        if self.smirks_data[name] != new_reaction_info:
+            raise ValueError(f"Reaction '{name}' data does not match expected structure")
+        
+        # Validate parent-child relationships
+        if new_reaction_info['type'] == 'child' and new_reaction_info['parent']:
+            parent_name = new_reaction_info['parent']
+            if parent_name not in self.smirks_data:
+                raise ValueError(f"Parent reaction '{parent_name}' not found in smirks_data")
+            if self.smirks_data[parent_name]['type'] != 'parent':
+                raise ValueError(f"Parent reaction '{parent_name}' is not marked as parent type")
+        
+        # Validate USPTO data structure
+        for template_info in similar_templates:
+            template_code = template_info['template_code']
+            if template_code not in self.uspto_lookup:
+                raise ValueError(f"USPTO template '{template_code}' not found in lookup data")
+            
+            # Check that the new mapping was added
+            mappings = self.uspto_lookup[template_code]['mappings']
+            found_mapping = False
+            for mapping in mappings:
+                if mapping['reaction_name'] == name:
+                    found_mapping = True
+                    break
+            
+            if not found_mapping:
+                raise ValueError(f"Reaction '{name}' mapping not found in USPTO template '{template_code}'")
+        
+        self.logger.info("Data validation passed")
+    
+    def _save_updated_files(self):
+        """Save the updated data to files."""
+        # Save updated SMIRKS data
+        with open(self.smirks_library_path, 'w') as f:
+            json.dump(self.smirks_data, f, indent=2)
+        
+        self.logger.info(f"Updated SMIRKS data saved to {self.smirks_library_path}")
+        
+        # Save updated USPTO data
+        with open(self.uspto_lookup_path, 'w') as f:
+            json.dump(self.uspto_lookup, f, indent=2)
+        
+        self.logger.info(f"Updated USPTO data saved to {self.uspto_lookup_path}")

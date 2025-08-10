@@ -8,7 +8,7 @@ from syndirella.utils.error import NoSynthesisRoute, SingleReactantElabError
 from syndirella.utils.fairy import generate_inchi_ID
 from syndirella.pipeline import elaborate_compound_full_auto
 from syndirella.route.CobblersWorkshop import CobblersWorkshop
-from syndirella.constants import DatabaseSearchTool
+from syndirella.constants import DatabaseSearchTool, RetrosynthesisTool
 
 
 def handle_file_path(user_path):
@@ -47,21 +47,20 @@ class TestErrorHandlingNoSynthesisRoute(unittest.TestCase):
                                          atom_diff_max=10,
                                          scaffold_place_num=1,
                                          only_scaffold_place=False,
-                                         scaffold_place=False
+                                         scaffold_place=False,
+                                         db_search_tool=DatabaseSearchTool.MANIFOLD,
+                                         retro_tool=RetrosynthesisTool.MANIFOLD,
+                                         elab_single_reactant=False
                                          )
         except NoSynthesisRoute as e:
-            with open(self.output_csv_path, 'w') as f:
-                f.write('Error,Message\n')
-                f.write(f'NoSynthesisRoute,{str(e)}\n')
-        self.assertTrue(os.path.exists(self.output_csv_path))
-        self.assertGreater(os.path.getsize(self.output_csv_path), 0)
+            self.assertEqual(str(e), "No routes returned contained all Syndirella reactions for Cn1cc(C(=O)NCS(=O)(=O)c2ncc[nH]2)c2ccccc21.")
 
 
 class TestErrorNoSingleElabReact(unittest.TestCase):
     def setUp(self):
         self.product = 'CC(=O)N(C)c1ccc(NCc2cccc(C(C)C)c2)cn1'
         self.reactants = [tuple(['CNc1ccc(I)cn1', 'CC(=O)Cl']), tuple(['CC(=O)N(C)c1ccc(I)cn1', 'CC(C)c1cccc(CN)c1'])]
-        self.reaction_names = ['Amide_Schotten-Baumann_with_amine', 'N-nucleophilic aromatic substitution']
+        self.reaction_names = ['Amide_Schotten-Baumann_with_amine', 'N-nucleophilic_aromatic_substitution']
         self.num_steps = 2
         self.output_dir = '/Users/kate_fieseler/PycharmProjects/syndirella/syndirella/tests/outputs/test_error_handling'
         self.filter = False

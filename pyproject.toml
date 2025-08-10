@@ -7,9 +7,9 @@ packages = ["syndirella"]
 
 [project]
 name = "syndirella"
-version = "3.0.1-alpha"
+version = "4.0.0-alpha"
 authors = [
-    { name = "Kate Fieseler", email = "kate.fieseler@stats.ox.ac.uk" },
+    { name = "Kate Fieseler", email = "kate.k.fieseler@gmail.com" },
 ]
 description = "Synthetically Driven Elaborations"
 readme = "README.md"
@@ -29,7 +29,14 @@ dependencies = [
     "fragmenstein>=1.0.7",
     "shortuuid",
     "pandas",
-    "biopython"
+    "biopython",
+    "aizynthfinder",
+    "matplotlib",
+    "seaborn",
+    "pyyaml",
+    "openpyxl",
+    "xlrd",
+    "scikit-learn"
 ]
 [project.urls]
 "Documentation" = "https://syndirella.readthedocs.io/en/latest/"

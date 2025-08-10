@@ -59,10 +59,16 @@ class TestArthorIntegration(unittest.TestCase):
         """Test that structure_output correctly formats results."""
         arthor = Arthor()
         
-        # Mock API response data
+        # Mock API response data in the new format
         mock_hits = [
-            {'smiles': 'CCO', 'identifier': 'test1', 'arthor.source': 'BB-ForSale-22Q1'},
-            {'smiles': 'CCCO', 'identifier': 'test2', 'arthor.source': 'REAL-Database-22Q1'}
+            {
+                'data': [
+                    ['CCO', 'test1', 'BB-ForSale-22Q1'],
+                    ['CCCO', 'test2', 'REAL-Database-22Q1']
+                ],
+                'header': ['SMILES', 'Identifier', 'arthor.source'],
+                'database': 'BB-ForSale-22Q1'
+            }
         ]
         
         result = arthor.structure_output(mock_hits, 'CCO', keep_catalogue=True)
@@ -86,19 +92,160 @@ class TestArthorIntegration(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0][0], 'CCO')  # Should return original query
         
+        # Test with empty data in new format
+        mock_hits = [
+            {
+                'data': [],
+                'header': ['SMILES', 'Identifier', 'arthor.source'],
+                'database': 'BB-ForSale-22Q1'
+            }
+        ]
+        result = arthor.structure_output(mock_hits, 'CCO')
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0], 'CCO')  # Should return original query
+        
+    def test_arthor_structure_output_multiple_databases(self):
+        """Test that structure_output correctly handles multiple databases."""
+        arthor = Arthor()
+        
+        # Mock API response data from multiple databases
+        mock_hits = [
+            {
+                'data': [
+                    ['CCO', 'test1', 'BB-ForSale-22Q1'],
+                    ['CCCO', 'test2', 'BB-ForSale-22Q1']
+                ],
+                'header': ['SMILES', 'Identifier', 'arthor.source'],
+                'database': 'BB-ForSale-22Q1'
+            },
+            {
+                'data': [
+                    ['CCO', 'test3', 'REAL-Database-22Q1'],
+                    ['CCCC', 'test4', 'REAL-Database-22Q1']
+                ],
+                'header': ['SMILES', 'Identifier', 'arthor.source'],
+                'database': 'REAL-Database-22Q1'
+            }
+        ]
+        
+        result = arthor.structure_output(mock_hits, 'CCO', keep_catalogue=True)
+        
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 4)  # Should have 4 results from 2 databases
+        
+        # Check that results from both databases are included
+        smiles_list = [item[0] for item in result]
+        self.assertIn('CCO', smiles_list)
+        self.assertIn('CCCO', smiles_list)
+        self.assertIn('CCCC', smiles_list)
+        
+        # Check that catalogue information is preserved
+        catalogue_info = [item[1] for item in result if item[1] is not None]
+        self.assertEqual(len(catalogue_info), 4)
+        
+        # Check that sources are correct
+        sources = [info[0] for info in catalogue_info]
+        self.assertIn('BB-ForSale-22Q1', sources)
+        self.assertIn('REAL-Database-22Q1', sources)
+        
+    def test_arthor_structure_output_missing_headers(self):
+        """Test that structure_output handles missing headers correctly."""
+        arthor = Arthor()
+        
+        # Mock API response data with missing required headers
+        mock_hits = [
+            {
+                'data': [
+                    ['CCO', 'test1', 'BB-ForSale-22Q1'],
+                    ['CCCO', 'test2', 'BB-ForSale-22Q1']
+                ],
+                'header': ['SMILES', 'SomeOtherColumn', 'arthor.source'],  # Missing 'Identifier'
+                'database': 'BB-ForSale-22Q1'
+            }
+        ]
+        
+        result = arthor.structure_output(mock_hits, 'CCO', keep_catalogue=True)
+        
+        # When required headers are missing, the method skips the batch and returns original query
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 1)  # Only the original query is returned
+        self.assertEqual(result[0][0], 'CCO')  # Should return original query
+        self.assertIsNone(result[0][1])  # No catalogue info
+            
+    def test_arthor_structure_output_malformed_data(self):
+        """Test that structure_output handles malformed data correctly."""
+        arthor = Arthor()
+        
+        # Mock API response data with malformed structure
+        mock_hits = [
+            {
+                'data': [
+                    ['CCO', 'test1'],  # Missing third column
+                    ['CCCO', 'test2', 'BB-ForSale-22Q1', 'extra']  # Extra column
+                ],
+                'header': ['SMILES', 'Identifier', 'arthor.source'],
+                'database': 'BB-ForSale-22Q1'
+            },
+            {
+                'data': [
+                    ['CCO', 'test3', 'REAL-Database-22Q1']
+                ],
+                'header': ['SMILES', 'Identifier', 'arthor.source'],
+                'database': 'REAL-Database-22Q1'
+            }
+        ]
+        
+        result = arthor.structure_output(mock_hits, 'CCO', keep_catalogue=True)
+        
+        # Should still return results, skipping malformed rows
+        self.assertIsInstance(result, list)
+        self.assertGreaterEqual(len(result), 1)  # Should have at least the valid result
+        
+        # Check that we have at least one valid result
+        valid_results = [item for item in result if item[1] is not None]
+        self.assertGreaterEqual(len(valid_results), 1)
+        
+    def test_arthor_structure_output_missing_source_column(self):
+        """Test that structure_output handles missing arthor.source column correctly."""
+        arthor = Arthor()
+        
+        # Mock API response data with missing arthor.source column
+        mock_hits = [
+            {
+                'data': [
+                    ['CCO', 'test1'],
+                    ['CCCO', 'test2']
+                ],
+                'header': ['SMILES', 'Identifier'],  # Missing 'arthor.source'
+                'database': 'BB-ForSale-22Q1'
+            }
+        ]
+        
+        result = arthor.structure_output(mock_hits, 'CCO', keep_catalogue=True)
+        
+        # Should return results with database name as source
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 2)
+        
+        # Check that catalogue info uses database name as source
+        for item in result:
+            self.assertIsNotNone(item[1])  # Should have catalogue info
+            self.assertEqual(item[1][0], 'BB-ForSale-22Q1')  # Should use database name as source
+        
     @patch('requests.Session')
     def test_arthor_superstructure_search(self, mock_session_class):
         """Test that superstructure search works correctly."""
         arthor = Arthor()
         
-        # Mock the session response
+        # Mock the session response with new format
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
             'data': [
-                {'smiles': 'CCO', 'identifier': 'test1', 'arthor.source': 'BB-ForSale-22Q1'},
-                {'smiles': 'CCCO', 'identifier': 'test2', 'arthor.source': 'REAL-Database-22Q1'}
-            ]
+                ['CCO', 'test1', 'BB-ForSale-22Q1'],
+                ['CCCO', 'test2', 'REAL-Database-22Q1']
+            ],
+            'header': ['SMILES', 'Identifier', 'arthor.source']
         }
         mock_session_instance = MagicMock()
         mock_session_instance.get.return_value = mock_response
