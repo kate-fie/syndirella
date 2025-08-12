@@ -12,6 +12,8 @@ On Mac OS and Linux you can install from PyPI using Conda.
 
 .. code-block:: bash
 
+    conda create -n syndirella
+    conda activate syndirella
     pip install --upgrade syndirella
 
 .. attention::

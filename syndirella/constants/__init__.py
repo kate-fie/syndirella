@@ -41,5 +41,5 @@ class RetrosynthesisTool(Enum):
 
 
 # Default values
-DEFAULT_DATABASE_SEARCH_TOOL = DatabaseSearchTool.MANIFOLD
-DEFAULT_RETROSYNTHESIS_TOOL = RetrosynthesisTool.MANIFOLD
+DEFAULT_DATABASE_SEARCH_TOOL = DatabaseSearchTool.ARTHOR
+DEFAULT_RETROSYNTHESIS_TOOL = RetrosynthesisTool.AIZYNTHFINDER

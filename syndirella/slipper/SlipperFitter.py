@@ -53,8 +53,8 @@ class SlipperFitter:
         self.merged_placements: pd.DataFrame | None = None
         self.output_path = None
         # Placements variables set
-        self.n_cores: int = 8
-        self.timeout: int = 240
+        self.n_cores: int = 4  # Reduced from 8 to 4 for better stability
+        self.timeout: int = 120  # Reduced from 240 to 120 seconds (2 minutes)
         self.logger = logging.getLogger(f"{__name__}")
 
         # variables for output
@@ -322,8 +322,8 @@ class SlipperFitter:
         Wictor.work_path = output_path
         os.chdir(output_path)  # this does the trick
         Wictor.monster_throw_on_discard = True  # stop this merger if a fragment cannot be used.
-        Wictor.monster_joining_cutoff = 5  # Å
-        Wictor.quick_reanimation = False  # for the impatient
+        Wictor.monster_joining_cutoff = 8  # Å - increased from 5 to 8 for faster processing
+        Wictor.quick_reanimation = True  # for the impatient
         Wictor.error_to_catch = Exception  # stop the whole laboratory otherwise
         Wictor.enable_stdout(logging.CRITICAL)
         # Wictor.enable_logfile(os.path.join(self.output_path, f'fragmenstein.log'), logging.ERROR)

@@ -11,6 +11,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Any
 
 from syndirella.utils.classifier import get_fp, classify_reaction, calc_cosine_similarity, calc_jaccard_similarity
+from syndirella.utils.template_loader import load_uspto_lookup
 
 
 class SmirksLibraryManager:
@@ -61,13 +62,13 @@ class SmirksLibraryManager:
                     'parent': None
                 }
 
-        # Load USPTO template lookup
-        if os.path.exists(self.uspto_lookup_path):
-            with open(self.uspto_lookup_path, 'r') as f:
-                self.uspto_lookup = json.load(f)
-        else:
+        # Load USPTO template lookup using template loader
+        try:
+            self.uspto_lookup = load_uspto_lookup()
+            self.logger.info("Loaded USPTO lookup from compressed file")
+        except Exception as e:
             self.uspto_lookup = {}
-            self.logger.warning(f"USPTO lookup file not found: {self.uspto_lookup_path}")
+            self.logger.warning(f"USPTO lookup file not found or could not be loaded: {e}")
 
         self.logger.info(f"Loaded {len(self.all_reactions)} total reactions")
         self.logger.info(f"Loaded USPTO mappings for {len(self.uspto_lookup)} template codes")
@@ -209,8 +210,8 @@ class SmirksLibraryManager:
 
         return {
             "total_reactions": len(self.all_reactions),
-            "base_reactions": base_reactions,
-            "extended_reactions": extended_reactions,
+            "manual_reactions": base_reactions,
+            "rxn-insight_reactions": extended_reactions,
             "parent_reactions": parent_count,
             "child_reactions": child_count,
             "uspto_templates_total": len(self.uspto_lookup),
@@ -339,6 +340,7 @@ class SmirksLibraryManager:
             
             # Find similar USPTO templates
             similar_templates = []
+            self.logger.info(f"Finding similar USPTO templates for {name} with {similarity_metric} similarity metric")
             for template_code, template_info in self.uspto_lookup.items():
                 if 'uspto_template' in template_info:
                     template_rxn_fp = get_fp(template_info['uspto_template'], fp=fp_type_clean, concatenate=True)
@@ -355,26 +357,6 @@ class SmirksLibraryManager:
                             'similarity': sim,
                             'mapped_reaction': template_info['uspto_template']
                         })
-
-                # if 'mappings' in template_info:
-                #     for mapping in template_info['mappings']:
-                #         if 'reaction_name' in mapping and mapping['reaction_name'] in self.smirks_data:
-                #             mapped_rxn_smirks = self.smirks_data[mapping['reaction_name']]['smirks']
-                #             mapped_rxn_fp = get_fp(mapped_rxn_smirks, fp=fp_type_clean, concatenate=True)
-                            
-                #             if similarity_metric == 'cosine':
-                #                 sim = calc_cosine_similarity(new_reaction_fp, mapped_rxn_fp)
-                #             elif similarity_metric == 'jaccard':
-                #                 sim = calc_jaccard_similarity(new_reaction_fp, mapped_rxn_fp)
-                #             else:
-                #                 raise ValueError(f"Unknown similarity metric: {similarity_metric}")
-                            
-                #             if sim >= threshold:
-                #                 similar_templates.append({
-                #                     'template_code': template_code,
-                #                     'similarity': sim,
-                #                     'mapped_reaction': mapping['reaction_name']
-                #                 })
             
             # Sort by similarity
             similar_templates.sort(key=lambda x: x['similarity'], reverse=True)
@@ -467,8 +449,16 @@ class SmirksLibraryManager:
         
         self.logger.info(f"Updated SMIRKS data saved to {self.smirks_library_path}")
         
-        # Save updated USPTO data
-        with open(self.uspto_lookup_path, 'w') as f:
+        # Save updated USPTO data to compressed file
+        import gzip
+        compressed_path = self.uspto_lookup_path.replace('.json', '.json.gz')
+        with gzip.open(compressed_path, 'wt', encoding='utf-8') as f:
             json.dump(self.uspto_lookup, f, indent=2)
+        self.logger.info(f"Updated USPTO data saved to compressed file: {compressed_path}")
         
-        self.logger.info(f"Updated USPTO data saved to {self.uspto_lookup_path}")
+        # Also update the cache
+        from syndirella.utils.template_loader import _template_loader
+        cache_path = _template_loader.cache_dir / "uspto_template_lookup.json"
+        with open(cache_path, 'w') as f:
+            json.dump(self.uspto_lookup, f, indent=2)
+        self.logger.info(f"Updated USPTO cache at: {cache_path}")

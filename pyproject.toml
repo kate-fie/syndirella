@@ -4,10 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["syndirella"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+syndirella = [
+    "constants/*.json*"
+]
 
 [project]
 name = "syndirella"
-version = "4.0.0-alpha"
+version = "4.0.1-alpha"
 authors = [
     { name = "Kate Fieseler", email = "kate.k.fieseler@gmail.com" },
 ]

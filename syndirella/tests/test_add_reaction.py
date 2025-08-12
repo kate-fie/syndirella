@@ -46,12 +46,14 @@ def temp_constants_dir():
         
         # Write test files
         smirks_path = os.path.join(temp_dir, 'RXN_SMIRKS_CONSTANTS.json')
-        uspto_path = os.path.join(temp_dir, 'uspto_template_lookup.json')
+        uspto_path = os.path.join(temp_dir, 'uspto_template_lookup.json.gz')
         
         with open(smirks_path, 'w') as f:
             json.dump(test_smirks_data, f, indent=2)
         
-        with open(uspto_path, 'w') as f:
+        # Write compressed USPTO file
+        import gzip
+        with gzip.open(uspto_path, 'wt', encoding='utf-8') as f:
             json.dump(test_uspto_data, f, indent=2)
         
         yield temp_dir
@@ -61,8 +63,8 @@ def temp_constants_dir():
 def smirks_manager(temp_constants_dir):
     """Create a SmirksLibraryManager instance with test data"""
     smirks_path = os.path.join(temp_constants_dir, 'RXN_SMIRKS_CONSTANTS.json')
-    uspto_path = os.path.join(temp_constants_dir, 'uspto_template_lookup.json')
-    return SmirksLibraryManager(smirks_path, uspto_path)
+    # Let the manager auto-detect the compressed USPTO file
+    return SmirksLibraryManager(smirks_path)
 
 
 def test_add_reaction_basic(smirks_manager):
@@ -240,9 +242,105 @@ def test_add_reaction_persistence(temp_constants_dir):
         similarity_metric='cosine'
     )
     
-    # Verify file was updated
+    # Verify SMIRKS file was updated
     with open(smirks_path, 'r') as f:
         updated_data = json.load(f)
     
     assert name in updated_data
-    assert updated_data[name]['smirks'] == smirks 
+    assert updated_data[name]['smirks'] == smirks
+    
+    # Verify USPTO file was updated (compressed)
+    import gzip
+    uspto_compressed_path = os.path.join(temp_constants_dir, 'uspto_template_lookup.json.gz')
+    with gzip.open(uspto_compressed_path, 'rt', encoding='utf-8') as f:
+        updated_uspto_data = json.load(f)
+    
+    # Check that the new reaction was added to at least one USPTO template
+    reaction_found_in_uspto = False
+    for template_code, template_info in updated_uspto_data.items():
+        if 'mappings' in template_info:
+            for mapping in template_info['mappings']:
+                if mapping.get('reaction_name') == name:
+                    reaction_found_in_uspto = True
+                    break
+            if reaction_found_in_uspto:
+                break
+    
+    assert reaction_found_in_uspto, f"Reaction '{name}' was not found in updated USPTO data"
+
+
+def test_uspto_lookup_update(smirks_manager):
+    """Test that USPTO lookup is properly updated when adding reactions"""
+    name = "Test_USPTO_Update_Reaction"
+    smirks = "[#6:1](=[#8:2])-[#8;H1].[$([N+0&H1,N+0&H2]);!$(NC=*);!$(NS);!$(N=*);!$(N-O);!$(N-o):3]>>[#6:1](=[#8:2])-[#7X3:3]"
+    
+    # Get initial USPTO lookup state
+    initial_uspto_count = len(smirks_manager.uspto_lookup)
+    
+    result = smirks_manager.add_reaction_to_library(
+        name=name,
+        smirks=smirks,
+        find_parent=False,
+        fp_type='maccs_rxn_fp',
+        threshold=0.1,  # Low threshold to ensure matches
+        similarity_metric='cosine'
+    )
+    
+    # Verify reaction was added to SMIRKS data
+    assert name in smirks_manager.smirks_data
+    
+    # Verify reaction was added to USPTO lookup
+    reaction_added_to_uspto = False
+    for template_code, template_info in smirks_manager.uspto_lookup.items():
+        if 'mappings' in template_info:
+            for mapping in template_info['mappings']:
+                if mapping.get('reaction_name') == name:
+                    reaction_added_to_uspto = True
+                    # Verify mapping structure
+                    assert 'similarity' in mapping
+                    assert 'fp_type' in mapping
+                    assert 'threshold' in mapping
+                    break
+            if reaction_added_to_uspto:
+                break
+    
+    assert reaction_added_to_uspto, f"Reaction '{name}' was not added to USPTO lookup"
+    assert len(result['similar_templates']) > 0, "No similar templates found"
+
+
+def test_uspto_lookup_cache_update(smirks_manager):
+    """Test that USPTO lookup cache is properly updated"""
+    name = "Test_Cache_Update_Reaction"
+    smirks = "[#6:1]-[OH].[#6:2]-[Cl]>>[#6:1]-[O]-[#6:2]"
+    
+    # Add reaction
+    result = smirks_manager.add_reaction_to_library(
+        name=name,
+        smirks=smirks,
+        find_parent=False,
+        fp_type='maccs_rxn_fp',
+        threshold=0.1,
+        similarity_metric='cosine'
+    )
+    
+    # Check that cache was updated
+    from syndirella.utils.template_loader import _template_loader
+    cache_path = _template_loader.cache_dir / "uspto_template_lookup.json"
+    
+    assert cache_path.exists(), "Cache file was not created/updated"
+    
+    # Verify cache contains the new reaction
+    with open(cache_path, 'r') as f:
+        cached_data = json.load(f)
+    
+    reaction_in_cache = False
+    for template_code, template_info in cached_data.items():
+        if 'mappings' in template_info:
+            for mapping in template_info['mappings']:
+                if mapping.get('reaction_name') == name:
+                    reaction_in_cache = True
+                    break
+            if reaction_in_cache:
+                break
+    
+    assert reaction_in_cache, f"Reaction '{name}' was not found in cache" 

@@ -15,14 +15,21 @@ This guide will walk you through an example to run Syndirella's pipeline through
    5. Open newly installed extension.
    6. Open a terminal in the JupyterLab interface.
 
-1. Clone Syndirella repo.
+1. Install Syndirella.
 
+.. code-block:: bash
+
+   conda create -n syndirella
+   conda activate syndirella
+   pip install --upgrade syndirella
+
+2. Clone Syndirella repo.
 .. code-block:: bash
 
    git clone https://github.com/kate-fie/syndirella.git
    cd syndirella
 
-2. Open notebook at `syndirella/example/run_syndirella_example/run_examples.ipynb <https://github.com/kate-fie/syndirella/blob/fc9c087c6ee276b404a7a226d1a076ed12e3e6a0/example/run_examples.ipynb>`_ which will take you through installation,
+3. Open notebook in the syndirella environment at `syndirella/example/run_syndirella_example/run_examples.ipynb` which will take you through installation,
 looking at designs, running a handful of placements, and analysing outputs.
 
 

@@ -77,7 +77,7 @@ class AiZynthManager:
         
         # Check if data already exists
         aizynth_files = glob2.glob(os.path.join(aizynth_dir, '*.onnx'))
-        if not os.path.exists(aizynth_files):
+        if not aizynth_files:
             self.logger.info("Downloading AiZynthFinder public data...")
             try:
                 # Run download_public_data

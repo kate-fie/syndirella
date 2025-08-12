@@ -23,7 +23,7 @@ Strategies:
 
 .. attention::
 
-    An output file will be created in the output directory listing all information about the routes found by AiZynthFinder. 
+    An output file will be created in the output directory per scaffold listing all information about the routes found by AiZynthFinder. 
 
 Manifold
 --------

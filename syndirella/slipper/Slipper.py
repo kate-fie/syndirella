@@ -123,8 +123,7 @@ class Slipper:
         if self.placements is None:
             self.logger.critical("Placements need to be run first before writing HIPPO output.")
             return None
-        # cut placements to those that were placed by batch_num
-        placements: pd.DataFrame = self.placements.iloc[:self.batch_num]
+        placements: pd.DataFrame = self.placements
 
         hippo_path: str = os.path.join(self.output_dir, f'{self.library.id}_{self.route_uuid}_to_hippo.pkl.gz')
         # get all products dfs in /extra

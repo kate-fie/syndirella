@@ -101,6 +101,7 @@ def filter_molecules(hits: List[Tuple[str, float]]) -> List[str]:
     Filter out reactants and return a dictionary with SMILES strings as keys and their associated scores as values.
     """
     mols = [Chem.MolFromSmiles(info[0]) for info in hits]
+    mols = [mol for mol in mols if mol is not None]
     logger.info(f'Found {len(mols)} before filtering.')
 
     mols = simple_filters(mols)
@@ -143,7 +144,10 @@ def remove_repeat_mols(mols: List[Chem.Mol]) -> List[Chem.Mol]:
     """
     logger.info("Removing repeat analogues...")
     unique_mols = []
-    fingerprints = [get_morgan_fingerprint(mol) for mol in mols]
+    valid_mols = [mol for mol in mols if mol is not None]
+    if not valid_mols:
+        return []
+    fingerprints = [get_morgan_fingerprint(mol) for mol in valid_mols]
     seen = set()
 
     for i, fp1 in enumerate(fingerprints):

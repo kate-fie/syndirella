@@ -130,8 +130,8 @@ def config_parser(syndirella_base_path: str):
                         help="Fingerprint type for similarity calculation.")
     add_reaction_parser.add_argument('--threshold', type=float, default=0.2,
                         help="Similarity threshold for finding parent reaction.")
-    add_reaction_parser.add_argument('--similarity_metric', type=str, default='tanimoto',
-                        choices=['tanimoto', 'dice', 'cosine'],
+    add_reaction_parser.add_argument('--similarity_metric', type=str, default='jaccard',
+                        choices=['jaccard', 'cosine'],
                         help="Similarity metric for finding parent reaction.")
     
     return parser
