@@ -24,10 +24,12 @@ This guide will walk you through an example to run Syndirella's pipeline through
    pip install --upgrade syndirella
 
 2. Clone Syndirella repo.
+
 .. code-block:: bash
 
    git clone https://github.com/kate-fie/syndirella.git
    cd syndirella
+
 
 3. Open notebook in the syndirella environment at `syndirella/example/run_syndirella_example/run_examples.ipynb` which will take you through installation,
 looking at designs, running a handful of placements, and analysing outputs.
