@@ -58,6 +58,7 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
 - **add-reaction**: Add a new reaction to the library
 
 **Main Help Output:**
+
 .. code-block:: bash
 
     usage: syndirella [-h] {setup-aizynth,run,add-reaction} ...
@@ -72,6 +73,7 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
     Syndirella is installed at [path_to_installation]
 
 **Run Command Help:**
+
 .. code-block:: bash
 
     usage: syndirella run [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH] [--metadata METADATA] [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual] [--only_scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM] [--retro_tool {manifold,aizynthfinder}] [--db_search_tool {postera,arthor}] [--profile] [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX] [--long_code_column LONG_CODE_COLUMN] [--just_retro] [--no_scaffold_place] [--elab_single_reactant]
@@ -114,6 +116,7 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
                             Only elaborate one reactant per elaboration series. (default: False)
 
 **Add Reaction Command Help:**
+
 .. code-block:: bash
 
     usage: syndirella add-reaction [-h] --name NAME --smirks SMIRKS [--find_parent] [--fp_type {maccs_rxn_fp,morgan_rxn_fp}] [--threshold THRESHOLD] [--similarity_metric {tanimoto,dice,cosine}]
@@ -133,6 +136,7 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
                             Similarity metric for finding parent reaction. (default: tanimoto)
 
 **Setup AiZynthFinder Command Help:**
+
 .. code-block:: bash
 
     usage: syndirella setup-aizynth [-h]
