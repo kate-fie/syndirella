@@ -34,7 +34,7 @@ Syndirella will automatically handle AiZynthFinder setup when you first use it. 
 
 .. attention::
 
-    ⚠️ This will download large model files (~750MB total) if run the first time. These are required to run AiZynthFinder. This will automatically download the required data to `[syndirella_package_path]/aizynth` directory and create the configuration file automatically. 
+    ⚠️ This will download large model files (~750MB total) if run the first time (will take ~5 min). These are required to run AiZynthFinder. This will automatically download the required data to `[syndirella_package_path]/aizynth` directory and create the configuration file automatically. 
 
 **Manual Setup (Alternative):**
 If you prefer manual setup:
