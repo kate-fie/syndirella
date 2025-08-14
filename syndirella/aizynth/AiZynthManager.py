@@ -145,8 +145,8 @@ class AiZynthManager:
 
         # Log library stats
         stats = self.smirks_manager.get_library_stats()
-        self.logger.info(f"SMIRKS library loaded: {stats['base_reactions']} base + "
-                         f"{stats['extended_reactions']} extended = {stats['total_reactions']} total reactions")
+        self.logger.info(f"SMIRKS library loaded: {stats['manual_reactions']} manual + "
+                         f"{stats['rxn-insight_reactions']} rxn-insight = {stats['total_reactions']} total reactions")
         self.logger.info(
             f"Parent/Child breakdown: {stats['parent_reactions']} parents, {stats['child_reactions']} children")
         self.logger.info(f"USPTO template mappings: {stats['uspto_templates_total']} codes mapped")

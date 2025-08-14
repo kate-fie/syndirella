@@ -12,7 +12,7 @@ On Mac OS and Linux you can install from PyPI using Conda.
 
 .. code-block:: bash
 
-    conda create -n syndirella
+    conda create -n syndirella python=3.10
     conda activate syndirella
     pip install --upgrade syndirella
 
@@ -34,14 +34,14 @@ Syndirella will automatically handle AiZynthFinder setup when you first use it. 
 
 .. attention::
 
-    This will automatically download the required data to the `syndirella/aizynth` directory and create the configuration file automatically.
+    ⚠️ This will download large model files (~750MB total) if run the first time. These are required to run AiZynthFinder. This will automatically download the required data to `[syndirella_package_path]/aizynth` directory and create the configuration file automatically. 
 
 **Manual Setup (Alternative):**
 If you prefer manual setup:
 
 .. code-block:: bash
 
-    cd syndirella/aizynth
+    cd [syndirella_package_path]/aizynth
     download_public_data .
     # Update config.yml (if you prefer)
     export AIZYNTH_CONFIG_FILE="path/to/syndirella/aizynth/config.yml"
