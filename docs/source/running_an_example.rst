@@ -19,7 +19,7 @@ This guide will walk you through an example to run Syndirella's pipeline through
 
 .. code-block:: bash
 
-   conda create -n syndirella
+   conda create -n syndirella python=3.10
    conda activate syndirella
    pip install --upgrade syndirella
 
