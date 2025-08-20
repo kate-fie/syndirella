@@ -7,7 +7,7 @@
 Syndirella Documentation
 ======================================
 
-.. image:: ../images/elaborations_fig_tight.svg
+.. image:: ../../logos/Full.png
   :width: 400
   :alt: Syndirella network logo
   :align: center

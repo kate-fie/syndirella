@@ -12,9 +12,9 @@ sys.path.insert(0, os.path.abspath("../../"))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'syndirella'
-copyright = '2024, Kate Fieseler'
+copyright = '2025, Kate Fieseler'
 author = 'Kate Fieseler'
-release = '2024'
+release = '2025'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -41,6 +41,15 @@ autoapi_ignore = ['*/tests_OLD/*', '*/conf.py']  # ignore test files and conf.py
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_css_files = ["css/custom.css"]
+
+html_logo = "../../logos/Full.png"
+html_favicon = "../../logos/Wand.png"
+
+html_theme_options = {
+    "navigation_depth": -1,
+    "logo_only": True,
+    "prev_next_buttons_location": "both",
+}
 
 source_suffix = '.rst'
 master_doc = 'index'
