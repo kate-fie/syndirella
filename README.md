@@ -23,6 +23,11 @@ pip install syndirella
 ### Basic Usage
 
 1. **Setup AiZynthFinder** (required for retrosynthesis):
+
+   ⚠️ WARNING: This step downloads large model files (~750MB total) if run the first time. These are required to run AiZynthFinder. 
+
+   Files will be downloaded to: `[syndirella_package_path]/aizynth/`
+
    ```bash
    syndirella setup-aizynth
    ```
