@@ -33,6 +33,7 @@ dependencies = [
     "requests",
     "pillow",
     "fragmenstein>=1.0.7",
+    "cgrtools",
     "shortuuid",
     "pandas",
     "biopython",
