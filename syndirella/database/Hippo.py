@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Arthor.py
+Hippo.py
 
-This module contains the functionality for an Arthor search.
+This module contains the functionality for an Hippo search.
 """
 import json
 import logging
@@ -40,12 +40,12 @@ class Hippo(DatabaseSearch):
     def perform_database_search(self,
                                 reactant: Chem.Mol,
                                 reaction_name: str,
-                                search_type: str = "superstructure",
-                                vendors: list[str] = ['enamine_real', 'stock', 'mcule', 'zinc']) -> List[str] | None:
+                                search_type: str = "superstructure") -> List[str] | None:
         """
-        This function is used to perform the Arthor search using the database_search_function.
+        This function is used to perform the Hippo search using the database_search_function.
         """
-        raise NotImplementedError("dev needed")
+
+        assert search_type == "superstructure"
 
         # 1. Get additional similar reactant if reaction is one with additional reactants
         reactant_filters = fairy.load_reactant_filters()
@@ -53,144 +53,53 @@ class Hippo(DatabaseSearch):
                                                             reaction_name=reaction_name,
                                                             reactant_filters=reactant_filters)
         # 2. Perform the search for all
-        hits_all: List[Tuple[str, Tuple[str, str] | None]] = []
+        hits_all: List[Tuple[str, Tuple[str, int]]] = []
         for smiles in reactants:
             if search_type == "superstructure":
-                hits: List[Tuple[str, Tuple[str, str] | None]] | None = self.perform_superstructure_search(smiles, vendors=vendors)
-                if hits is None:  # if the API query failed
-                    return None
+                hits: List[Tuple[str, Tuple[str, int]]] = self.perform_superstructure_search(smiles)
                 self.logger.info(f'Found {len(hits)} hits for {smiles} before filtering.')
                 hits_all.extend(hits)
         filtered_hits: List[str] = fairy.filter_molecules(hits=hits_all)
         return filtered_hits
 
     def perform_superstructure_search(self,
-                                      smiles: str,
-                                      queryThirdPartyServices: bool = False,
-                                      keep_catalogue: bool = False,
-                                      vendors: list[str] = ['all']) -> List[Tuple[str, Tuple[str, str] | None]] | None:
+                                      smiles: str) -> List[Tuple[str, Tuple[str, int]]]:
         """
-        This function is used to perform the Arthor superstructure search.
+        This function is used to perform the Hippo superstructure search.
         """
-
-        raise NotImplementedError("dev needed")
 
         self.logger.info(f"Running superstructure search for {smiles}.")
-        self.logger.info(f"Querying third party services: {queryThirdPartyServices}")
-        self.logger.info(f"Vendor list: {vendors}")
         if not isinstance(smiles, str):
             self.logger.error("Smiles must be a string.")
             raise TypeError("Smiles must be a string.")
-        
-        # Convert vendors list to Arthor database names
-        arthor_dbs = self._convert_vendors_to_arthor_dbs(vendors)
-        
-        # Arthor uses GET requests with query parameters, not POST
-        hits_all = []
-        for dbname in arthor_dbs:
-            try:
-                self.logger.info(f"Querying Arthor database {dbname} for {smiles}.")
-                response = self.session.get(
-                    f'{self.url}/dt/{dbname}/search',
-                    params={
-                        'query': smiles,
-                        'type': 'Substructure',
-                        'length': 1000
-                    },
-                    timeout=30
-                )
-                
-                if response.status_code == 503:
-                    self.logger.warning(f'Arthor unavailable for database {dbname}')
-                    continue
-                    
-                response.raise_for_status()
-                data = response.json()
-                
-                if data.get('data'):
-                    # data['data'] is a list of lists, and data['header'] is the list of column names
-                    rows = data['data']
-                    header = data.get('header')
-                    if header:
-                        self.logger.debug(f"Header: {header}")
-                        # Store the raw data with header for processing
-                        hits_all.append({
-                            'data': rows,
-                            'header': header,
-                            'database': dbname
-                        })
-                    else:
-                        self.logger.warning(f"No header found in response from {dbname}")
 
-            except Exception as e:
-                self.logger.error(f"Error querying database {dbname}: {str(e)}")
-                continue
-        
-        hits_info: List[Tuple[str, Tuple[str, str] | None]] | None = self.structure_output(hits_all,
-                                                                                           query_smiles=smiles,
-                                                                                           keep_catalogue=keep_catalogue)
+        hits = self.animal.db.query_substructure(smiles, none="quiet")
+
+        hits_info: List[Tuple[str, Tuple[str, int]]] = self.structure_output(hits, query_smiles=smiles)
 
         return hits_info
 
 
     def structure_output(self, 
                          hits: List[Dict] | None, 
-                         query_smiles: str, 
-                         keep_catalogue: bool = False) -> List[Tuple[str, Tuple[str, str] | None]] | None:
+                         query_smiles: str) -> List[Tuple[str, Tuple[str, int]]]:
         """
         Formats output into a list of tuples with smiles and catalogue.
         """
 
-        raise NotImplementedError("dev needed")
-
-        hits_info: List[Tuple[str, Tuple[str, str] | None]] = []
+        hits_info: List[Tuple[str, Tuple[str, int]]] = []
         if hits is None:
-            self.logger.critical(
-                f"Error with API output, returning None for superstructure search for {query_smiles}!")
-            return None
-        
-        for hit_batch in hits:
-            if not isinstance(hit_batch, dict) or 'data' not in hit_batch or 'header' not in hit_batch:
-                self.logger.warning(f"Invalid hit batch structure: {hit_batch}")
-                continue
-                
-            rows = hit_batch['data']
-            header = hit_batch['header']
-            database = hit_batch.get('database', 'unknown')
-            
-            # Find the column indices for the required fields
-            try:
-                smiles_idx = header.index('SMILES')
-                identifier_idx = header.index('Identifier')
-                source_idx = header.index('arthor.source') if 'arthor.source' in header else None
-            except ValueError as e:
-                self.logger.warning(f"Required column not found in header {header}: {e}")
-                continue
-            
-            for row in rows:
-                if len(row) != len(header):
-                    self.logger.warning(f"Row length {len(row)} does not match header length {len(header)}: {row}")
-                    continue
-                    
-                try:
-                    smiles = row[smiles_idx]
-                    identifier = row[identifier_idx] if identifier_idx < len(row) else None
-                    source = row[source_idx] if source_idx is not None and source_idx < len(row) else database
-                    
-                    if keep_catalogue and identifier:
-                        hits_info.append((smiles, (source, identifier)))
-                    else:
-                        hits_info.append((smiles, None))
-                        
-                except (IndexError, TypeError) as e:
-                    self.logger.warning(f"Error processing row {row}: {e}")
-                    continue
-        
+            hits = []
+
+        for compound in hits:
+            smiles = compound.smiles
+            identifier = compound.id
+            hits_info.append((smiles, (self.db_path, identifier)))
+                                    
         if len(hits_info) == 0:
             self.logger.warning(
                 f"No superstructures found for {query_smiles}, returning original query reactant, {query_smiles}.")
-            # add query smiles just in case it's not returned
-            hits_info.append((query_smiles, None))
+            hits_info.append((query_smiles, (self.db_path, None)))
         return hits_info
 
     def make_query(self):
