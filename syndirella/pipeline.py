@@ -205,6 +205,7 @@ def elaborate_compound_with_manual_routes(product: str,
                                           elab_single_reactant: bool,
                                           retro_tool: RetrosynthesisTool,
                                           db_search_tool: DatabaseSearchTool,
+                                          reference_db: str,
                                           additional_info=None):
     """
     Elaborate compound using manual routes.
@@ -233,7 +234,8 @@ def elaborate_compound_with_manual_routes(product: str,
             db_search_tool=db_search_tool,
             retro_tool=retro_tool,
             id=fairy.generate_inchi_ID(product, isomeric=False),
-            filter=False
+            filter=False,
+            reference_db=reference_db
         )
         
         elaborate_from_cobbler_workshops(
@@ -354,7 +356,8 @@ def process_row(row: pd.Series, config: PipelineConfig):
                 scaffold_place=config.scaffold_place,
                 elab_single_reactant=config.elab_single_reactant,
                 retro_tool=config.retro_tool,
-                db_search_tool=config.db_search_tool
+                db_search_tool=config.db_search_tool,
+                reference_db=config.reference_db
             )
         else:
             elaborate_compound_full_auto(

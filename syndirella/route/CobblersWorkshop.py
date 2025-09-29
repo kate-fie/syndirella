@@ -38,7 +38,8 @@ class CobblersWorkshop():
                  elab_single_reactant: bool = False,
                  atoms_ids_expansion: dict = None,
                  db_search_tool: DatabaseSearchTool = DEFAULT_DATABASE_SEARCH_TOOL,
-                 retro_tool: RetrosynthesisTool = None):
+                 retro_tool: RetrosynthesisTool = None,
+                 reference_db: str = None):
         self.logger = logging.getLogger(f"{__name__}")
         self.route_uuid: str = shortuuid.ShortUUID().random(length=6)
         self.scaffold: str = self.check_product(scaffold)
@@ -58,6 +59,7 @@ class CobblersWorkshop():
         self.final_library: Library = None
 
         self.db_search_tool: DatabaseSearchTool = db_search_tool
+        self.reference_db: str | None = reference_db
         self.retro_tool: RetrosynthesisTool = retro_tool
 
     def check_product(self, product: str) -> str:
@@ -147,7 +149,8 @@ class CobblersWorkshop():
                                       atom_diff_max=self.atom_diff_max,
                                       elab_single_reactant=self.elab_single_reactant,
                                       elab_single_reactant_int=self.elab_single_reactant_int,
-                                      db_search_tool=self.db_search_tool)
+                                      db_search_tool=self.db_search_tool,
+                                      reference_db=self.reference_db)
         return cobbler_bench
 
     def define_route(self):
