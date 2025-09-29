@@ -52,6 +52,7 @@ class PipelineConfig:
     scaffold_place: bool = True
     elab_single_reactant: bool = False
     additional_columns: List[str] = None
+    reference_db: str = None
     
     def __post_init__(self):
         if self.additional_columns is None:
@@ -77,7 +78,8 @@ class PipelineConfig:
                 manual_routes=settings.get('manual', False),
                 only_scaffold_place=settings.get('only_scaffold_place', False),
                 scaffold_place=not settings.get('no_scaffold_place', False),
-                elab_single_reactant=settings.get('elab_single_reactant', False)
+                elab_single_reactant=settings.get('elab_single_reactant', False),
+                reference_db=settings.get('reference_db', None)
             )
         except KeyError as e:
             logger.critical(f"Missing critical argument to run pipeline: {e}")

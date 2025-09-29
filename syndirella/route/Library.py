@@ -20,6 +20,7 @@ from rdkit.Chem.FilterCatalog import *
 import syndirella.utils.fairy as fairy
 from syndirella.database.Postera import Postera
 from syndirella.database.Arthor import Arthor
+from syndirella.database.Hippo import Hippo
 from syndirella.utils.error import SMARTSError, NoReactants, APIQueryError
 from .Reaction import Reaction
 from . import LibraryConfig
@@ -44,7 +45,8 @@ class Library:
                  atom_diff_max: int,
                  db_search_tool: DatabaseSearchTool,
                  elab_single_reactant: bool,
-                 elab_single_reactant_int: Optional[int] = None):
+                 elab_single_reactant_int: Optional[int] = None,
+                 reference_db: str = None):
         # Create configuration object
         self.config = LibraryConfig(
             output_dir=output_dir,
@@ -57,7 +59,8 @@ class Library:
             current_step=current_step,
             route_uuid=route_uuid,
             elab_single_reactant=elab_single_reactant,
-            elab_single_reactant_int=elab_single_reactant_int
+            elab_single_reactant_int=elab_single_reactant_int,
+            reference_db=reference_db
         )
         
         # Core attributes
@@ -158,6 +161,11 @@ class Library:
             elif self.db_search_tool == DatabaseSearchTool.MANIFOLD:
                 self.logger.info(f"Using Postera/Manifold for database search for {analogue_prefix}")
                 database_search = Postera()
+            elif self.db_search_tool == DatabaseSearchTool.HIPPO:
+                assert self.reference_db
+                self.logger.info(f"Using HIPPO for database search for {analogue_prefix}")
+                self.logger.info(f"reference_db={self.reference_db}")
+                database_search = Hippo(self.reference_db)
             else:
                 self.logger.error(f"Database search tool {self.db_search_tool} not found.")
                 raise ValueError(f"Database search tool {self.db_search_tool} not found.")
