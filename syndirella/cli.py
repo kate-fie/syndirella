@@ -117,6 +117,8 @@ def config_parser(syndirella_base_path: str):
                         help="Do not place scaffolds initially before elaborating.")
     pipeline_parser.add_argument('--elab_single_reactant', action='store_true',
                         help="Only elaborate one reactant per elaboration series.")
+    pipeline_parser.add_argument('--reference_db', type=str,
+                        help="Path to reference HIPPO database file for superstructure search, must set --db_search_tool to 'hippo'.")
     
     add_reaction_parser = subparsers.add_parser('add-reaction', 
                                                help='Add a new reaction to the library',
@@ -133,10 +135,6 @@ def config_parser(syndirella_base_path: str):
     add_reaction_parser.add_argument('--similarity_metric', type=str, default='jaccard',
                         choices=['jaccard', 'cosine'],
                         help="Similarity metric for finding parent reaction.")
-
-    ### HIPPO
-    add_reaction_parser.add_argument('--reference_db', type=str,
-                        help="Path to reference HIPPO database file for superstructure search, must set --db_search_tool to 'hippo'.")
     
     return parser
 
