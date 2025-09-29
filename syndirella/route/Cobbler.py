@@ -11,7 +11,12 @@ from typing import (List, Dict, Tuple)
 from rdkit import Chem
 
 import syndirella.utils.fairy as fairy
-from syndirella.aizynth.AiZynthManager import AiZynthManager
+
+try:
+    from syndirella.aizynth.AiZynthManager import AiZynthManager
+except ModuleNotFoundError:
+    pass
+
 from syndirella.database.Postera import Postera
 from syndirella.route.SMARTSHandler import SMARTSHandler
 from syndirella.utils.error import NoSynthesisRoute, APIQueryError
