@@ -74,6 +74,7 @@ class Hippo(DatabaseSearch):
             raise TypeError("Smiles must be a string.")
 
         hits = self.animal.db.query_substructure(smiles, none="quiet")
+        self.logger.info(f"#results = {len(hits or [])}")
 
         hits_info: List[Tuple[str, Tuple[str, int]]] = self.structure_output(hits, query_smiles=smiles)
 
