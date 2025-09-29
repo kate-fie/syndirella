@@ -69,6 +69,7 @@ class Library:
         self.extra_dir_path: str = os.path.join(self.output_dir, "extra")
         self.analogues_dataframes: Dict[str: Tuple[pd.DataFrame, Tuple[str, str]]] = {}
         self.database_search: str = 'postera'
+        self.reference_db: str = reference_db
 
         self.logger = logging.getLogger(f"{__name__}")
         self.r1 = None
