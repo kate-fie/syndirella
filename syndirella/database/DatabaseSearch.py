@@ -28,12 +28,12 @@ class DatabaseSearch(ABC):
         """
         pass
 
-    @abstractmethod
-    def get_resp_json(self, url: str, data: Dict = None) -> Optional[Dict]:
-        """
-        Directly get the response json from a request.
-        """
-        pass
+    # @abstractmethod
+    # def get_resp_json(self, url: str, data: Dict = None) -> Optional[Dict]:
+    #     """
+    #     Directly get the response json from a request.
+    #     """
+    #     pass
 
     @abstractmethod
     def save_database_search(self):
