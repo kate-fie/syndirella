@@ -53,6 +53,7 @@ class PipelineConfig:
     elab_single_reactant: bool = False
     additional_columns: List[str] = None
     reference_db: str = None
+    use_sdf_names: bool = False
     
     def __post_init__(self):
         if self.additional_columns is None:
@@ -79,7 +80,8 @@ class PipelineConfig:
                 only_scaffold_place=settings.get('only_scaffold_place', False),
                 scaffold_place=not settings.get('no_scaffold_place', False),
                 elab_single_reactant=settings.get('elab_single_reactant', False),
-                reference_db=settings.get('reference_db', None)
+                reference_db=settings.get('reference_db', None),
+                use_sdf_names=settings.get('use_sdf_names', False)
             )
         except KeyError as e:
             logger.critical(f"Missing critical argument to run pipeline: {e}")
@@ -331,7 +333,8 @@ def process_row(row: pd.Series, config: PipelineConfig):
     hits: List[str] = check_inputs.get_exact_hit_names(
         row=row, 
         metadata_path=config.metadata_path,
-        hits_path=config.hits_path
+        hits_path=config.hits_path,
+        use_sdf_names=config.use_sdf_names,
     )
 
     try:

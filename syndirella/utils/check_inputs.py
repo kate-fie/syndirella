@@ -235,7 +235,7 @@ def format_additional_info(row: pd.Series,
     return additional_info
 
 
-def get_exact_hit_names(row: pd.Series, metadata_path: str, hits_path: str) -> List[str]:
+def get_exact_hit_names(row: pd.Series, metadata_path: str, hits_path: str, use_sdf_names: bool = False) -> List[str]:
     """
     Get the exact hit name to use for placement.
     """
@@ -245,6 +245,10 @@ def get_exact_hit_names(row: pd.Series, metadata_path: str, hits_path: str) -> L
     hit_names = [name.strip() for name in hit_names if str(name) != 'nan']
     sdf = Chem.SDMolSupplier(hits_path)
     sdf_names = [mol.GetProp('_Name') for mol in sdf]
+
+    if use_sdf_names:
+        return sdf_names
+
     hit_longcodes = []
     for name in hit_names:
         matches = [code_dict[key] for key in code_dict if name.lower() in key.lower()]
