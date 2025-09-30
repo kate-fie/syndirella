@@ -37,7 +37,6 @@ class PipelineConfig:
     output_dir: str
     template_dir: str
     hits_path: str
-    metadata_path: str
     batch_num: int
     atom_diff_min: int
     atom_diff_max: int
@@ -53,7 +52,7 @@ class PipelineConfig:
     elab_single_reactant: bool = False
     additional_columns: List[str] = None
     reference_db: str = None
-    use_sdf_names: bool = False
+    metadata_path: str = None
     
     def __post_init__(self):
         if self.additional_columns is None:
@@ -68,7 +67,7 @@ class PipelineConfig:
                 output_dir=settings['output'],
                 template_dir=settings['templates'],
                 hits_path=settings['hits_path'],
-                metadata_path=settings['metadata'],
+                metadata_path=settings.get('metadata', None),
                 batch_num=settings['batch_num'],
                 atom_diff_min=settings['atom_diff_min'],
                 atom_diff_max=settings['atom_diff_max'],
@@ -80,8 +79,7 @@ class PipelineConfig:
                 only_scaffold_place=settings.get('only_scaffold_place', False),
                 scaffold_place=not settings.get('no_scaffold_place', False),
                 elab_single_reactant=settings.get('elab_single_reactant', False),
-                reference_db=settings.get('reference_db', None),
-                use_sdf_names=settings.get('use_sdf_names', False)
+                reference_db=settings.get('reference_db', None)
             )
         except KeyError as e:
             logger.critical(f"Missing critical argument to run pipeline: {e}")
