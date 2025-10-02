@@ -24,6 +24,16 @@
     "source": "manual",
     "type": "parent"
   },
+  "Sp3-sp2_Suzuki_coupling": {
+    "smirks": "[#6:1]-[Cl,Br,I].[#6:2]-[B](-[O])(-[O])>>[#6:1]-[#6:2]",
+    "source": "manual",
+    "type": "parent"
+  },
+  "Sp2-sp2_Suzuki_coupling": {
+    "smirks": "[#6:1]-[Cl,Br,I].[#6:2]-[B](-[O])(-[O])>>[#6:1]-[#6:2]",
+    "source": "manual",
+    "type": "parent"
+  },
   "Formation_of_urea_from_two_amines": {
     "smirks": "[N&X3;H2,H1;!$(NC=O);!$(NS):3].[N&X3;H2,H1;!$(NC=O);!$(NS):4]>>[#7&X3:3]-[#6](=[#8])-[#7&X3:4]",
     "source": "manual",
