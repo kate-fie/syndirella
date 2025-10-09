@@ -14,7 +14,8 @@ On Mac OS and Linux you can install from PyPI using Conda.
 
     conda create -n syndirella python=3.10
     conda activate syndirella
-    pip install --upgrade syndirella
+    pip install cgrtools --use-pep517
+    pip install syndirella
 
 .. attention::
 

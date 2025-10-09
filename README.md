@@ -17,6 +17,7 @@ Syndirella (Synthesis Directed Elaborations) is a tool for generating and scorin
 ```bash
 conda create -n syndirella python=3.10
 conda activate syndirella
+pip install cgrtools --use-pep517
 pip install syndirella
 ```
 
