@@ -147,8 +147,10 @@ def elaborate_from_cobbler_workshops(cobbler_workshops: List[CobblersWorkshop],
                               scaffold_placements=scaffold_placements)
             slipper.get_products()
             slipper.place_products()
-            slipper.write_products_to_hippo()  # only write at the end after placement, to get correct route_uuid
-            slipper.clean_up_placements()
+            try:
+                slipper.write_products_to_hippo()  # only write at the end after placement, to get correct route_uuid
+            finally:
+                slipper.clean_up_placements()
         except Exception as e:
             tb = traceback.format_exc()
             logger.critical(f"Error elaborating compound {workshop.scaffold}. {tb}")
