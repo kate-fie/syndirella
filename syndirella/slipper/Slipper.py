@@ -133,10 +133,11 @@ class Slipper:
         # make HIPPO output dataframe of these specific products
         hippo_df = self._structure_products_for_hippo(placements_df=placements,
                                                       product_dfs=product_dfs)
-        # load file if it already exists
-        if os.path.isfile(hippo_path):
-            previous_hippo = pd.read_pickle(hippo_path)
-            hippo_df = pd.concat([previous_hippo, hippo_df], axis=1, ignore_index=True)
+        # # load file if it already exists
+        # if os.path.isfile(hippo_path):
+        #     previous_hippo = pd.read_pickle(hippo_path)
+        #     hippo_df = pd.concat([previous_hippo, hippo_df], axis=1, ignore_index=True)
+        
         # save the dataframe
         hippo_df.to_pickle(hippo_path)
         self.logger.info(f"Saved HIPPO output to {hippo_path}")
