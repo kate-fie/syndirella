@@ -359,7 +359,8 @@ def check_pipeline_inputs(*,
     """
     try:
         check_csv(csv_path)
-        check_hit_names(csv_path, hits_path, metadata_path, long_code_column=long_code_column)
+        if metadata_path:
+            check_hit_names(csv_path, hits_path, metadata_path, long_code_column=long_code_column)
         check_additional_columns(csv_path, additional_columns)
         template_paths: Set[str] = check_template_paths(template_dir, csv_path, metadata_path)
         for template_path in template_paths:  # check each template
