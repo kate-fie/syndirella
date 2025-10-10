@@ -211,8 +211,8 @@ def elaborate_compound_with_manual_routes(product: str,
                                           elab_single_reactant: bool,
                                           retro_tool: RetrosynthesisTool,
                                           db_search_tool: DatabaseSearchTool,
-                                          assert_scaffold_intra_geom_flatness: bool = True,
                                           reference_db: str,
+                                          assert_scaffold_intra_geom_flatness: bool = True,
                                           additional_info=None):
     """
     Elaborate compound using manual routes.
