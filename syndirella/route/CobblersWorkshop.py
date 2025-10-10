@@ -9,7 +9,7 @@ import itertools
 import logging
 from typing import (List, Tuple)
 
-import shortuuid
+import hashlib
 from rdkit import Chem
 
 from syndirella.route.SMARTSHandler import SMARTSHandler
@@ -41,7 +41,8 @@ class CobblersWorkshop():
                  retro_tool: RetrosynthesisTool = None,
                  reference_db: str = None):
         self.logger = logging.getLogger(f"{__name__}")
-        self.route_uuid: str = shortuuid.ShortUUID().random(length=6)
+        s = str((scaffold, reactants, reaction_names, num_steps))
+        self.route_uuid: str = hashlib.md5(s.encode('utf-8')).hexdigest()
         self.scaffold: str = self.check_product(scaffold)
         self.id: str = id
         self.reaction_names: List[str] = self.check_reaction_names(reaction_names)
