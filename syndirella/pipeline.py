@@ -222,21 +222,6 @@ def elaborate_compound_with_manual_routes(product: str,
     
     if not only_scaffold_place:
 
-        logger.info(str(dict(scaffold=product,
-            reactants=reactants,
-            reaction_names=reaction_names,
-            num_steps=num_steps,
-            output_dir=output_dir,
-            atom_diff_min=atom_diff_min,
-            atom_diff_max=atom_diff_max,
-            elab_single_reactant=elab_single_reactant,
-            db_search_tool=db_search_tool,
-            retro_tool=retro_tool,
-            id=fairy.generate_inchi_ID(product, isomeric=False),
-            filter=False,
-            reference_db=reference_db
-        )))
-
         # Create manual route workshop
         workshop = CobblersWorkshop(
             scaffold=product,
