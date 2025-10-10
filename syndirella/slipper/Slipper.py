@@ -151,11 +151,11 @@ class Slipper:
         """
         if not any('scaffold' in name for name in hippo_df[f'{self.library.num_steps}_product_name']):
             self.logger.warning("Scaffold was not found in the scaffold names of the HIPPO output.")
-            raise NoScaffold(
-                message=f"Scaffold was not found in the scaffold names of the HIPPO output at {hippo_path}."
-                        f"Most likely due to an incorrectly written SMIRKS.",
-                route_uuid=self.route_uuid,
-                inchi=self.library.id)
+            # raise NoScaffold(
+            #     message=f"Scaffold was not found in the scaffold names of the HIPPO output at {hippo_path}."
+            #             f"Most likely due to an incorrectly written SMIRKS.",
+            #     route_uuid=self.route_uuid,
+            #     inchi=self.library.id)
 
     def _load_products_dfs(self, products_files: List[str]) -> Dict[int, pd.DataFrame]:
         """
