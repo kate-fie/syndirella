@@ -88,6 +88,15 @@ class Slipper:
         """
         This function is used to place the products with Fragmenstein.
         """
+
+        logger.info(str(dict(template_path=self.template,
+                                       hits_path=self.hits_path,
+                                       hits_names=self.hits_names,
+                                       output_dir=self.output_dir,
+                                       route_uuid=self.route_uuid,
+                                       id=self.library.id,
+                                       scaffold_placements=self.scaffold_placements)))
+
         slipper_fitter = SlipperFitter(template_path=self.template,
                                        hits_path=self.hits_path,
                                        hits_names=self.hits_names,
