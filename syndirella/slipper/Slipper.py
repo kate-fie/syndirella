@@ -89,7 +89,7 @@ class Slipper:
         This function is used to place the products with Fragmenstein.
         """
 
-        logger.info(str(dict(template_path=self.template,
+        self.logger.info(str(dict(template_path=self.template,
                                        hits_path=self.hits_path,
                                        hits_names=self.hits_names,
                                        output_dir=self.output_dir,
