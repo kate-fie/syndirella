@@ -172,7 +172,7 @@ def start_elaboration(product: str,
                       output_dir: str,
                       scaffold_place_num: int,
                       scaffold_place: bool,
-                      assert_intra_geom_flatness: bool = True,) -> Tuple[float, Dict[Chem.Mol, str | None] | Dict]:
+                      assert_scaffold_intra_geom_flatness: bool = True,) -> Tuple[float, Dict[Chem.Mol, str | None] | Dict]:
     """
     Start the elaboration process for a compound.
     """
@@ -187,7 +187,7 @@ def start_elaboration(product: str,
             hits_names=hits,
             output_dir=output_dir,
             scaffold_place_num=scaffold_place_num,
-            assert_intra_geom_flatness=assert_intra_geom_flatness,
+            assert_intra_geom_flatness=assert_scaffold_intra_geom_flatness,
         )
     
     return start_time, scaffold_placements
@@ -225,7 +225,7 @@ def elaborate_compound_with_manual_routes(product: str,
         output_dir=output_dir,
         scaffold_place_num=scaffold_place_num,
         scaffold_place=scaffold_place,
-        assert_intra_geom_flatness=assert_intra_geom_flatness,
+        assert_scaffold_intra_geom_flatness=assert_scaffold_intra_geom_flatness,
     )
     
     if not only_scaffold_place:
@@ -295,7 +295,7 @@ def elaborate_compound_full_auto(product: str,
         output_dir=output_dir,
         scaffold_place_num=scaffold_place_num,
         scaffold_place=scaffold_place,
-        assert_intra_geom_flatness=assert_intra_geom_flatness,
+        assert_scaffold_intra_geom_flatness=assert_scaffold_intra_geom_flatness,
     )
     
     if not only_scaffold_place:
