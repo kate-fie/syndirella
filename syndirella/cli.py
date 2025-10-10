@@ -91,7 +91,7 @@ def config_parser(syndirella_base_path: str):
                         help="Absolute path to a directory containing the template(s).")
     pipeline_parser.add_argument('--hits_path', type=str, required=False,
                         help="Absolute path to hits_path for placements (.sdf or .mol).")
-    pipeline_parser.add_argument('--metadata', type=str, required=False, help="Absolute path to metadata for placements.")
+    pipeline_parser.add_argument('--metadata', type=str, required=False, help="Optional absolute path to metadata for placements. If not supplied will use molecule names from hits SDF")
     pipeline_parser.add_argument('--products', type=str, required=False, help="Absolute path to products for placements.")
     pipeline_parser.add_argument('--batch_num', type=int, default=10000, help="Batch number for processing.")
     pipeline_parser.add_argument('--manual', action='store_true', help="Use manual routes for processing.")
@@ -119,8 +119,6 @@ def config_parser(syndirella_base_path: str):
                         help="Only elaborate one reactant per elaboration series.")
     pipeline_parser.add_argument('--reference_db', type=str,
                         help="Path to reference HIPPO database file for superstructure search, must set --db_search_tool to 'hippo'.")
-    pipeline_parser.add_argument('--use_sdf_names', action='store_true', 
-                        help="Use hit names as they appear in the SDF")
     
     add_reaction_parser = subparsers.add_parser('add-reaction', 
                                                help='Add a new reaction to the library',
