@@ -256,19 +256,19 @@ class SlipperFitter:
         start_time = time.time()  # Start timing
         # Store the current working directory
         # original_dir = os.getcwd() # Fix this...
-        input_df.to_pickle(f"{self.output_dir}/output/fstein_input.pkl.gz")
         try:
             # Set up Wictor
             self.output_path: str = os.path.join(self.output_dir, 'output')
             lab: Laboratory = self.setup_Fragmenstein(self.output_path)
+            input_df.to_pickle(f"{self.output_dir}/output/fstein_input.pkl.gz")
             placements: pd.DataFrame = lab.place(place_input_validator(input_df),
                                                  n_cores=self.n_cores,
                                                  timeout=self.timeout)
+            placements.to_pickle(f"{self.output_dir}/output/fstein_output.pkl.gz")
         finally:
             # Change back to the original directory
             # os.chdir(original_dir)
             pass
-        placements.to_pickle(f"{self.output_dir}/output/fstein_output.pkl.gz")
         
         end_time = time.time()  # End timing
         elapsed_time = end_time - start_time  # Calculate elapsed time
