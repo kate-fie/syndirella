@@ -55,7 +55,7 @@ def metadata_dict(metadata_path: str, long_code_column: str = 'Long code') -> Di
     return code_info
 
 
-def check_template_paths(template_dir: str, csv_path: str, metadata_path: str) -> Set[str]:
+def check_template_paths(template_dir: str, csv_path: str, metadata_path: str | None) -> Set[str]:
     """
     Get the exact template paths, checking that they exist in the template directory.
     """
@@ -73,9 +73,14 @@ def check_template_paths(template_dir: str, csv_path: str, metadata_path: str) -
         raise ValueError(f"Input CSV does not contain template values")
 
     templates: List[str] = [template.strip() for template in df['template'].tolist()]  # remove whitespace
-    code_dict: Dict = metadata_dict(metadata_path)
-    # get exact code for hit from metadata
-    exact_codes = [key for key in code_dict for template in templates if template.lower() in key.lower()]
+    
+    if metadata_path:
+        code_dict: Dict = metadata_dict(metadata_path)
+        # get exact code for hit from metadata
+        exact_codes = [key for key in code_dict for template in templates if template.lower() in key.lower()]
+    else:
+        exact_codes = [t for t in templates]
+
     template_paths = []
     for code in exact_codes:
         template_path = glob2.glob(f"{template_dir}/**/*{code}*.pdb")
