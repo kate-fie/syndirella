@@ -348,9 +348,11 @@ class Library:
         Checks if the analogue library was already created and saved as a .pkl.gz file. Returns the path to the
         .pkl.gz file.
         """
-        pkl: List[str] = glob.glob(f"{self.extra_dir_path}/"
-                                   f"{self.id}_{self.route_uuid}_{self.reaction.reaction_name}_{analogue_prefix}_"
-                                   f"{self.current_step}of{self.num_steps}.pkl.gz")
+        search = (f"{self.extra_dir_path}/"
+        self.logger.info(f"Looking for analogue pickle at {search}")
+        f"{self.id}_{self.route_uuid}_{self.reaction.reaction_name}_{analogue_prefix}_"
+        f"{self.current_step}of{self.num_steps}.pkl.gz")
+        pkl: List[str] = glob.glob(search)
         if len(pkl) == 1:
             self.logger.info(f"Found {pkl[0]} as the analogue library .pkl from previous step.")
             return pkl[0]
