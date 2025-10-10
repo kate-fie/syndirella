@@ -332,7 +332,6 @@ def process_row(row: pd.Series, config: PipelineConfig):
         row=row, 
         metadata_path=config.metadata_path,
         hits_path=config.hits_path,
-        use_sdf_names=config.use_sdf_names,
     )
 
     try:
