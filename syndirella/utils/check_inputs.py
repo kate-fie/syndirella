@@ -284,8 +284,12 @@ def get_template_path(template_dir: str, template: str, metadata_path: str) -> s
     """
     Get the exact template path to use for placement.
     """
-    code_dict = metadata_dict(metadata_path)
-    exact_code = [key for key in code_dict if template.lower() in key.lower()]
+    if metadata_path:
+        code_dict = metadata_dict(metadata_path)
+        exact_code = [key for key in code_dict if template.lower() in key.lower()]
+    else:
+        exact_code [template]
+
     if len(exact_code) == 0:
         logger.warning(f"The template {template} does not exist in the metadata, trying to continue....")
         template_path = glob2.glob(f"{template_dir}/**/*{template}*.pdb")
