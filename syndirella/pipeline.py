@@ -53,6 +53,7 @@ class PipelineConfig:
     additional_columns: List[str] = None
     reference_db: str = None
     metadata_path: str = None
+    assert_scaffold_intra_geom_flatness: bool = True
     
     def __post_init__(self):
         if self.additional_columns is None:
@@ -79,7 +80,8 @@ class PipelineConfig:
                 only_scaffold_place=settings.get('only_scaffold_place', False),
                 scaffold_place=not settings.get('no_scaffold_place', False),
                 elab_single_reactant=settings.get('elab_single_reactant', False),
-                reference_db=settings.get('reference_db', None)
+                reference_db=settings.get('reference_db', None),
+                assert_scaffold_intra_geom_flatness=not settings.get('no_assert_scaffold_intra_geom_flatness', False)
             )
         except KeyError as e:
             logger.critical(f"Missing critical argument to run pipeline: {e}")
@@ -91,7 +93,8 @@ def assert_scaffold_placement(scaffold: str,
                               hits_path: str,
                               hits_names: List[str],
                               output_dir: str,
-                              scaffold_place_num: int
+                              scaffold_place_num: int,
+                              assert_intra_geom_flatness: bool = True,
                               ) -> Dict[Chem.Mol, str]:
     """
     Assert that the scaffold can be placed for any stereoisomers. If not, raise an error.
@@ -109,7 +112,8 @@ def assert_scaffold_placement(scaffold: str,
         scaffold_name: str = f'scaffold-{chr(65 + i)}'
         can_be_placed: str | None = slipper_fitter.check_scaffold(scaffold=isomer,
                                                                   scaffold_name=scaffold_name,
-                                                                  scaffold_place_num=scaffold_place_num)  # path to scaffold if successful
+                                                                  scaffold_place_num=scaffold_place_num,
+                                                                  assert_intra_geom_flatness=assert_intra_geom_flatness)  # path to scaffold if successful
         placements[isomer] = can_be_placed  # absolute path to minimised.mol scaffold, checked to exist
     if not any(placements.values()):
         logger.critical(f"Scaffold {scaffold} could not be placed successfully.")
@@ -167,7 +171,8 @@ def start_elaboration(product: str,
                       hits: List[str],
                       output_dir: str,
                       scaffold_place_num: int,
-                      scaffold_place: bool) -> Tuple[float, Dict[Chem.Mol, str | None] | Dict]:
+                      scaffold_place: bool,
+                      assert_intra_geom_flatness: bool = True,) -> Tuple[float, Dict[Chem.Mol, str | None] | Dict]:
     """
     Start the elaboration process for a compound.
     """
@@ -181,7 +186,8 @@ def start_elaboration(product: str,
             hits_path=hits_path,
             hits_names=hits,
             output_dir=output_dir,
-            scaffold_place_num=scaffold_place_num
+            scaffold_place_num=scaffold_place_num,
+            assert_intra_geom_flatness=assert_intra_geom_flatness,
         )
     
     return start_time, scaffold_placements
@@ -205,6 +211,7 @@ def elaborate_compound_with_manual_routes(product: str,
                                           elab_single_reactant: bool,
                                           retro_tool: RetrosynthesisTool,
                                           db_search_tool: DatabaseSearchTool,
+                                          assert_scaffold_intra_geom_flatness: bool = True,
                                           reference_db: str,
                                           additional_info=None):
     """
@@ -217,7 +224,8 @@ def elaborate_compound_with_manual_routes(product: str,
         hits=hits, 
         output_dir=output_dir,
         scaffold_place_num=scaffold_place_num,
-        scaffold_place=scaffold_place
+        scaffold_place=scaffold_place,
+        assert_intra_geom_flatness=assert_intra_geom_flatness,
     )
     
     if not only_scaffold_place:
@@ -274,6 +282,7 @@ def elaborate_compound_full_auto(product: str,
                                  elab_single_reactant: bool,
                                  retro_tool: RetrosynthesisTool,
                                  db_search_tool: DatabaseSearchTool,
+                                 assert_scaffold_intra_geom_flatness: bool = True,
                                  additional_info=None):
     """
     Elaborate compound using full automatic retrosynthesis.
@@ -285,7 +294,8 @@ def elaborate_compound_full_auto(product: str,
         hits=hits, 
         output_dir=output_dir,
         scaffold_place_num=scaffold_place_num,
-        scaffold_place=scaffold_place
+        scaffold_place=scaffold_place,
+        assert_intra_geom_flatness=assert_intra_geom_flatness,
     )
     
     if not only_scaffold_place:
@@ -358,7 +368,8 @@ def process_row(row: pd.Series, config: PipelineConfig):
                 elab_single_reactant=config.elab_single_reactant,
                 retro_tool=config.retro_tool,
                 db_search_tool=config.db_search_tool,
-                reference_db=config.reference_db
+                reference_db=config.reference_db,
+                assert_scaffold_intra_geom_flatness=config.assert_scaffold_intra_geom_flatness,
             )
         else:
             elaborate_compound_full_auto(
@@ -377,7 +388,8 @@ def process_row(row: pd.Series, config: PipelineConfig):
                 scaffold_place=config.scaffold_place,
                 elab_single_reactant=config.elab_single_reactant,
                 retro_tool=config.retro_tool,
-                db_search_tool=config.db_search_tool
+                db_search_tool=config.db_search_tool,
+                assert_scaffold_intra_geom_flatness=config.assert_scaffold_intra_geom_flatness,
             )
     except Exception as e:
         tb = traceback.format_exc()

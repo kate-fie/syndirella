@@ -119,6 +119,8 @@ def config_parser(syndirella_base_path: str):
                         help="Only elaborate one reactant per elaboration series.")
     pipeline_parser.add_argument('--reference_db', type=str,
                         help="Path to reference HIPPO database file for superstructure search, must set --db_search_tool to 'hippo'.")
+    pipeline_parser.add_argument('--no_assert_scaffold_intra_geom_flatness', action='store_true',
+                        help="Don't check scaffold for intra geometry or flatness.")
     
     add_reaction_parser = subparsers.add_parser('add-reaction', 
                                                help='Add a new reaction to the library',

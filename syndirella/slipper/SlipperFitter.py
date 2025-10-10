@@ -77,7 +77,8 @@ class SlipperFitter:
     def check_scaffold(self,
                        scaffold: Chem.Mol,
                        scaffold_name: str,
-                       scaffold_place_num: int) -> str | None:
+                       scaffold_place_num: int,
+                       assert_intra_geom_flatness: bool = True) -> str | None:
         """
         Checks if the scaffold can be minimised (no specific stereoisomer) and passes intermolecular checks.
         If it cannot be minimised after 3 attempts, returns False.
@@ -99,9 +100,14 @@ class SlipperFitter:
                 if not any(path_exists):
                     self.logger.info(f'Scaffold could not be minimised. Attempt {attempt} of {scaffold_place_num}.')
                     continue
+
+                if not assert_intra_geom_flatness:
+                    return paths[0] if path_exists[0] else paths[1]
+
                 geometries: Dict = intra_geometry.check_geometry(scaffold_placed,
                                                                  threshold_clash=0.4)  # increasing threshold for internal clash
                 flat_results: Dict = flatness.check_flatness(scaffold_placed)
+                
                 if self._check_intra_geom_flatness_results(geometries=geometries, flat_results=flat_results):
                     self.logger.info(f'Scaffold minimised and passed intramolecular checks.')
                     return paths[0] if path_exists[0] else paths[1]
