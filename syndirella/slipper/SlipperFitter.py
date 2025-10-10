@@ -256,6 +256,7 @@ class SlipperFitter:
         start_time = time.time()  # Start timing
         # Store the current working directory
         # original_dir = os.getcwd() # Fix this...
+        input_df.to_pickle(f"{self.output_dir}/output/fstein_input.pkl.gz")
         try:
             # Set up Wictor
             self.output_path: str = os.path.join(self.output_dir, 'output')
@@ -267,6 +268,8 @@ class SlipperFitter:
             # Change back to the original directory
             # os.chdir(original_dir)
             pass
+        placements.to_pickle(f"{self.output_dir}/output/fstein_output.pkl.gz")
+        
         end_time = time.time()  # End timing
         elapsed_time = end_time - start_time  # Calculate elapsed time
         self.logger.info(f"Placing {len(input_df)} run time: {datetime.timedelta(seconds=elapsed_time)}")
