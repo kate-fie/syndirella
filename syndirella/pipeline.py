@@ -148,7 +148,7 @@ def elaborate_from_cobbler_workshops(cobbler_workshops: List[CobblersWorkshop],
             slipper.get_products()
             slipper.place_products()
             try:
-                slipper.write_products_to_hippo()  # only write at the end after placement, to get correct route_uuid
+                slipper.write_products_to_structured_output()  # only write at the end after placement, to get correct route_uuid
             finally:
                 slipper.clean_up_placements()
         except Exception as e:

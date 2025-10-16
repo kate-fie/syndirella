@@ -20,7 +20,7 @@ from rdkit import Chem
 import syndirella.utils.fairy as fairy
 from syndirella.database.DatabaseSearch import DatabaseSearch
 from syndirella.utils.error import APIRetryLimitExceeded
-from hippo import HIPPO
+# from hippo import HIPPO  # HIPPO dependency removed
 
 
 class Hippo(DatabaseSearch):
@@ -35,7 +35,8 @@ class Hippo(DatabaseSearch):
         self.logger = logging.getLogger(f"{__name__}")
 
         self.db_path = db_path        
-        self.animal = HIPPO("reference_db", db_path)
+        # self.animal = HIPPO("reference_db", db_path)  # HIPPO dependency removed
+        self.animal = None  # Placeholder for HIPPO functionality
 
     def perform_database_search(self,
                                 reactant: Chem.Mol,
@@ -73,7 +74,11 @@ class Hippo(DatabaseSearch):
             self.logger.error("Smiles must be a string.")
             raise TypeError("Smiles must be a string.")
 
-        hits = self.animal.db.query_substructure(smiles, none="quiet")
+        if self.animal is None:
+            self.logger.warning("HIPPO functionality is not available. Returning empty results.")
+            hits = []
+        else:
+            hits = self.animal.db.query_substructure(smiles, none="quiet")
         self.logger.info(f"#results = {len(hits or [])}")
 
         hits_info: List[Tuple[str, Tuple[str, int]]] = self.structure_output(hits, query_smiles=smiles)

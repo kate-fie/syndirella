@@ -80,8 +80,8 @@ class TestPipelineIntegration(unittest.TestCase):
             for file in files:
                 all_files.append(os.path.join(root, file))
         self.assertGreater(len(all_files), 0)
-        # make sure a file with 'to_hippo' in the name exists
-        self.assertTrue(any('to_hippo' in file for file in all_files))
+        # make sure a file with 'structured_output' in the name exists
+        self.assertTrue(any('structured_output' in file for file in all_files))
         self.assertTrue(any('placements' in file for file in all_files))
 
     def test_pipeline_creates_output_aizynthfinder(self):
@@ -101,8 +101,8 @@ class TestPipelineIntegration(unittest.TestCase):
             for file in files:
                 all_files.append(os.path.join(root, file))
         self.assertGreater(len(all_files), 0)
-        # make sure a file with 'to_hippo' in the name exists
-        self.assertTrue(any('to_hippo' in file for file in all_files))
+        # make sure a file with 'structured_output' in the name exists
+        self.assertTrue(any('structured_output' in file for file in all_files))
         self.assertTrue(any('placements' in file for file in all_files))
 
     def test_pipeline_creates_output_manifold(self):
@@ -120,8 +120,8 @@ class TestPipelineIntegration(unittest.TestCase):
             for file in files:
                 all_files.append(os.path.join(root, file))
         self.assertGreater(len(all_files), 0)
-        # make sure a file with 'to_hippo' in the name exists
-        self.assertTrue(any('to_hippo' in file for file in all_files))
+        # make sure a file with 'structured_output' in the name exists
+        self.assertTrue(any('structured_output' in file for file in all_files))
         self.assertTrue(any('placements' in file for file in all_files))
 
     def test_pipeline_with_manual_routes(self):
@@ -141,8 +141,8 @@ class TestPipelineIntegration(unittest.TestCase):
             for file in files:
                 all_files.append(os.path.join(root, file))
         self.assertGreater(len(all_files), 0)
-        # make sure a file with 'to_hippo' in the name exists
-        self.assertTrue(any('to_hippo' in file for file in all_files))
+        # make sure a file with 'structured_output' in the name exists
+        self.assertTrue(any('structured_output' in file for file in all_files))
         self.assertTrue(any('placements' in file for file in all_files))
 
 
