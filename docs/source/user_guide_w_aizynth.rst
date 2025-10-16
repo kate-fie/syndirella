@@ -89,9 +89,9 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
       -t TEMPLATES, --templates TEMPLATES
                             Absolute path to a directory containing the template(s).
       --hits_path HITS_PATH
-                            Absolute path to hits_path for placements (.sdf or .mol).
-      --metadata METADATA   Absolute path to metadata for placements.
-      --products PRODUCTS   Absolute path to products for placements.
+                            Optional absolute path to hits_path for placements (.sdf or .mol).
+      --metadata METADATA   Optional absolute path to metadata for placements.
+      --products PRODUCTS   Optional absolute path to products for placements.
       --batch_num BATCH_NUM
                             Batch number for processing. (default: 10000)
       --manual              Use manual routes for processing. (default: False)
@@ -100,9 +100,9 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
       --scaffold_place_num SCAFFOLD_PLACE_NUM
                             Number of times to attempt scaffold placement. (default: 5)
       --retro_tool {manifold,aizynthfinder}
-                            Retrosynthesis tool to use. (default: manifold)
-      --db_search_tool {postera,arthor}
-                            Database search tool to use. (default: postera)
+                            Retrosynthesis tool to use. (default: aizynthfinder)
+      --db_search_tool {manifold,arthor}
+                            Database search tool to use. (default: arthor)
       --profile             Run the pipeline with profiling. (default: False)
       --atom_diff_min ATOM_DIFF_MIN
                             Minimum atom difference between elaborations and scaffold to keep. (default: 0)
@@ -145,6 +145,19 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
 
     options:
       -h, --help  show this help message and exit
+
+Default Tools
+=============
+
+Syndirella uses the following default tools:
+
+**Default Retrosynthesis Tool**: ``aizynthfinder``
+    - Alternative: ``manifold``
+    - Set with: ``--retro_tool {aizynthfinder,manifold}``
+
+**Default Database Search Tool**: ``arthor``  
+    - Alternative: ``manifold``
+    - Set with: ``--db_search_tool {arthor,manifold}``
 
 Basic Usage
 ===========
@@ -229,6 +242,16 @@ Not required headers:
 3. Run!
 -------
 
+**Important: Path Requirements**
+
+All file paths must be **absolute paths** (not relative paths). This includes:
+- Input CSV file path
+- Output directory path  
+- Template directory path
+- Hits path (SDF/MOL file) - optional
+- Metadata CSV file path - optional
+- Products path - optional
+
 Run pipeline in *automatic* mode:
 
 .. code-block:: bash
@@ -267,7 +290,7 @@ Run pipeline in *manual* mode:
     │   ├── 🔑🔑🔑_[route_uuid]_[rxn_name]_products_[last_step]of[total_steps].pkl.gz & .csv # final products
     │   ├── 🔑🔑🔑_[route_uuid]_[rxn_name]_products_[last_step]of[total_steps]_placements.pkl.gz & .csv # merged placements with products info
     │   ├── 🔑🔑🔑_[route_uuid]_fragmenstein_placements.pkl.gz & .csv # fragmenstein output
-    │   └── 🔑🔑🔑_[route_uuid]_to_hippo.pkl.gz # full routes and placements
+    │   └── 🔑🔑🔑_[route_uuid]_structured_output.pkl.gz # full routes and placements
     ├── continued for all scaffolds...
     └── [input_csv]_output_YYYYMMDD_HHMM.csv # summary stats of all scaffolds
 
@@ -288,7 +311,7 @@ Run pipeline in *manual* mode:
 **🔑🔑🔑_[route_uuid]_[rxn_name]_products_[last_step]of[total_steps]_placements.pkl.gz & .csv:**
     Merged placements with products info.
 
-**🔑🔑🔑_[route_uuid]_to_hippo.pkl.gz:**
+**🔑🔑🔑_[route_uuid]_structured_output.pkl.gz:**
     Full routes and placements.
 
 .. note::

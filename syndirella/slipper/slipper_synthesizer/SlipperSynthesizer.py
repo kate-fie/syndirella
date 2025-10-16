@@ -138,7 +138,7 @@ class SlipperSynthesizer:
         # Add num_atom_diff to scaffold reactant, which is the first reactant
         smarts_index: int = int(reactant_prefix[-1])
         base_reactant: Chem.Mol = self.library.reaction.matched_smarts_index_to_reactant[smarts_index][0]
-        df[f'{reactant_prefix}_num_atom_diff'] = (
+        df.loc[:, f'{reactant_prefix}_num_atom_diff'] = (
             df[f"{reactant_prefix}_mol"].apply(lambda x: self.calc_num_atom_diff_absolute(base_reactant, x)))
         # get columns to sort by
         ordered_columns = [f'{reactant_prefix}_num_atom_diff', 'num_matches']

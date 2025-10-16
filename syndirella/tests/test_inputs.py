@@ -155,6 +155,18 @@ END"""
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
 
+    def test_get_exact_hit_names_invalid_with_metadata(self):
+        """Test exact hit names retrieval with invalid hit name when metadata is provided."""
+        row = pd.Series({
+            'hit1': 'InvalidHitName',
+            'hit2': 'Ax0450a'
+        })
+        
+        with self.assertRaises(ValueError) as context:
+            check_inputs.get_exact_hit_names(row, self.metadata, self.hits_path)
+        
+        self.assertIn("No matches found", str(context.exception))
+
     def test_get_template_path(self):
         """Test template path retrieval."""
         template = 'Ax0310a'
@@ -214,6 +226,54 @@ END"""
             metadata_path=self.metadata,
             additional_columns=['compound_set'],
             manual_routes=True,
+            long_code_column='Long code'
+        )
+
+    def test_check_template_paths_no_metadata(self):
+        """Test template paths validation without metadata."""
+        result = check_inputs.check_template_paths(self.template_dir, self.csv_path, None)
+        self.assertIsInstance(result, set)
+        self.assertGreater(len(result), 0)
+
+    def test_get_exact_hit_names_no_metadata(self):
+        """Test exact hit names retrieval without metadata."""
+        row = pd.Series({
+            'hit1': 'A71EV2A-x0556_A_147_1_A71EV2A-x0526+A+147+1',
+            'hit2': 'A71EV2A-x0450_A_201_1_A71EV2A-x0526+A+147+1'
+        })
+        
+        result = check_inputs.get_exact_hit_names(row, None, self.hits_path)
+        self.assertIsInstance(result, list)
+        self.assertEqual(result, ['A71EV2A-x0556_A_147_1_A71EV2A-x0526+A+147+1', 'A71EV2A-x0450_A_201_1_A71EV2A-x0526+A+147+1'])  # Should return hit names directly
+
+    def test_get_exact_hit_names_no_metadata_invalid_hit(self):
+        """Test exact hit names retrieval without metadata with invalid hit name."""
+        row = pd.Series({
+            'hit1': 'InvalidHitName',
+            'hit2': 'A71EV2A-x0450_A_201_1_A71EV2A-x0526+A+147+1'
+        })
+        
+        with self.assertRaises(ValueError) as context:
+            check_inputs.get_exact_hit_names(row, None, self.hits_path)
+        
+        self.assertIn("Hit name 'InvalidHitName' not found in SDF file", str(context.exception))
+
+    def test_get_template_path_no_metadata(self):
+        """Test template path retrieval without metadata."""
+        template = 'Ax0310a'
+        result = check_inputs.get_template_path(self.template_dir, template, None)
+        self.assertIsInstance(result, str)
+        self.assertTrue(os.path.exists(result))
+
+    def test_check_pipeline_inputs_no_metadata(self):
+        """Test valid pipeline inputs validation without metadata."""
+        check_inputs.check_pipeline_inputs(
+            csv_path=self.csv_path,
+            template_dir=self.template_dir,
+            hits_path=self.hits_path,
+            metadata_path=None,  # No metadata provided
+            additional_columns=['compound_set'],
+            manual_routes=False,
             long_code_column='Long code'
         )
 

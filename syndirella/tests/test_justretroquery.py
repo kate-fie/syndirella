@@ -86,20 +86,14 @@ class TestJustRetroQuery(unittest.TestCase):
     
     def test_retro_search_default_tool(self):
         """Test retrosynthesis search uses default tool when none specified."""
-        with patch('syndirella.justretroquery.Postera') as mock_postera:
-            # Mock Postera response
-            mock_postera_instance = MagicMock()
-            mock_postera_instance.perform_route_search.return_value = self.mock_routes
-            mock_postera.return_value = mock_postera_instance
-            
-            # Test with default tool
-            result = retro_search(self.test_scaffold)
-            
-            # Verify default tool was used
-            mock_postera_instance.perform_route_search.assert_called_once_with(self.test_scaffold)
-            
-            # Verify result structure
-            self.assertIsInstance(result, pd.DataFrame)
+        # Test with default tool (AiZynthFinder) - this should work now that JSON corruption is fixed
+        result = retro_search(self.test_scaffold)
+        
+        # Verify result structure
+        self.assertIsInstance(result, pd.DataFrame)
+        self.assertEqual(len(result), 1)
+        self.assertIn('smiles', result.columns)
+        self.assertEqual(result.iloc[0]['smiles'], self.test_scaffold)
     
     def test_format_routes(self):
         """Test route formatting functionality."""

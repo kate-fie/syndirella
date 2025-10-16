@@ -97,6 +97,8 @@ class SmirksLibraryManager:
     def get_uspto_mappings_by_code_and_template(self, template_code: str, template: str) -> Dict:
         """Get SMIRKS mappings for a USPTO template code and template."""
         template_data = self.uspto_lookup.get(str(template_code), {})
+        if not template_data or 'uspto_template' not in template_data:
+            return {}
         if template == template_data['uspto_template']:
             return template_data
         else:

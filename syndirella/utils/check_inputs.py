@@ -249,6 +249,17 @@ def get_exact_hit_names(row: pd.Series, metadata_path: str | None, hits_path: st
     hit_names = [name.strip() for name in hit_names if str(name) != 'nan']
     
     if not metadata_path:
+        # Validate that hit names exist in SDF when no metadata is provided
+        sdf = Chem.SDMolSupplier(hits_path)
+        sdf_names = [mol.GetProp('_Name') for mol in sdf if mol is not None]
+        
+        for name in hit_names:
+            if name not in sdf_names:
+                logger.critical(f"Hit name '{name}' not found in SDF file '{hits_path}'. "
+                              f"Available names: {sdf_names[:10]}{'...' if len(sdf_names) > 10 else ''}")
+                raise ValueError(f"Hit name '{name}' not found in SDF file '{hits_path}'. "
+                               f"Please check that the hit name exists in the SDF file.")
+        
         return hit_names
 
     sdf = Chem.SDMolSupplier(hits_path)
