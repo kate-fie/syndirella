@@ -32,30 +32,9 @@ def check_csv(csv_path: str) -> None:
             raise ValueError(f"The csv must contain the column {col}.")
 
 
-def metadata_dict(metadata_path: str, long_code_column: str = 'Long code') -> Dict:
-    """
-    Get the metadata dictionary from the metadata file, checking that it contains the required columns.
-    """
-    if not os.path.exists(metadata_path):
-        logger.error("The metadata path does not exist.")
-        raise FileNotFoundError(f"The metadata path {metadata_path} does not exist.")
-    metadata = pd.read_csv(metadata_path)
-    if 'Code' in metadata.columns and long_code_column in metadata.columns:
-        code_info: Dict = metadata.set_index('Code')[long_code_column].to_dict()
-    else:
-        logger.warning(
-            f"The metadata does not contain the columns 'Code' and {long_code_column}. Searching for 'crystal_name' "
-            "column instead.")
-        if 'crystal_name' in metadata.columns:
-            # use crystal_name as key and value to match dict
-            logger.info("Using 'crystal_name' column as the key and value for the metadata dictionary.")
-            code_info: Dict = {name: name for name in metadata['crystal_name']}
-        else:
-            raise ValueError(f"The metadata must contain the columns 'Code' and '{long_code_column}'.")
-    return code_info
 
 
-def check_template_paths(template_dir: str, csv_path: str, metadata_path: str) -> Set[str]:
+def check_template_paths(template_dir: str, csv_path: str) -> Set[str]:
     """
     Get the exact template paths, checking that they exist in the template directory.
     """
@@ -73,9 +52,9 @@ def check_template_paths(template_dir: str, csv_path: str, metadata_path: str) -
         raise ValueError(f"Input CSV does not contain template values")
 
     templates: List[str] = [template.strip() for template in df['template'].tolist()]  # remove whitespace
-    code_dict: Dict = metadata_dict(metadata_path)
-    # get exact code for hit from metadata
-    exact_codes = [key for key in code_dict for template in templates if template.lower() in key.lower()]
+    
+    exact_codes = [t for t in templates]
+
     template_paths = []
     for code in exact_codes:
         template_path = glob2.glob(f"{template_dir}/**/*{code}*.pdb")
@@ -156,49 +135,6 @@ def check_manual(csv_path: str) -> None:
         check_route(i, row)
 
 
-def check_hit_names(csv_path: str, hits_path: str, metadata_path: str, long_code_column: str) -> None:
-    """
-    Check that the hit names are found within SDF.
-    """
-    df = pd.read_csv(csv_path)
-    hit_cols = [col for col in df.columns if re.match(r'^hit\d+$', col)]
-    hit_names = df[hit_cols].values.flatten()
-    # remove nan and strip whitespace
-    hit_names = [str(name).strip() for name in hit_names if str(name) != 'nan']
-    if not os.path.exists(hits_path):
-        logger.critical("The hits_path path does not exist.")
-        raise FileNotFoundError(f"The hits_path path {hits_path} does not exist")
-    sdf = Chem.SDMolSupplier(hits_path)
-    sdf_names = [mol.GetProp('_Name') for mol in sdf]
-    if not os.path.exists(metadata_path):  # could be None
-        raise FileNotFoundError(f"The metadata path {metadata_path} does not exist.")
-    code_dict = metadata_dict(metadata_path, long_code_column=long_code_column)
-    # get the LongCodes for the hit names
-    hit_longcodes = []
-    for name in hit_names:
-        matches = [code_dict[key] for key in code_dict if name.lower() in key.lower()]
-        if len(matches) > 1:
-            logger.critical(f"Multiple matches found in {metadata_path} using 'Code' for '{name}': {matches}. Please "
-                            f"update the hit name in the input csv to be more specific.")
-            raise ValueError(f"Multiple matches found for '{name}': {matches}")
-        if len(matches) == 0:
-            # could be an exact name for LongCode
-            if name in sdf_names:
-                hit_longcodes.append(name)
-                continue
-            logger.critical(f"No matches found in {metadata_path} using 'Code' for '{name}'. Please update the hit "
-                            f"name in the input csv.")
-            raise ValueError(f"No matches found for '{name}'")
-        else:
-            hit_longcodes.append(matches[0])
-    # check if hit_longcodes are in sdf_names, not matching exactly, can be a substring
-    if not all([any([longcode in sdf_name for sdf_name in sdf_names]) for longcode in hit_longcodes]):
-        logger.critical(f"Not all hit names found in the sdf file. You might need to re-download hits_path and metadata"
-                        f" from Fragalysis.")
-        # raise ValueError(
-        #     f"Not all hit names found in the sdf file. You might need to re-download hits_path and metadata"
-        #     f" from Fragalysis. Or set the code_column argument to the correct column in the metadata (such as "
-        #     f"'Experiment code' or 'Compound code'.")
 
 
 def check_apo_template(template_path: str) -> None:
@@ -235,51 +171,34 @@ def format_additional_info(row: pd.Series,
     return additional_info
 
 
-def get_exact_hit_names(row: pd.Series, metadata_path: str, hits_path: str) -> List[str]:
+def get_exact_hit_names(row: pd.Series, hits_path: str) -> List[str]:
     """
     Get the exact hit name to use for placement.
     """
-    code_dict = metadata_dict(metadata_path)
     hit_cols = [col for col in row.index if re.match(r'^hit\d+$', col)]
     hit_names = row[hit_cols].values.flatten()
     hit_names = [name.strip() for name in hit_names if str(name) != 'nan']
+    
+    # Validate that hit names exist in SDF
     sdf = Chem.SDMolSupplier(hits_path)
-    sdf_names = [mol.GetProp('_Name') for mol in sdf]
-    hit_longcodes = []
+    sdf_names = [mol.GetProp('_Name') for mol in sdf if mol is not None]
+    
     for name in hit_names:
-        matches = [code_dict[key] for key in code_dict if name.lower() in key.lower()]
-        if len(matches) > 1:
-            logger.critical(f"Multiple matches found in {metadata_path} using 'Code' for '{name}': {matches}. Please "
-                            f"update the hit name in the input csv to be more specific.")
-            raise ValueError(f"Multiple matches found in {metadata_path} using 'Code' for '{name}': {matches}. Please "
-                             f"update the hit name in the input csv to be more specific.")
-        if len(matches) == 0:
-            # could be an exact name for LongCode
-            if name in sdf_names:
-                hit_longcodes.append(name)
-                continue
-            logger.critical(
-                f"No matches found in {metadata_path} using 'Code' or in the hits SDF provided for '{name}'."
-                f" Please update the hit name in the input csv.")
-            raise ValueError(
-                f"No matches found in {metadata_path} using 'Code' or in the hits SDF provided for '{name}'."
-                f" Please update the hit name in the input csv.")
-        else:
-            hit_longcodes.append(matches[0])
-    return hit_longcodes
+        if name not in sdf_names:
+            logger.critical(f"Hit name '{name}' not found in SDF file '{hits_path}'. "
+                          f"Available names: {sdf_names[:10]}{'...' if len(sdf_names) > 10 else ''}")
+            raise ValueError(f"Hit name '{name}' not found in SDF file '{hits_path}'. "
+                           f"Please check that the hit name exists in the SDF file.")
+    
+    return hit_names
 
 
-def get_template_path(template_dir: str, template: str, metadata_path: str) -> str:
+def get_template_path(template_dir: str, template: str) -> str:
     """
     Get the exact template path to use for placement.
     """
-    code_dict = metadata_dict(metadata_path)
-    exact_code = [key for key in code_dict if template.lower() in key.lower()]
-    if len(exact_code) == 0:
-        logger.warning(f"The template {template} does not exist in the metadata, trying to continue....")
-        template_path = glob2.glob(f"{template_dir}/**/*{template}*.pdb")
-    else:
-        template_path = glob2.glob(f"{template_dir}/**/*{exact_code[0]}*.pdb")
+    template_path = glob2.glob(f"{template_dir}/**/*{template}*.pdb")
+    
     if len(template_path) == 0:
         logger.critical(f"The template {template} does not exist in the template directory.")
         raise FileNotFoundError(f"The template {template} does not exist in the template directory.")
@@ -344,18 +263,15 @@ def check_pipeline_inputs(*,
                           csv_path: str,
                           template_dir: str,
                           hits_path: str,
-                          metadata_path: str,
                           additional_columns: List[str],
-                          manual_routes: bool,
-                          long_code_column: str) -> None:
+                          manual_routes: bool) -> None:
     """
     Check the inputs for the pipeline.
     """
     try:
         check_csv(csv_path)
-        check_hit_names(csv_path, hits_path, metadata_path, long_code_column=long_code_column)
         check_additional_columns(csv_path, additional_columns)
-        template_paths: Set[str] = check_template_paths(template_dir, csv_path, metadata_path)
+        template_paths: Set[str] = check_template_paths(template_dir, csv_path)
         for template_path in template_paths:  # check each template
             check_apo_template(template_path)
         if manual_routes:

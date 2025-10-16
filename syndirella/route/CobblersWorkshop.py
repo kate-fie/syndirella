@@ -9,7 +9,7 @@ import itertools
 import logging
 from typing import (List, Tuple)
 
-import shortuuid
+import hashlib
 from rdkit import Chem
 
 from syndirella.route.SMARTSHandler import SMARTSHandler
@@ -38,9 +38,11 @@ class CobblersWorkshop():
                  elab_single_reactant: bool = False,
                  atoms_ids_expansion: dict = None,
                  db_search_tool: DatabaseSearchTool = DEFAULT_DATABASE_SEARCH_TOOL,
-                 retro_tool: RetrosynthesisTool = None):
+                 retro_tool: RetrosynthesisTool = None,
+                 reference_db: str = None):
         self.logger = logging.getLogger(f"{__name__}")
-        self.route_uuid: str = shortuuid.ShortUUID().random(length=6)
+        s = str((scaffold, reactants, reaction_names, num_steps))
+        self.route_uuid: str = hashlib.md5(s.encode('utf-8')).hexdigest()
         self.scaffold: str = self.check_product(scaffold)
         self.id: str = id
         self.reaction_names: List[str] = self.check_reaction_names(reaction_names)
@@ -58,6 +60,7 @@ class CobblersWorkshop():
         self.final_library: Library = None
 
         self.db_search_tool: DatabaseSearchTool = db_search_tool
+        self.reference_db: str | None = reference_db
         self.retro_tool: RetrosynthesisTool = retro_tool
 
     def check_product(self, product: str) -> str:
@@ -147,7 +150,8 @@ class CobblersWorkshop():
                                       atom_diff_max=self.atom_diff_max,
                                       elab_single_reactant=self.elab_single_reactant,
                                       elab_single_reactant_int=self.elab_single_reactant_int,
-                                      db_search_tool=self.db_search_tool)
+                                      db_search_tool=self.db_search_tool,
+                                      reference_db=self.reference_db)
         return cobbler_bench
 
     def define_route(self):

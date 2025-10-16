@@ -37,8 +37,10 @@ pip install syndirella
 
 2. **Run the pipeline**:
    ```bash
-   syndirella run -i input.csv -o output_directory -t templates/ --hits_path fragments.sdf --metadata metadata.csv
+   syndirella run --input /absolute/path/to/input.csv --output /absolute/path/to/output_directory --templates /absolute/path/to/templates/ --hits_path /absolute/path/to/fragments.sdf
    ```
+   
+   **Note**: All paths must be absolute paths.
 
 ### Example Input
 

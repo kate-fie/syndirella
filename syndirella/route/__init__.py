@@ -42,6 +42,7 @@ class LibraryConfig:
     elab_single_reactant: bool = False
     elab_single_reactant_int: Optional[int] = None
     db_search_tool: DatabaseSearchTool = DEFAULT_DATABASE_SEARCH_TOOL
+    reference_db: str = None
 
 
 @dataclass

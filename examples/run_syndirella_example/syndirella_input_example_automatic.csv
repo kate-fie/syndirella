@@ -1,4 +1,4 @@
 ﻿smiles,hit1,hit2,hit3,template,compound_set
-O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1,Ax0556a,Ax0566a,,Ax0310a,syndirella_auto_1
-CC(=O)Nc1cc(CC(=O)NCC(NC(=O)CCl)c2cccnc2)c(NC(C)=O)nn1,1346a,,,Ax1346a,syndirella_auto_1
-O=C(Cc1cn[nH]c1CC(=O)N1CCCC(C(F)(F)F)C1)NC1CC1,X0926,x1346,x1019,X0926,syndirella_auto_1
+O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1,A71EV2A-x0556_A_147_1_A71EV2A-x0526+A+147+1,A71EV2A-x0566_A_147_1_A71EV2A-x0526+A+147+1,,Ax0310a_apo-desolv,syndirella_auto_1
+CC(=O)Nc1cc(CC(=O)NCC(NC(=O)CCl)c2cccnc2)c(NC(C)=O)nn1,A71EV2A-x1346_A_250_1_A71EV2A-x0526+A+147+1,,,Ax1346a_apo-desolv,syndirella_auto_1
+O=C(Cc1cn[nH]c1CC(=O)N1CCCC(C(F)(F)F)C1)NC1CC1,A71EV2A-x0926_A_250_1_A71EV2A-x0526+A+147+1,A71EV2A-x1346_A_250_1_A71EV2A-x0526+A+147+1,A71EV2A-x1019_A_147_1_A71EV2A-x0526+A+147+1,Ax0926a_apo-desolv,syndirella_auto_1

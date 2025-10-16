@@ -158,13 +158,13 @@ class TestAutoSingleElabHippo(unittest.TestCase):
                               scaffold_placements=None)
             slipper.get_products()
             slipper.place_products()
-            hippo_path: str = slipper.write_products_to_hippo()  # only write at the end after placement, to get correct route_uuid
+            structured_output_path: str = slipper.write_products_to_structured_output()  # only write at the end after placement, to get correct route_uuid
             slipper.clean_up_placements()
-            self.assertTrue(os.path.exists(hippo_path))
-            hippo_df = pd.read_pickle(hippo_path)
-            self.assertTrue(hippo_df.shape[0] > 0)
-            self.assertIn('1_single_reactant_elab', hippo_df.columns)
-            self.assertTrue(hippo_df['1_single_reactant_elab'].all())
+            self.assertTrue(os.path.exists(structured_output_path))
+            structured_df = pd.read_pickle(structured_output_path)
+            self.assertTrue(structured_df.shape[0] > 0)
+            self.assertIn('1_single_reactant_elab', structured_df.columns)
+            self.assertTrue(structured_df['1_single_reactant_elab'].all())
 
 
 if __name__ == '__main__':

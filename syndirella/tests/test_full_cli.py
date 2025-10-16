@@ -116,14 +116,12 @@ class TestFullCLI(unittest.TestCase):
             'output': self.test_output_dir,
             'templates': os.path.join(self.inputs_dir, 'templates'),
             'hits_path': os.path.join(self.inputs_dir, 'A71EV2A_combined.sdf'),
-            'metadata': os.path.join(self.inputs_dir, 'metadata.csv'),
             'batch_num': 1,
             'atom_diff_min': 0,
             'atom_diff_max': 5,
             'scaffold_place_num': 1,
             'retro_tool': 'manifold',
-            'db_search_tool': 'arthor',
-            'long_code_column': 'Long code'
+            'db_search_tool': 'arthor'
         }
         
         config = PipelineConfig.from_settings(settings)
@@ -334,25 +332,6 @@ class TestFullCLI(unittest.TestCase):
         except (subprocess.TimeoutExpired, Exception) as e:
             logging.warning(f"CLI atom_diff_limits test failed: {e}")
 
-    def test_cli_with_custom_long_code_column(self):
-        """Test CLI with custom long_code_column."""
-        try:
-            result = subprocess.run([
-                sys.executable, '-m', 'syndirella.cli',
-                '-i', self.auto_input_csv,
-                '-o', self.test_output_dir,
-                '--templates', 'syndirella/tests/inputs/test_inputs/templates',
-                '--hits_path', 'syndirella/tests/inputs/test_inputs/A71EV2A_combined.sdf',
-                '--metadata', 'syndirella/tests/inputs/test_inputs/metadata.csv',
-                '--only_scaffold_place',
-                '--scaffold_place_num', '1',
-                '--long_code_column', 'Custom Code'
-            ], capture_output=True, text=True, timeout=60)
-            
-            self.assertIsNotNone(result)
-            
-        except (subprocess.TimeoutExpired, Exception) as e:
-            logging.warning(f"CLI custom_long_code_column test failed: {e}")
 
     def test_input_file_validation(self):
         """Test that input files are properly validated."""
@@ -369,6 +348,27 @@ class TestFullCLI(unittest.TestCase):
         os.makedirs(test_output, exist_ok=True)
         self.assertTrue(os.path.exists(test_output))
         self.assertTrue(os.path.isdir(test_output))
+
+    def test_cli_without_metadata(self):
+        """Test CLI without metadata argument (should work)."""
+        try:
+            result = subprocess.run([
+                sys.executable, '-m', 'syndirella.cli',
+                '-i', self.auto_input_csv,
+                '-o', self.test_output_dir,
+                '--templates', 'syndirella/tests/inputs/test_inputs/templates',
+                '--hits_path', 'syndirella/tests/inputs/test_inputs/A71EV2A_combined.sdf',
+                # Note: No --metadata argument provided
+                '--only_scaffold_place',
+                '--scaffold_place_num', '1',
+                '--batch_num', '1'
+            ], capture_output=True, text=True, timeout=60)
+            
+            # Check that the command ran (even if it failed due to missing dependencies)
+            self.assertIsNotNone(result)
+            
+        except (subprocess.TimeoutExpired, Exception) as e:
+            logging.warning(f"CLI without metadata test failed: {e}")
 
     def test_template_file_existence(self):
         """Test that template files exist."""

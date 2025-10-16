@@ -39,7 +39,8 @@ class CobblerBench:
                  elab_single_reactant: bool,
                  route_uuid: str,
                  elab_single_reactant_int: int | None = None,
-                 db_search_tool: DatabaseSearchTool = DEFAULT_DATABASE_SEARCH_TOOL):
+                 db_search_tool: DatabaseSearchTool = DEFAULT_DATABASE_SEARCH_TOOL,
+                 reference_db: str | None = None):
         self.product: Chem.Mol = Chem.MolFromSmiles(scaffold)
         self.reaction_name: str = reaction_name
         self.reactant_smiles: Tuple[str] | str = reactant_smiles
@@ -56,6 +57,7 @@ class CobblerBench:
         self.num_steps: int = num_steps
         self.current_step: int = current_step
         self.route_uuid: str = route_uuid
+        self.reference_db: str | None = reference_db
         
         self.reaction: Reaction = None
         self.library = None
@@ -139,7 +141,8 @@ class CobblerBench:
             atom_diff_max=self.atom_diff_max,
             db_search_tool=self.db_search_tool,
             elab_single_reactant_int=self.elab_single_reactant_int,
-            elab_single_reactant=self.elab_single_reactant
+            elab_single_reactant=self.elab_single_reactant,
+            reference_db=self.reference_db,
         )
         self.library.create_library()
         return self.library

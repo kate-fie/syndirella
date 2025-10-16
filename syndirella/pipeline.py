@@ -37,14 +37,12 @@ class PipelineConfig:
     output_dir: str
     template_dir: str
     hits_path: str
-    metadata_path: str
     batch_num: int
     atom_diff_min: int
     atom_diff_max: int
     scaffold_place_num: int
     retro_tool: RetrosynthesisTool
     db_search_tool: DatabaseSearchTool
-    long_code_column: str
     
     # Optional settings with defaults
     manual_routes: bool = False
@@ -52,6 +50,8 @@ class PipelineConfig:
     scaffold_place: bool = True
     elab_single_reactant: bool = False
     additional_columns: List[str] = None
+    reference_db: str = None
+    assert_scaffold_intra_geom_flatness: bool = True
     
     def __post_init__(self):
         if self.additional_columns is None:
@@ -66,18 +66,18 @@ class PipelineConfig:
                 output_dir=settings['output'],
                 template_dir=settings['templates'],
                 hits_path=settings['hits_path'],
-                metadata_path=settings['metadata'],
                 batch_num=settings['batch_num'],
                 atom_diff_min=settings['atom_diff_min'],
                 atom_diff_max=settings['atom_diff_max'],
                 scaffold_place_num=settings['scaffold_place_num'],
                 retro_tool=RetrosynthesisTool.from_string(settings.get('retro_tool', DEFAULT_RETROSYNTHESIS_TOOL.value)),
                 db_search_tool=DatabaseSearchTool.from_string(settings.get('db_search_tool', DEFAULT_DATABASE_SEARCH_TOOL.value)),
-                long_code_column=settings['long_code_column'],
                 manual_routes=settings.get('manual', False),
                 only_scaffold_place=settings.get('only_scaffold_place', False),
                 scaffold_place=not settings.get('no_scaffold_place', False),
-                elab_single_reactant=settings.get('elab_single_reactant', False)
+                elab_single_reactant=settings.get('elab_single_reactant', False),
+                reference_db=settings.get('reference_db', None),
+                assert_scaffold_intra_geom_flatness=not settings.get('no_assert_scaffold_intra_geom_flatness', False)
             )
         except KeyError as e:
             logger.critical(f"Missing critical argument to run pipeline: {e}")
@@ -89,7 +89,8 @@ def assert_scaffold_placement(scaffold: str,
                               hits_path: str,
                               hits_names: List[str],
                               output_dir: str,
-                              scaffold_place_num: int
+                              scaffold_place_num: int,
+                              assert_intra_geom_flatness: bool = True,
                               ) -> Dict[Chem.Mol, str]:
     """
     Assert that the scaffold can be placed for any stereoisomers. If not, raise an error.
@@ -107,7 +108,8 @@ def assert_scaffold_placement(scaffold: str,
         scaffold_name: str = f'scaffold-{chr(65 + i)}'
         can_be_placed: str | None = slipper_fitter.check_scaffold(scaffold=isomer,
                                                                   scaffold_name=scaffold_name,
-                                                                  scaffold_place_num=scaffold_place_num)  # path to scaffold if successful
+                                                                  scaffold_place_num=scaffold_place_num,
+                                                                  assert_intra_geom_flatness=assert_intra_geom_flatness)  # path to scaffold if successful
         placements[isomer] = can_be_placed  # absolute path to minimised.mol scaffold, checked to exist
     if not any(placements.values()):
         logger.critical(f"Scaffold {scaffold} could not be placed successfully.")
@@ -141,8 +143,10 @@ def elaborate_from_cobbler_workshops(cobbler_workshops: List[CobblersWorkshop],
                               scaffold_placements=scaffold_placements)
             slipper.get_products()
             slipper.place_products()
-            slipper.write_products_to_hippo()  # only write at the end after placement, to get correct route_uuid
-            slipper.clean_up_placements()
+            try:
+                slipper.write_products_to_structured_output()  # only write at the end after placement, to get correct route_uuid
+            finally:
+                slipper.clean_up_placements()
         except Exception as e:
             tb = traceback.format_exc()
             logger.critical(f"Error elaborating compound {workshop.scaffold}. {tb}")
@@ -165,7 +169,8 @@ def start_elaboration(product: str,
                       hits: List[str],
                       output_dir: str,
                       scaffold_place_num: int,
-                      scaffold_place: bool) -> Tuple[float, Dict[Chem.Mol, str | None] | Dict]:
+                      scaffold_place: bool,
+                      assert_scaffold_intra_geom_flatness: bool = True,) -> Tuple[float, Dict[Chem.Mol, str | None] | Dict]:
     """
     Start the elaboration process for a compound.
     """
@@ -179,7 +184,8 @@ def start_elaboration(product: str,
             hits_path=hits_path,
             hits_names=hits,
             output_dir=output_dir,
-            scaffold_place_num=scaffold_place_num
+            scaffold_place_num=scaffold_place_num,
+            assert_intra_geom_flatness=assert_scaffold_intra_geom_flatness,
         )
     
     return start_time, scaffold_placements
@@ -203,6 +209,8 @@ def elaborate_compound_with_manual_routes(product: str,
                                           elab_single_reactant: bool,
                                           retro_tool: RetrosynthesisTool,
                                           db_search_tool: DatabaseSearchTool,
+                                          reference_db: str,
+                                          assert_scaffold_intra_geom_flatness: bool = True,
                                           additional_info=None):
     """
     Elaborate compound using manual routes.
@@ -214,10 +222,12 @@ def elaborate_compound_with_manual_routes(product: str,
         hits=hits, 
         output_dir=output_dir,
         scaffold_place_num=scaffold_place_num,
-        scaffold_place=scaffold_place
+        scaffold_place=scaffold_place,
+        assert_scaffold_intra_geom_flatness=assert_scaffold_intra_geom_flatness,
     )
     
     if not only_scaffold_place:
+
         # Create manual route workshop
         workshop = CobblersWorkshop(
             scaffold=product,
@@ -231,7 +241,8 @@ def elaborate_compound_with_manual_routes(product: str,
             db_search_tool=db_search_tool,
             retro_tool=retro_tool,
             id=fairy.generate_inchi_ID(product, isomeric=False),
-            filter=False
+            filter=False,
+            reference_db=reference_db
         )
         
         elaborate_from_cobbler_workshops(
@@ -269,6 +280,7 @@ def elaborate_compound_full_auto(product: str,
                                  elab_single_reactant: bool,
                                  retro_tool: RetrosynthesisTool,
                                  db_search_tool: DatabaseSearchTool,
+                                 assert_scaffold_intra_geom_flatness: bool = True,
                                  additional_info=None):
     """
     Elaborate compound using full automatic retrosynthesis.
@@ -280,7 +292,8 @@ def elaborate_compound_full_auto(product: str,
         hits=hits, 
         output_dir=output_dir,
         scaffold_place_num=scaffold_place_num,
-        scaffold_place=scaffold_place
+        scaffold_place=scaffold_place,
+        assert_scaffold_intra_geom_flatness=assert_scaffold_intra_geom_flatness,
     )
     
     if not only_scaffold_place:
@@ -320,14 +333,12 @@ def process_row(row: pd.Series, config: PipelineConfig):
     additional_info: dict = check_inputs.format_additional_info(row, config.additional_columns)
     template_path: str = check_inputs.get_template_path(
         template_dir=config.template_dir,
-        template=row['template'],
-        metadata_path=config.metadata_path
+        template=row['template']
     )
 
     hits: List[str] = check_inputs.get_exact_hit_names(
         row=row, 
-        metadata_path=config.metadata_path,
-        hits_path=config.hits_path
+        hits_path=config.hits_path,
     )
 
     try:
@@ -352,7 +363,9 @@ def process_row(row: pd.Series, config: PipelineConfig):
                 scaffold_place=config.scaffold_place,
                 elab_single_reactant=config.elab_single_reactant,
                 retro_tool=config.retro_tool,
-                db_search_tool=config.db_search_tool
+                db_search_tool=config.db_search_tool,
+                reference_db=config.reference_db,
+                assert_scaffold_intra_geom_flatness=config.assert_scaffold_intra_geom_flatness,
             )
         else:
             elaborate_compound_full_auto(
@@ -371,7 +384,8 @@ def process_row(row: pd.Series, config: PipelineConfig):
                 scaffold_place=config.scaffold_place,
                 elab_single_reactant=config.elab_single_reactant,
                 retro_tool=config.retro_tool,
-                db_search_tool=config.db_search_tool
+                db_search_tool=config.db_search_tool,
+                assert_scaffold_intra_geom_flatness=config.assert_scaffold_intra_geom_flatness,
             )
     except Exception as e:
         tb = traceback.format_exc()
@@ -414,10 +428,8 @@ def run_pipeline(settings: Dict):
         csv_path=config.csv_path,
         template_dir=config.template_dir,
         hits_path=config.hits_path,
-        metadata_path=config.metadata_path,
         additional_columns=config.additional_columns,
-        manual_routes=config.manual_routes,
-        long_code_column=config.long_code_column
+        manual_routes=config.manual_routes
     )
 
     # Load data and process each row

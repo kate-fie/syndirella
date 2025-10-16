@@ -16,6 +16,7 @@ requirements.txt
 
 # tests_OLD
 /syndirella/tests_OLD/
+/syndirella/tests/test_kates_input/
 
 #any output folder
 */output/
@@ -35,3 +36,4 @@ ASKCOSv2/
 
 .vscode/
 aizynth/
+docs/build

@@ -12,6 +12,12 @@ import time
 from typing import (List, Dict, Tuple)
 
 import pandas as pd
+import warnings
+# Suppress fragmenstein warnings that appear during normal operation
+warnings.filterwarnings("ignore", message="PyRosetta is not installed. A mock object is loaded. Any Igor calls will fail.")
+warnings.filterwarnings("ignore", category=RuntimeWarning, module="fragmenstein.igor.pyrosetta_import")
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API")
+
 from fragmenstein import Laboratory, Wictor, Igor
 from fragmenstein.laboratory.validator import place_input_validator
 
@@ -77,7 +83,8 @@ class SlipperFitter:
     def check_scaffold(self,
                        scaffold: Chem.Mol,
                        scaffold_name: str,
-                       scaffold_place_num: int) -> str | None:
+                       scaffold_place_num: int,
+                       assert_intra_geom_flatness: bool = True) -> str | None:
         """
         Checks if the scaffold can be minimised (no specific stereoisomer) and passes intermolecular checks.
         If it cannot be minimised after 3 attempts, returns False.
@@ -99,9 +106,14 @@ class SlipperFitter:
                 if not any(path_exists):
                     self.logger.info(f'Scaffold could not be minimised. Attempt {attempt} of {scaffold_place_num}.')
                     continue
+
+                if not assert_intra_geom_flatness:
+                    return paths[0] if path_exists[0] else paths[1]
+
                 geometries: Dict = intra_geometry.check_geometry(scaffold_placed,
                                                                  threshold_clash=0.4)  # increasing threshold for internal clash
                 flat_results: Dict = flatness.check_flatness(scaffold_placed)
+                
                 if self._check_intra_geom_flatness_results(geometries=geometries, flat_results=flat_results):
                     self.logger.info(f'Scaffold minimised and passed intramolecular checks.')
                     return paths[0] if path_exists[0] else paths[1]
@@ -260,13 +272,16 @@ class SlipperFitter:
             # Set up Wictor
             self.output_path: str = os.path.join(self.output_dir, 'output')
             lab: Laboratory = self.setup_Fragmenstein(self.output_path)
+            input_df.to_pickle(f"{self.output_dir}/output/fstein_input.pkl.gz")
             placements: pd.DataFrame = lab.place(place_input_validator(input_df),
                                                  n_cores=self.n_cores,
                                                  timeout=self.timeout)
+            placements.to_pickle(f"{self.output_dir}/output/fstein_output.pkl.gz")
         finally:
             # Change back to the original directory
             # os.chdir(original_dir)
             pass
+        
         end_time = time.time()  # End timing
         elapsed_time = end_time - start_time  # Calculate elapsed time
         self.logger.info(f"Placing {len(input_df)} run time: {datetime.timedelta(seconds=elapsed_time)}")

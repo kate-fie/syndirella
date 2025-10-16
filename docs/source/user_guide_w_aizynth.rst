@@ -77,7 +77,7 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
 
 .. code-block:: bash
 
-    usage: syndirella run [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH] [--metadata METADATA] [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual] [--only_scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM] [--retro_tool {manifold,aizynthfinder}] [--db_search_tool {postera,arthor}] [--profile] [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX] [--long_code_column LONG_CODE_COLUMN] [--just_retro] [--no_scaffold_place] [--elab_single_reactant]
+    usage: syndirella run [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH] [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual] [--only_scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM] [--retro_tool {manifold,aizynthfinder}] [--db_search_tool {postera,arthor}] [--profile] [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX] [--just_retro] [--no_scaffold_place] [--elab_single_reactant]
 
     Run the full Syndirella pipeline with specified input files and parameters.
 
@@ -90,9 +90,8 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
       -t TEMPLATES, --templates TEMPLATES
                             Absolute path to a directory containing the template(s).
       --hits_path HITS_PATH
-                            Absolute path to hits_path for placements (.sdf or .mol).
-      --metadata METADATA   Absolute path to metadata for placements.
-      --products PRODUCTS   Absolute path to products for placements.
+                            Optional absolute path to hits_path for placements (.sdf or .mol).
+      --products PRODUCTS   Optional absolute path to products for placements.
       --batch_num BATCH_NUM
                             Batch number for processing. (default: 10000)
       --manual              Use manual routes for processing. (default: False)
@@ -101,16 +100,14 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
       --scaffold_place_num SCAFFOLD_PLACE_NUM
                             Number of times to attempt scaffold placement. (default: 5)
       --retro_tool {manifold,aizynthfinder}
-                            Retrosynthesis tool to use. (default: manifold)
-      --db_search_tool {postera,arthor}
-                            Database search tool to use. (default: postera)
+                            Retrosynthesis tool to use. (default: aizynthfinder)
+      --db_search_tool {manifold,arthor}
+                            Database search tool to use. (default: arthor)
       --profile             Run the pipeline with profiling. (default: False)
       --atom_diff_min ATOM_DIFF_MIN
                             Minimum atom difference between elaborations and scaffold to keep. (default: 0)
       --atom_diff_max ATOM_DIFF_MAX
                             Maximum atom difference between elaborations and scaffold to keep. (default: 10)
-      --long_code_column LONG_CODE_COLUMN
-                            Column name for long code in metadata csv to match to SDF name. (default: Long code)
       --just_retro          Only run retrosynthesis querying of scaffolds. (default: False)
       --no_scaffold_place   Do not place scaffolds initially before elaborating. (default: False)
       --elab_single_reactant
@@ -147,6 +144,19 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
     options:
       -h, --help  show this help message and exit
 
+Default Tools
+=============
+
+Syndirella uses the following default tools:
+
+**Default Retrosynthesis Tool**: ``aizynthfinder``
+    - Alternative: ``manifold``
+    - Set with: ``--retro_tool {aizynthfinder,manifold}``
+
+**Default Database Search Tool**: ``arthor``  
+    - Alternative: ``manifold``
+    - Set with: ``--db_search_tool {arthor,manifold}``
+
 Basic Usage
 ===========
 
@@ -159,12 +169,21 @@ Download the fragment hits from Fragalysis. In the download folder the important
 
 ::
 
-    metadata.csv # contains short and long codes
     target_name_combined.sdf # fragment poses with long code names
     /aligned_files/fragment_name/fragment_name_apo-desolv.pdb # apo pdb used for placement
 
+.. attention::
+
+    **IMPORTANT**: The template string in your CSV must **exactly match** the PDB filename (without extension). The hit names in your CSV must **exactly match** the molecule names in the SDF file.
+
 2. Create input csv
 -------------------
+
+**Critical Requirements for Exact Matching:**
+
+- **Template names**: Must exactly match the PDB filename (without .pdb extension)
+- **Hit names**: Must exactly match the molecule names in the SDF file
+- **No metadata file needed**: Direct matching eliminates the need for metadata.csv
 
 Syndirella can be run either in *automatic* or *manual* mode.
 
@@ -177,9 +196,9 @@ Required headers:
     ``smiles``:
         smiles string of :term:`scaffold`.
     ``hit1``:
-        string of short code (or any substring of short code found in the metadata.csv) of 1 fragment inspiring hit.
+        string that **exactly matches** the molecule name in the SDF file for 1 fragment inspiring hit.
     ``template``:
-        path to apo protein template to use for :term:`placement`.
+        string that **exactly matches** the PDB filename (without extension) to use for :term:`placement`.
     ``compound_set``:
         string or int identifier.
 
@@ -203,9 +222,9 @@ Required headers:
     ``smiles``:
         smiles string of scaffold.
     ``hit1``:
-        string of short code (or any substring of short code found in the metadata.csv) of 1 fragment inspiring hit.
+        string that **exactly matches** the molecule name in the SDF file for 1 fragment inspiring hit.
     ``template``:
-        path to apo protein template to use for :term:`placement`.
+        string that **exactly matches** the PDB filename (without extension) to use for :term:`placement`.
     ``compound_set``:
         string or int identifier.
     ``reaction_name_step1``:
@@ -230,12 +249,22 @@ Not required headers:
 3. Run!
 -------
 
+**Important: Path Requirements**
+
+All file paths must be **absolute paths** (not relative paths). This includes:
+- Input CSV file path
+- Output directory path  
+- Template directory path
+- Hits path (SDF/MOL file) - optional
+- Metadata CSV file path - optional
+- Products path - optional
+
 Run pipeline in *automatic* mode:
 
 .. code-block:: bash
 
     syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv]
+    --hits_path [path_to_fragments.sdf]
 
 
 Run pipeline in *manual* mode:
@@ -268,7 +297,7 @@ Run pipeline in *manual* mode:
     │   ├── 🔑🔑🔑_[route_uuid]_[rxn_name]_products_[last_step]of[total_steps].pkl.gz & .csv # final products
     │   ├── 🔑🔑🔑_[route_uuid]_[rxn_name]_products_[last_step]of[total_steps]_placements.pkl.gz & .csv # merged placements with products info
     │   ├── 🔑🔑🔑_[route_uuid]_fragmenstein_placements.pkl.gz & .csv # fragmenstein output
-    │   └── 🔑🔑🔑_[route_uuid]_to_hippo.pkl.gz # full routes and placements
+    │   └── 🔑🔑🔑_[route_uuid]_structured_output.pkl.gz # full routes and placements
     ├── continued for all scaffolds...
     └── [input_csv]_output_YYYYMMDD_HHMM.csv # summary stats of all scaffolds
 
@@ -289,7 +318,7 @@ Run pipeline in *manual* mode:
 **🔑🔑🔑_[route_uuid]_[rxn_name]_products_[last_step]of[total_steps]_placements.pkl.gz & .csv:**
     Merged placements with products info.
 
-**🔑🔑🔑_[route_uuid]_to_hippo.pkl.gz:**
+**🔑🔑🔑_[route_uuid]_structured_output.pkl.gz:**
     Full routes and placements.
 
 .. note::
@@ -313,14 +342,14 @@ You can run Syndirella to only place scaffolds. It will not perform the full ela
 .. code-block:: bash
 
     syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --scaffold_place
+    --hits_path [path_to_fragments.sdf] --scaffold_place
 
 You can also specify to not place the scaffold (most likely you confirmed placement using another method).
 
 .. code-block:: bash
 
     syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --no_scaffold_place
+    --hits_path [path_to_fragments.sdf] --no_scaffold_place
 
 
 Usage Option: Only Get Retrosynthesis Routes of Scaffolds
@@ -372,7 +401,7 @@ amidation, there will be two elaboration series output: (1) only elaborating rea
 .. code-block:: bash
 
     syndirella run --input [path_to_input.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --elab_single_reactant
+    --hits_path [path_to_fragments.sdf] --elab_single_reactant
 
 
 

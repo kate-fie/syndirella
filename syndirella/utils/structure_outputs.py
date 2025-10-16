@@ -63,7 +63,7 @@ def add_outcome_info(slipper: Slipper | None = None,
     """
     num_placed: int | None = None
     num_successful: int | None = None
-    to_hippo_path: str | None = None
+    structured_output_path: str | None = None
     template: str | None = template_path
     total_num_unique_products: int | None = None
     total_num_products_enumstereo: int | None = None
@@ -73,7 +73,7 @@ def add_outcome_info(slipper: Slipper | None = None,
         template = getattr(slipper, 'template', template_path)
         num_placed = getattr(slipper, 'num_placed', None)
         num_successful = getattr(slipper, 'num_successful', None)
-        to_hippo_path = getattr(slipper, 'to_hippo_path', None)
+        structured_output_path = getattr(slipper, 'structured_output_path', None)
         total_num_unique_products = getattr(slipper, 'num_unique_products', None)
         total_num_products_enumstereo = getattr(slipper, 'num_products_enumstereo', None)
         hits_names = getattr(slipper, 'hits_names', hits_names)
@@ -83,7 +83,7 @@ def add_outcome_info(slipper: Slipper | None = None,
         'total_num_products_enumstereo': total_num_products_enumstereo,
         'num_placed': num_placed,
         'num_successful': num_successful,
-        'to_hippo': to_hippo_path,
+        'structured_output': structured_output_path,
         'template': template
     }
 
@@ -110,7 +110,7 @@ def get_output_df(csv_path: str,
         # does not exist yet, make new blank df
         df = pd.DataFrame(columns=['smiles', 'inchi_key', 'route_uuid', 'error_type', 'error_message',
                                    'retro_tool', 'db_search_tool', 'num_placed', 'num_successful', '1_reaction', '1_r1_smiles', 'hit1', 'template',
-                                   'to_hippo'])
+                                   'structured_output'])
         return df, past_csv_path
     else:
         # Sort files by their date and time in the filename
@@ -124,7 +124,7 @@ def get_output_df(csv_path: str,
     except pd.errors.EmptyDataError:
         df = pd.DataFrame(columns=['smiles', 'inchi_key', 'route_uuid', 'error_type', 'error_message',
                                    'retro_tool', 'db_search_tool', 'num_placed', 'num_successful', '1_reaction', '1_r1_smiles', 'hit1', 'template',
-                                   'to_hippo'])
+                                   'structured_output'])
     return df, past_csv_path
 
 

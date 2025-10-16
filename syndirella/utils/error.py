@@ -117,10 +117,10 @@ class NoScaffold(ChemicalErrorBase):
         super().__init__(message=message, inchi=inchi, smiles=smiles, mol=mol)
 
 
-class NoToHippo(ChemicalErrorBase):
+class NoStructuredOutput(ChemicalErrorBase):
     def __init__(self,
                  route_uuid: str,
-                 message: str = "The to_hippo pickle file could not be successfully created.",
+                 message: str = "The structured output pickle file could not be successfully created.",
                  inchi: str | None = None,
                  smiles: str | None = None,
                  mol: Chem.Mol | None = None):

@@ -15,7 +15,7 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import inchi
 
-from syndirella.utils.error import NoScaffold, NoToHippo
+from syndirella.utils.error import NoScaffold, NoStructuredOutput
 from syndirella.route.Library import Library
 from syndirella.slipper.SlipperFitter import SlipperFitter
 from syndirella.slipper._placement_data import get_placement_data
@@ -59,7 +59,7 @@ class Slipper:
         # stats for output
         self.num_placed: int | None = None
         self.num_successful: int | None = None
-        self.to_hippo_path: str | None = None
+        self.structured_output_path: str | None = None
         self.num_unique_products: int | None = None  # number of unique products not including stereoisomers found at the end of the route.
         self.num_products_enumstereo: int | None = None  # number of products after stereoisomer enumeration found at the end of the route.
 
@@ -88,6 +88,7 @@ class Slipper:
         """
         This function is used to place the products with Fragmenstein.
         """
+
         slipper_fitter = SlipperFitter(template_path=self.template,
                                        hits_path=self.hits_path,
                                        hits_names=self.hits_names,
@@ -113,47 +114,48 @@ class Slipper:
 
         return self.placements
 
-    def write_products_to_hippo(self) -> str:
+    def write_products_to_structured_output(self) -> str:
         """
-        Writes a dataframe that contains the values needed for HIPPO db input.
+        Writes a dataframe that contains structured synthesis data for downstream analysis tools.
 
         Returns:
             path: str : the path to the saved dataframe
         """
         if self.placements is None:
-            self.logger.critical("Placements need to be run first before writing HIPPO output.")
+            self.logger.critical("Placements need to be run first before writing structured output.")
             return None
         placements: pd.DataFrame = self.placements
 
-        hippo_path: str = os.path.join(self.output_dir, f'{self.library.id}_{self.route_uuid}_to_hippo.pkl.gz')
+        structured_output_path: str = os.path.join(self.output_dir, f'{self.library.id}_{self.route_uuid}_structured_output.pkl.gz')
         # get all products dfs in /extra
         products_files: List[str] = glob.glob(f"{self.output_dir}/extra/*{self.route_uuid}*products*.pkl*")
         product_dfs: Dict[int, pd.DataFrame] = self._load_products_dfs(products_files)
-        # make HIPPO output dataframe of these specific products
-        hippo_df = self._structure_products_for_hippo(placements_df=placements,
+        # make structured output dataframe of these specific products
+        structured_df = self._structure_products_for_structured_output(placements_df=placements,
                                                       product_dfs=product_dfs)
-        # load file if it already exists
-        if os.path.isfile(hippo_path):
-            previous_hippo = pd.read_pickle(hippo_path)
-            hippo_df = pd.concat([previous_hippo, hippo_df], axis=1, ignore_index=True)
+        # # load file if it already exists
+        # if os.path.isfile(structured_output_path):
+        #     previous_structured = pd.read_pickle(structured_output_path)
+        #     structured_df = pd.concat([previous_structured, structured_df], axis=1, ignore_index=True)
+        
         # save the dataframe
-        hippo_df.to_pickle(hippo_path)
-        self.logger.info(f"Saved HIPPO output to {hippo_path}")
-        self.to_hippo_path = hippo_path
-        self.check_scaffold_in_hippo(hippo_df, hippo_path)
-        return hippo_path
+        structured_df.to_pickle(structured_output_path)
+        self.logger.info(f"Saved structured output to {structured_output_path}")
+        self.structured_output_path = structured_output_path
+        self.check_scaffold_in_structured_output(structured_df, structured_output_path)
+        return structured_output_path
 
-    def check_scaffold_in_hippo(self, hippo_df: pd.DataFrame, hippo_path: str):
+    def check_scaffold_in_structured_output(self, structured_df: pd.DataFrame, structured_output_path: str):
         """
-        Checks if there is a scaffold in the scaffold names of the HIPPO output.
+        Checks if there is a scaffold in the scaffold names of the structured output.
         """
-        if not any('scaffold' in name for name in hippo_df[f'{self.library.num_steps}_product_name']):
-            self.logger.warning("Scaffold was not found in the scaffold names of the HIPPO output.")
-            raise NoScaffold(
-                message=f"Scaffold was not found in the scaffold names of the HIPPO output at {hippo_path}."
-                        f"Most likely due to an incorrectly written SMIRKS.",
-                route_uuid=self.route_uuid,
-                inchi=self.library.id)
+        if not any('scaffold' in name for name in structured_df[f'{self.library.num_steps}_product_name']):
+            self.logger.warning("Scaffold was not found in the scaffold names of the structured output.")
+            # raise NoScaffold(
+            #     message=f"Scaffold was not found in the scaffold names of the structured output at {structured_output_path}."
+            #             f"Most likely due to an incorrectly written SMIRKS.",
+            #     route_uuid=self.route_uuid,
+            #     inchi=self.library.id)
 
     def _load_products_dfs(self, products_files: List[str]) -> Dict[int, pd.DataFrame]:
         """
@@ -164,7 +166,7 @@ class Slipper:
             df = pd.read_pickle(file)
             if len(df) == 0:
                 self.logger.info(
-                    f"Empty dataframe found in {file}. Continuing with next file to structure hippo outputs")
+                    f"Empty dataframe found in {file}. Continuing with next file to structure outputs")
                 continue
             step = df['step'].iloc[0]
             product_dfs[step] = df
@@ -173,25 +175,25 @@ class Slipper:
             missing_steps = [step for step in range(1, self.library.num_steps) if step not in found_steps]
             self.logger.critical("Not all steps have findable products dataframes or non empty dataframes. "
                                  f"Missing steps: {missing_steps}")
-            raise NoToHippo(message=f"Not all steps have findable products dataframes or non empty dataframes. "
+            raise NoStructuredOutput(message=f"Not all steps have findable products dataframes or non empty dataframes. "
                                     f"Missing steps: {missing_steps}",
                             route_uuid=self.route_uuid,
                             inchi=self.library.id)
         return product_dfs
 
-    def _structure_products_for_hippo(self,
+    def _structure_products_for_structured_output(self,
                                       placements_df: pd.DataFrame,
                                       product_dfs: Dict[int, pd.DataFrame]) -> pd.DataFrame:
         """
-        Structures the placements or products df for HIPPO output.
+        Structures the placements or products df for structured output.
         """
-        hippo_dfs: Dict[int, pd.DataFrame] = {}
+        structured_dfs: Dict[int, pd.DataFrame] = {}
         for step, products_df in product_dfs.items():
-            hippo_df_step: pd.DataFrame = self._structure_step_for_hippo(step, products_df)
-            hippo_dfs[step] = hippo_df_step
-        hippo_dfs[self.library.num_steps] = self._structure_step_for_hippo(self.library.num_steps, placements_df)
-        hippo_df = self._put_hippo_dfs_together(hippo_dfs)
-        return hippo_df
+            structured_df_step: pd.DataFrame = self._structure_step_for_structured_output(step, products_df)
+            structured_dfs[step] = structured_df_step
+        structured_dfs[self.library.num_steps] = self._structure_step_for_structured_output(self.library.num_steps, placements_df)
+        structured_df = self._put_structured_dfs_together(structured_dfs)
+        return structured_df
 
     def calculate_inchi_similarity(self,
                                    smiles1: str,
@@ -222,40 +224,40 @@ class Slipper:
                 break
         return product_matches
 
-    def _put_hippo_dfs_together(self,
-                                hippo_dfs: Dict[int, pd.DataFrame]) -> pd.DataFrame:
+    def _put_structured_dfs_together(self,
+                                structured_dfs: Dict[int, pd.DataFrame]) -> pd.DataFrame:
         """
-        Puts the HIPPO dataframes together by matching on each reaction scaffold to the correct previous step's reactant.
+        Puts the structured dataframes together by matching on each reaction scaffold to the correct previous step's reactant.
         """
         # get the last step's dataframe
-        hippo_df_step_last = hippo_dfs[self.library.num_steps]
+        structured_df_step_last = structured_dfs[self.library.num_steps]
         for step in range(1, self.library.num_steps)[::-1]:  # iterate through the steps in reverse
             # get the step's dataframe
-            hippo_df_stepx = hippo_dfs[step]
+            structured_df_stepx = structured_dfs[step]
             # Find the matching scaffold names for the reactant in this new step
-            hippo_df_step_last[f'{step}_product_name'] = hippo_df_step_last.apply(self.find_matches,
+            structured_df_step_last[f'{step}_product_name'] = structured_df_step_last.apply(self.find_matches,
                                                                                   step=step,
-                                                                                  df_previous_step=hippo_df_stepx,
+                                                                                  df_previous_step=structured_df_stepx,
                                                                                   axis=1)
             # What happens if there are null scaffold names?... Still keep row with null scaffold name
             # Join on the scaffold names, has to be right merge because we only care about the products from the last step
-            result_df = pd.merge(hippo_df_stepx,
-                                 hippo_df_step_last,
+            result_df = pd.merge(structured_df_stepx,
+                                 structured_df_step_last,
                                  left_on=f'{step}_product_name',
                                  right_on=f'{step}_product_name',
                                  how='right')
             # Update the last step dataframe
-            hippo_df_step_last = result_df
+            structured_df_step_last = result_df
         # add scaffold compound smiles as first column, get from Inchi Key
         base_compound_smiles: str = Chem.MolToSmiles(self.library.reaction.scaffold)
-        hippo_df_step_last.insert(0, 'scaffold_smiles', base_compound_smiles)
-        return hippo_df_step_last
+        structured_df_step_last.insert(0, 'scaffold_smiles', base_compound_smiles)
+        return structured_df_step_last
 
-    def _structure_step_for_hippo(self,
+    def _structure_step_for_structured_output(self,
                                   step: int,
                                   products_df: pd.DataFrame) -> pd.DataFrame:
         """
-        Structures the products df for HIPPO output.
+        Structures the products df for structured output.
         """
         # cut down the dataframe to those with num_atom_diff <= 15
         reaction: str = products_df['reaction'].iloc[0]
@@ -279,8 +281,8 @@ class Slipper:
         except KeyError:
             flags: List[str | None] = [None] * len(products_df)
         single_reactant_elab: bool = products_df['single_reactant_elab'].iloc[0]
-        # make HIPPO output dataframe
-        hippo_df_step = pd.DataFrame({f'{step}_reaction': reaction,
+        # make structured output dataframe
+        structured_df_step = pd.DataFrame({f'{step}_reaction': reaction,
                                       f'{step}_r1_smiles': r1_smiles,
                                       f'{step}_r2_smiles': r2_smiles,
                                       f'{step}_r_previous_product': r_previous_product,
@@ -301,18 +303,18 @@ class Slipper:
             intra_geometry_pass: List[bool] = products_df['intra_geometry_pass'].tolist()
             path_to_mol: List[Optional[str]] = products_df['path_to_mol'].tolist()
 
-            hippo_df_step[f'{step}_num_atom_diff'] = num_atom_diff
-            hippo_df_step[f'{step}_stereoisomer'] = stereoisomer
-            hippo_df_step[f'error'] = error
-            hippo_df_step[f'∆∆G'] = delta_delta_G
-            hippo_df_step[f'∆G_bound'] = delta_G_bound
-            hippo_df_step[f'∆G_unbound'] = delta_G_unbound
-            hippo_df_step[f'comRMSD'] = comRMSD
-            hippo_df_step[f'regarded'] = regarded
-            hippo_df_step[f'path_to_mol'] = path_to_mol
-            hippo_df_step['template'] = self.template
-            hippo_df_step[f'intra_geometry_pass'] = intra_geometry_pass
-        return hippo_df_step
+            structured_df_step[f'{step}_num_atom_diff'] = num_atom_diff
+            structured_df_step[f'{step}_stereoisomer'] = stereoisomer
+            structured_df_step[f'error'] = error
+            structured_df_step[f'∆∆G'] = delta_delta_G
+            structured_df_step[f'∆G_bound'] = delta_G_bound
+            structured_df_step[f'∆G_unbound'] = delta_G_unbound
+            structured_df_step[f'comRMSD'] = comRMSD
+            structured_df_step[f'regarded'] = regarded
+            structured_df_step[f'path_to_mol'] = path_to_mol
+            structured_df_step['template'] = self.template
+            structured_df_step[f'intra_geometry_pass'] = intra_geometry_pass
+        return structured_df_step
 
     def which_reactant_was_previous_product(self,
                                             r1_is_previous_product: bool,
