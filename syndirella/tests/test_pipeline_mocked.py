@@ -34,12 +34,10 @@ class TestPipelineConfig(unittest.TestCase):
             'output': 'tests/outputs/test_pipeline/test_output/',
             'templates': 'tests/inputs/test_inputs/templates',
             'hits_path': 'tests/inputs/test_inputs/A71EV2A_combined.sdf',
-            'metadata': 'tests/inputs/test_inputs/metadata.csv',
             'batch_num': 1,
             'atom_diff_min': 0,
             'atom_diff_max': 1,
             'scaffold_place_num': 1,
-            'long_code_column': 'Long code',
             'retro_tool': 'manifold',
             'db_search_tool': 'arthor'
         }
@@ -168,7 +166,6 @@ class TestPipelineErrorHandling(unittest.TestCase):
             'atom_diff_min': 0,
             'atom_diff_max': 5,
             'scaffold_place_num': 3,
-            'long_code_column': 'Long code'
         }
         
         with self.assertRaises(FileNotFoundError):

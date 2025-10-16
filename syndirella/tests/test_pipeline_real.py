@@ -36,7 +36,6 @@ class TestPipelineIntegration(unittest.TestCase):
             'atom_diff_max': 1,  # use only 1 for faster test
             'scaffold_place': True,
             'scaffold_place_num': 1,
-            'long_code_column': 'Long code',
             'manual': False,
         }
 

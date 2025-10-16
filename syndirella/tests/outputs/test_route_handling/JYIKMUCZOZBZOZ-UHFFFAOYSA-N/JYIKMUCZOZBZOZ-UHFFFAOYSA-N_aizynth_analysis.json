@@ -1,0 +1,39 @@
+[
+  {
+    "input_smiles": "C1CCN(C(=O)NC2CCC2)CC1",
+    "original_aizynth_route": {
+      "reaction_tree": {
+        "reaction_smiles": [
+          "O=C(NC1CCC1)N1CCCCC1>>NC1CCC1.O=C(Cl)N1CCCCC1"
+        ],
+        "metadata": [
+          {
+            "reaction_smiles": "O=C(NC1CCC1)N1CCCCC1>>NC1CCC1.O=C(Cl)N1CCCCC1",
+            "template_code": 35353,
+            "template": "[#7:2]-[C;H0;D3;+0:1](=[O;D1;H0:3])-[NH;D2;+0:5]-[C:4]>>Cl-[C;H0;D3;+0:1](-[#7:2])=[O;D1;H0:3].[C:4]-[NH2;D1;+0:5]",
+            "metadata": {
+              "template_hash": "d48b5d962a559c88c8a4d586b66f84c39c9ed45d1abb8624610eb6b6f51d364a",
+              "classification": "0.0 Unrecognized",
+              "library_occurence": 587,
+              "policy_probability": 0.06840000301599503,
+              "policy_probability_rank": 2,
+              "policy_name": "uspto",
+              "template_code": 35353,
+              "template": "[#7:2]-[C;H0;D3;+0:1](=[O;D1;H0:3])-[NH;D2;+0:5]-[C:4]>>Cl-[C;H0;D3;+0:1](-[#7:2])=[O;D1;H0:3].[C:4]-[NH2;D1;+0:5]",
+              "mapped_reaction_smiles": "[O:1]=[C:2]([NH:3][CH:4]1[CH2:5][CH2:6][CH2:7]1)[N:8]1[CH2:9][CH2:10][CH2:11][CH2:12][CH2:13]1>>[NH2:3][CH:4]1[CH2:5][CH2:6][CH2:7]1.[O:1]=[C:2]([N:8]1[CH2:9][CH2:10][CH2:11][CH2:12][CH2:13]1)[Cl:14]"
+            }
+          }
+        ]
+      },
+      "route_metadata": "{'created_at_iteration': 3, 'is_solved': True}",
+      "node": "<aizynthfinder.search.mcts.node.MctsNode object at 0x1793e49d0>",
+      "score": {
+        "state score": 0.9976287063411217
+      },
+      "all_score": "{'state score': 0.9976287063411217}",
+      "reaction_mappings": {
+        "O=C(NC1CCC1)N1CCCCC1>>NC1CCC1.O=C(Cl)N1CCCCC1": "Acyl_chloride_with_primary_amine_to_amide_(Schotten-Baumann)"
+      }
+    }
+  }
+]

@@ -302,7 +302,6 @@ class TestArthorIntegration(unittest.TestCase):
             'scaffold_place_num': 5,
             'retro_tool': 'manifold',
             'db_search_tool': 'arthor',
-            'long_code_column': 'Long code',
             'manual': False,
             'only_scaffold_place': False,
             'no_scaffold_place': False,

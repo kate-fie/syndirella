@@ -43,7 +43,6 @@ class PipelineConfig:
     scaffold_place_num: int
     retro_tool: RetrosynthesisTool
     db_search_tool: DatabaseSearchTool
-    long_code_column: str
     
     # Optional settings with defaults
     manual_routes: bool = False
@@ -52,7 +51,6 @@ class PipelineConfig:
     elab_single_reactant: bool = False
     additional_columns: List[str] = None
     reference_db: str = None
-    metadata_path: str = None
     assert_scaffold_intra_geom_flatness: bool = True
     
     def __post_init__(self):
@@ -68,14 +66,12 @@ class PipelineConfig:
                 output_dir=settings['output'],
                 template_dir=settings['templates'],
                 hits_path=settings['hits_path'],
-                metadata_path=settings.get('metadata', None),
                 batch_num=settings['batch_num'],
                 atom_diff_min=settings['atom_diff_min'],
                 atom_diff_max=settings['atom_diff_max'],
                 scaffold_place_num=settings['scaffold_place_num'],
                 retro_tool=RetrosynthesisTool.from_string(settings.get('retro_tool', DEFAULT_RETROSYNTHESIS_TOOL.value)),
                 db_search_tool=DatabaseSearchTool.from_string(settings.get('db_search_tool', DEFAULT_DATABASE_SEARCH_TOOL.value)),
-                long_code_column=settings['long_code_column'],
                 manual_routes=settings.get('manual', False),
                 only_scaffold_place=settings.get('only_scaffold_place', False),
                 scaffold_place=not settings.get('no_scaffold_place', False),
@@ -337,13 +333,11 @@ def process_row(row: pd.Series, config: PipelineConfig):
     additional_info: dict = check_inputs.format_additional_info(row, config.additional_columns)
     template_path: str = check_inputs.get_template_path(
         template_dir=config.template_dir,
-        template=row['template'],
-        metadata_path=config.metadata_path
+        template=row['template']
     )
 
     hits: List[str] = check_inputs.get_exact_hit_names(
         row=row, 
-        metadata_path=config.metadata_path,
         hits_path=config.hits_path,
     )
 
@@ -434,10 +428,8 @@ def run_pipeline(settings: Dict):
         csv_path=config.csv_path,
         template_dir=config.template_dir,
         hits_path=config.hits_path,
-        metadata_path=config.metadata_path,
         additional_columns=config.additional_columns,
-        manual_routes=config.manual_routes,
-        long_code_column=config.long_code_column
+        manual_routes=config.manual_routes
     )
 
     # Load data and process each row

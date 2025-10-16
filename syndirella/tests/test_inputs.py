@@ -65,39 +65,17 @@ class TestInputValidations(unittest.TestCase):
         with self.assertRaises(ValueError):
             check_inputs.check_csv(self.temp_csv)
 
-    def test_check_hit_names(self):
-        """Test hit names validation."""
-        check_inputs.check_hit_names(self.csv_path, self.hits_path, self.metadata, 'Long code')
-
-    def test_metadata_dict_valid(self):
-        """Test metadata dictionary creation."""
-        result = check_inputs.metadata_dict(self.metadata, 'Long code')
-        self.assertIsInstance(result, dict)
-        self.assertGreater(len(result), 0)
-
-    def test_metadata_dict_file_not_found(self):
-        """Test metadata file not found error."""
-        with self.assertRaises(FileNotFoundError):
-            check_inputs.metadata_dict('nonexistent_metadata.csv', 'Long code')
-
-    def test_metadata_dict_missing_columns(self):
-        """Test metadata with missing required columns."""
-        df = pd.DataFrame({'other_column': ['test']})
-        df.to_csv(self.temp_metadata, index=False)
-        
-        with self.assertRaises(ValueError):
-            check_inputs.metadata_dict(self.temp_metadata, 'Long code')
 
     def test_check_template_paths_valid(self):
         """Test template paths validation."""
-        result = check_inputs.check_template_paths(self.template_dir, self.csv_path, self.metadata)
+        result = check_inputs.check_template_paths(self.template_dir, self.csv_path)
         self.assertIsInstance(result, set)
         self.assertGreater(len(result), 0)
 
     def test_check_template_paths_invalid_directory(self):
         """Test template directory not found error."""
         with self.assertRaises(NotADirectoryError):
-            check_inputs.check_template_paths('nonexistent_dir', self.csv_path, self.metadata)
+            check_inputs.check_template_paths('nonexistent_dir', self.csv_path)
 
     def test_check_manual_valid(self):
         """Test manual route validation."""
@@ -151,26 +129,26 @@ END"""
             'hit2': 'Ax0450a'
         })
         
-        result = check_inputs.get_exact_hit_names(row, self.metadata, self.hits_path)
+        result = check_inputs.get_exact_hit_names(row, self.hits_path)
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
 
-    def test_get_exact_hit_names_invalid_with_metadata(self):
-        """Test exact hit names retrieval with invalid hit name when metadata is provided."""
+    def test_get_exact_hit_names_invalid(self):
+        """Test exact hit names retrieval with invalid hit name."""
         row = pd.Series({
             'hit1': 'InvalidHitName',
             'hit2': 'Ax0450a'
         })
         
         with self.assertRaises(ValueError) as context:
-            check_inputs.get_exact_hit_names(row, self.metadata, self.hits_path)
+            check_inputs.get_exact_hit_names(row, self.hits_path)
         
-        self.assertIn("No matches found", str(context.exception))
+        self.assertIn("not found in SDF file", str(context.exception))
 
     def test_get_template_path(self):
         """Test template path retrieval."""
         template = 'Ax0310a'
-        result = check_inputs.get_template_path(self.template_dir, template, self.metadata)
+        result = check_inputs.get_template_path(self.template_dir, template)
         self.assertIsInstance(result, str)
         self.assertTrue(os.path.exists(result))
 
@@ -178,7 +156,7 @@ END"""
         """Test template path not found error."""
         template = 'nonexistent_template'
         with self.assertRaises(FileNotFoundError):
-            check_inputs.get_template_path(self.template_dir, template, self.metadata)
+            check_inputs.get_template_path(self.template_dir, template)
 
     def test_check_additional_columns(self):
         """Test additional columns validation."""
@@ -211,10 +189,8 @@ END"""
             csv_path=self.csv_path,
             template_dir=self.template_dir,
             hits_path=self.hits_path,
-            metadata_path=self.metadata,
             additional_columns=['compound_set'],
-            manual_routes=False,
-            long_code_column='Long code'
+            manual_routes=False
         )
 
     def test_check_pipeline_inputs_manual_routes(self):
@@ -223,59 +199,10 @@ END"""
             csv_path=self.manual_csv_path,
             template_dir=self.template_dir,
             hits_path=self.hits_path,
-            metadata_path=self.metadata,
             additional_columns=['compound_set'],
-            manual_routes=True,
-            long_code_column='Long code'
+            manual_routes=True
         )
 
-    def test_check_template_paths_no_metadata(self):
-        """Test template paths validation without metadata."""
-        result = check_inputs.check_template_paths(self.template_dir, self.csv_path, None)
-        self.assertIsInstance(result, set)
-        self.assertGreater(len(result), 0)
-
-    def test_get_exact_hit_names_no_metadata(self):
-        """Test exact hit names retrieval without metadata."""
-        row = pd.Series({
-            'hit1': 'A71EV2A-x0556_A_147_1_A71EV2A-x0526+A+147+1',
-            'hit2': 'A71EV2A-x0450_A_201_1_A71EV2A-x0526+A+147+1'
-        })
-        
-        result = check_inputs.get_exact_hit_names(row, None, self.hits_path)
-        self.assertIsInstance(result, list)
-        self.assertEqual(result, ['A71EV2A-x0556_A_147_1_A71EV2A-x0526+A+147+1', 'A71EV2A-x0450_A_201_1_A71EV2A-x0526+A+147+1'])  # Should return hit names directly
-
-    def test_get_exact_hit_names_no_metadata_invalid_hit(self):
-        """Test exact hit names retrieval without metadata with invalid hit name."""
-        row = pd.Series({
-            'hit1': 'InvalidHitName',
-            'hit2': 'A71EV2A-x0450_A_201_1_A71EV2A-x0526+A+147+1'
-        })
-        
-        with self.assertRaises(ValueError) as context:
-            check_inputs.get_exact_hit_names(row, None, self.hits_path)
-        
-        self.assertIn("Hit name 'InvalidHitName' not found in SDF file", str(context.exception))
-
-    def test_get_template_path_no_metadata(self):
-        """Test template path retrieval without metadata."""
-        template = 'Ax0310a'
-        result = check_inputs.get_template_path(self.template_dir, template, None)
-        self.assertIsInstance(result, str)
-        self.assertTrue(os.path.exists(result))
-
-    def test_check_pipeline_inputs_no_metadata(self):
-        """Test valid pipeline inputs validation without metadata."""
-        check_inputs.check_pipeline_inputs(
-            csv_path=self.csv_path,
-            template_dir=self.template_dir,
-            hits_path=self.hits_path,
-            metadata_path=None,  # No metadata provided
-            additional_columns=['compound_set'],
-            manual_routes=False,
-            long_code_column='Long code'
-        )
 
 
 if __name__ == '__main__':

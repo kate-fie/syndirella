@@ -76,7 +76,7 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
 
 .. code-block:: bash
 
-    usage: syndirella run [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH] [--metadata METADATA] [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual] [--only_scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM] [--retro_tool {manifold,aizynthfinder}] [--db_search_tool {postera,arthor}] [--profile] [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX] [--long_code_column LONG_CODE_COLUMN] [--just_retro] [--no_scaffold_place] [--elab_single_reactant]
+    usage: syndirella run [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH] [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual] [--only_scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM] [--retro_tool {manifold,aizynthfinder}] [--db_search_tool {postera,arthor}] [--profile] [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX] [--just_retro] [--no_scaffold_place] [--elab_single_reactant]
 
     Run the full Syndirella pipeline with specified input files and parameters.
 
@@ -90,7 +90,6 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
                             Absolute path to a directory containing the template(s).
       --hits_path HITS_PATH
                             Optional absolute path to hits_path for placements (.sdf or .mol).
-      --metadata METADATA   Optional absolute path to metadata for placements.
       --products PRODUCTS   Optional absolute path to products for placements.
       --batch_num BATCH_NUM
                             Batch number for processing. (default: 10000)
@@ -108,8 +107,6 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
                             Minimum atom difference between elaborations and scaffold to keep. (default: 0)
       --atom_diff_max ATOM_DIFF_MAX
                             Maximum atom difference between elaborations and scaffold to keep. (default: 10)
-      --long_code_column LONG_CODE_COLUMN
-                            Column name for long code in metadata csv to match to SDF name. (default: Long code)
       --just_retro          Only run retrosynthesis querying of scaffolds. (default: False)
       --no_scaffold_place   Do not place scaffolds initially before elaborating. (default: False)
       --elab_single_reactant
@@ -171,12 +168,21 @@ Download the fragment hits from Fragalysis. In the download folder the important
 
 ::
 
-    metadata.csv # contains short and long codes
     target_name_combined.sdf # fragment poses with long code names
     /aligned_files/fragment_name/fragment_name_apo-desolv.pdb # apo pdb used for placement
 
+.. attention::
+
+    **IMPORTANT**: The template string in your CSV must **exactly match** the PDB filename (without extension). The hit names in your CSV must **exactly match** the molecule names in the SDF file.
+
 2. Create input csv
 -------------------
+
+**Critical Requirements for Exact Matching:**
+
+- **Template names**: Must exactly match the PDB filename (without .pdb extension)
+- **Hit names**: Must exactly match the molecule names in the SDF file
+- **No metadata file needed**: Direct matching eliminates the need for metadata.csv
 
 Syndirella can be run either in *automatic* or *manual* mode.
 
@@ -189,9 +195,9 @@ Required headers:
     ``smiles``:
         smiles string of :term:`scaffold`.
     ``hit1``:
-        string of short code (or any substring of short code found in the metadata.csv) of 1 fragment inspiring hit.
+        string that **exactly matches** the molecule name in the SDF file for 1 fragment inspiring hit.
     ``template``:
-        path to apo protein template to use for :term:`placement`.
+        string that **exactly matches** the PDB filename (without extension) to use for :term:`placement`.
     ``compound_set``:
         string or int identifier.
 
@@ -215,9 +221,9 @@ Required headers:
     ``smiles``:
         smiles string of scaffold.
     ``hit1``:
-        string of short code (or any substring of short code found in the metadata.csv) of 1 fragment inspiring hit.
+        string that **exactly matches** the molecule name in the SDF file for 1 fragment inspiring hit.
     ``template``:
-        path to apo protein template to use for :term:`placement`.
+        string that **exactly matches** the PDB filename (without extension) to use for :term:`placement`.
     ``compound_set``:
         string or int identifier.
     ``reaction_name_step1``:
@@ -257,7 +263,7 @@ Run pipeline in *automatic* mode:
 .. code-block:: bash
 
     syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv]
+    --hits_path [path_to_fragments.sdf]
 
 
 Run pipeline in *manual* mode:
@@ -335,14 +341,14 @@ You can run Syndirella to only place scaffolds. It will not perform the full ela
 .. code-block:: bash
 
     syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --scaffold_place
+    --hits_path [path_to_fragments.sdf] --scaffold_place
 
 You can also specify to not place the scaffold (most likely you confirmed placement using another method).
 
 .. code-block:: bash
 
     syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --no_scaffold_place
+    --hits_path [path_to_fragments.sdf] --no_scaffold_place
 
 
 Usage Option: Only Get Retrosynthesis Routes of Scaffolds
@@ -394,7 +400,7 @@ amidation, there will be two elaboration series output: (1) only elaborating rea
 .. code-block:: bash
 
     syndirella run --input [path_to_input.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --metadata [path_to_metadata.csv] --elab_single_reactant
+    --hits_path [path_to_fragments.sdf] --elab_single_reactant
 
 
 

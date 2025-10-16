@@ -91,7 +91,6 @@ def config_parser(syndirella_base_path: str):
                         help="Absolute path to a directory containing the template(s).")
     pipeline_parser.add_argument('--hits_path', type=str, required=False,
                         help="Absolute path to hits_path for placements (.sdf or .mol).")
-    pipeline_parser.add_argument('--metadata', type=str, required=False, help="Optional absolute path to metadata for placements. If not supplied will use molecule names from hits SDF")
     pipeline_parser.add_argument('--products', type=str, required=False, help="Absolute path to products for placements.")
     pipeline_parser.add_argument('--batch_num', type=int, default=10000, help="Batch number for processing.")
     pipeline_parser.add_argument('--manual', action='store_true', help="Use manual routes for processing.")
@@ -110,8 +109,6 @@ def config_parser(syndirella_base_path: str):
                         help="Minimum atom difference between elaborations and scaffold to keep.")
     pipeline_parser.add_argument('--atom_diff_max', type=int, default=10,
                         help="Maximum atom difference between elaborations and scaffold to keep.")
-    pipeline_parser.add_argument('--long_code_column', type=str, default='Long code',
-                        help="Column name for long code in metadata csv to match to SDF name.")
     pipeline_parser.add_argument('--just_retro', action='store_true', help="Only run retrosynthesis querying of scaffolds.")
     pipeline_parser.add_argument('--no_scaffold_place', action='store_true',
                         help="Do not place scaffolds initially before elaborating.")
@@ -195,7 +192,31 @@ def run_justretroquery(settings: Dict[str, Any], justretroquery):
 
 def main():
     setup_logging()
-    syndirella_base_path = os.path.dirname(importlib.util.find_spec('syndirella').origin)
+    
+    # Find syndirella package location more robustly
+    try:
+        # First try the standard approach
+        spec = importlib.util.find_spec('syndirella')
+        if spec and spec.origin:
+            syndirella_base_path = os.path.dirname(spec.origin)
+        else:
+            # Fallback: use the package's __file__ attribute
+            import syndirella
+            syndirella_base_path = os.path.dirname(syndirella.__file__)
+    except Exception:
+        # Final fallback: assume we're in the project directory
+        # This works when running from the project root
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if os.path.basename(current_dir) == 'syndirella':
+            syndirella_base_path = current_dir
+        else:
+            # Look for syndirella directory in the current working directory
+            cwd = os.getcwd()
+            potential_path = os.path.join(cwd, 'syndirella')
+            if os.path.exists(potential_path):
+                syndirella_base_path = potential_path
+            else:
+                raise RuntimeError("Could not determine syndirella package location")
 
     # Check if user wants help for a specific command
     if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help'] and len(sys.argv) > 2:

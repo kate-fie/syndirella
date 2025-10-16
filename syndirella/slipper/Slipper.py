@@ -166,7 +166,7 @@ class Slipper:
             df = pd.read_pickle(file)
             if len(df) == 0:
                 self.logger.info(
-                    f"Empty dataframe found in {file}. Continuing with next file to structure hippo outputs")
+                    f"Empty dataframe found in {file}. Continuing with next file to structure outputs")
                 continue
             step = df['step'].iloc[0]
             product_dfs[step] = df
