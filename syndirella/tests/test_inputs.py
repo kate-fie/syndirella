@@ -23,8 +23,8 @@ class TestInputValidations(unittest.TestCase):
     """Minimal comprehensive test for input validation functionality."""
     
     def setUp(self):
-        self.csv_path = abs_path('..', 'syndirella_input_template.csv')
-        self.manual_csv_path = abs_path('..', 'syndirella_manual_input_template.csv')
+        self.csv_path = abs_path('inputs', 'test_inputs', 'syndirella_input_template.csv')
+        self.manual_csv_path = abs_path('inputs', 'test_inputs', 'syndirella_manual_input_template.csv')
         self.template_dir = abs_path('inputs', 'test_inputs', 'templates')
         self.hits_path = abs_path('inputs', 'test_inputs', 'A71EV2A_combined.sdf')
         self.metadata = abs_path('inputs', 'test_inputs', 'metadata.csv')

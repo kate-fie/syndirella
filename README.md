@@ -44,13 +44,25 @@ pip install syndirella
 
 ### Example Input
 
-Create a CSV file with your fragment data:
+Create a CSV file with your fragment data. Hit names must match the exact names in your SDF file:
 
 ```csv
 smiles,hit1,hit2,hit3,template,compound_set
-O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1,Ax0556a,Ax0566a,,Ax0310a,my_compound_set
-CC(=O)Nc1cc(CC(=O)NCC(NC(=O)CCl)c2cccnc2)c(NC(C)=O)nn1,1346a,,,Ax1346a,my_compound_set
+O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1,A71EV2A-x0556_A_147_1_A71EV2A-x0526+A+147+1,A71EV2A-x0566_A_147_1_A71EV2A-x0526+A+147+1,,Ax0310a_apo-desolv,my_compound_set
+CC(=O)Nc1cc(CC(=O)NCC(NC(=O)CCl)c2cccnc2)c(NC(C)=O)nn1,A71EV2A-x1346_A_250_1_A71EV2A-x0526+A+147+1,,,Ax1346a_apo-desolv,my_compound_set
 ```
+
+**For complete examples and templates, see the [run_syndirella_example](examples/run_syndirella_example/) directory.**
+
+### Output Files
+
+The main output file to read is the **`structured_output.pkl.gz`** file, which contains:
+- Complete synthesis routes with reaction details
+- Placement information with energy values
+- Structural quality metrics
+- Product information and success flags
+
+This file contains all the information needed to analyze and reproduce the elaborations.
 
 ## Requirements
 

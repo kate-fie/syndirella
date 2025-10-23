@@ -1,0 +1,2 @@
+smiles,reaction_name_step1,reactant_step1,reactant2_step1,product_step1,reaction_name_step2,reactant_step2,product_step2,reaction_name_step3,reactant_step3,hit1,hit2,hit3,template,compound_set
+CC(=O)N(C)c1ccc(NCc2cccc(C(C)C)c2)cn1,Amide Schotten-Baumann with amine,CNc1ccc(I)cn1,CC(=O)Cl,CC(=O)N(C)c1ccc(I)cn1,N-nucleophilic aromatic substitution,CC(C)c1cccc(CN)c1,,,,Ax0310a_apo-desolv,A71EV2A-x0365_A_201_1_A71EV2A-x0526+A+147+1,,Ax0310a_apo-desolv,test_compound_set

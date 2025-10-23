@@ -189,7 +189,7 @@ Syndirella can be run either in *automatic* or *manual* mode.
 
 **Automatic**:
     Scaffolds can be elaborated by routes automatically proposed by Manifold.
-    An example template is at ``syndirella/syndirella_input_template.csv``.
+    An example template is at ``examples/run_syndirella_example/syndirella_input_example_automatic.csv``.
 
 Required headers:
 
@@ -215,7 +215,7 @@ Not required headers:
 
 **Manual**:
     You can set the exact route to elaborate the scaffold with the reaction names, exact reactants, and number of steps in the route.
-    An example template is at ``syndirella/syndirella_input_template_manual.csv``.
+    An example template is at ``examples/run_syndirella_example/syndirella_input_example_manual.csv``.
 
 Required headers:
 
@@ -294,10 +294,10 @@ Run pipeline in *manual* mode:
     │   │   │   ├── 🔑🔑🔑_[route_uuid]_[num]-[stereoisomer].mol
     │   │   │   ├── 🔑🔑🔑_[route_uuid]_[num]-[stereoisomer].json # energy values
     │   │   └── continued for all products...
+    │   ├── 🔑🔑🔑_[route_uuid]_structured_output.pkl.gz # KEY OUTPUT FILE - full routes and placements
     │   ├── 🔑🔑🔑_[route_uuid]_[rxn_name]_products_[last_step]of[total_steps].pkl.gz & .csv # final products
     │   ├── 🔑🔑🔑_[route_uuid]_[rxn_name]_products_[last_step]of[total_steps]_placements.pkl.gz & .csv # merged placements with products info
-    │   ├── 🔑🔑🔑_[route_uuid]_fragmenstein_placements.pkl.gz & .csv # fragmenstein output
-    │   └── 🔑🔑🔑_[route_uuid]_structured_output.pkl.gz # full routes and placements
+    │   └── 🔑🔑🔑_[route_uuid]_fragmenstein_placements.pkl.gz & .csv # fragmenstein output
     ├── continued for all scaffolds...
     └── [input_csv]_output_YYYYMMDD_HHMM.csv # summary stats of all scaffolds
 
@@ -319,7 +319,16 @@ Run pipeline in *manual* mode:
     Merged placements with products info.
 
 **🔑🔑🔑_[route_uuid]_structured_output.pkl.gz:**
-    Full routes and placements.
+    **⭐ KEY OUTPUT FILE ⭐** - Contains complete synthesis routes and placement information. This is the primary file to read for detailed results including:
+    
+    - Full synthesis routes with reaction names, reactants, and products for each step
+    - Placement information with energy values (ΔΔG, ΔG_bound, ΔG_unbound)
+    - Structural quality metrics (comRMSD, intra-geometry checks)
+    - Product stereochemistry and atom differences
+    - Success flags and error information
+    - Paths to molecular structure files
+    
+    This file contains all the information needed to reproduce and analyze the elaborations.
 
 .. note::
 

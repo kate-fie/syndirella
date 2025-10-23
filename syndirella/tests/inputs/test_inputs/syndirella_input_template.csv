@@ -1,0 +1,3 @@
+smiles,hit1,hit2,hit3,template,compound_set
+O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1,A71EV2A-x0556_A_147_1_A71EV2A-x0526+A+147+1,A71EV2A-x0566_A_147_1_A71EV2A-x0526+A+147+1,,Ax0310a_apo-desolv,test_compound_set
+CC(=O)Nc1cc(CC(=O)NCC(NC(=O)CCl)c2cccnc2)c(NC(C)=O)nn1,A71EV2A-x1346_A_250_1_A71EV2A-x0526+A+147+1,,,Ax1346a_apo-desolv,test_compound_set

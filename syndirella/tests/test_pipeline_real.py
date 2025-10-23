@@ -26,7 +26,7 @@ class TestPipelineIntegration(unittest.TestCase):
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         
         self.settings = {
-            'input': os.path.join(project_root, 'syndirella', 'syndirella_input_template.csv'),
+            'input': os.path.join(project_root, 'syndirella', 'tests', 'inputs', 'test_inputs', 'syndirella_input_template.csv'),
             'output': os.path.join(project_root, 'syndirella', 'tests', 'outputs', 'test_pipeline'),
             'templates': os.path.join(project_root, 'syndirella', 'tests', 'inputs', 'test_inputs', 'templates'),
             'hits_path': os.path.join(project_root, 'syndirella', 'tests', 'inputs', 'test_inputs', 'A71EV2A_combined.sdf'),
@@ -86,7 +86,7 @@ class TestPipelineIntegration(unittest.TestCase):
     def test_pipeline_creates_output_aizynthfinder(self):
         # Get the project root directory (two levels up from this test file)
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        self.settings['input'] = os.path.join(project_root, 'syndirella', 'syndirella_input_template.csv')
+        self.settings['input'] = os.path.join(project_root, 'syndirella', 'tests', 'inputs', 'test_inputs', 'syndirella_input_template.csv')
         self.settings['no_scaffold_place'] = True
         self.settings['retro_tool'] = 'aizynthfinder'
         self.settings['db_search_tool'] = 'arthor'
@@ -106,7 +106,7 @@ class TestPipelineIntegration(unittest.TestCase):
 
     def test_pipeline_creates_output_manifold(self):
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        self.settings['input'] = os.path.join(project_root, 'syndirella', 'syndirella_input_template.csv')
+        self.settings['input'] = os.path.join(project_root, 'syndirella', 'tests', 'inputs', 'test_inputs', 'syndirella_input_template.csv')
         self.settings['no_scaffold_place'] = True
         self.settings['retro_tool'] = 'manifold'
         logging.basicConfig(level=logging.INFO)
@@ -128,7 +128,7 @@ class TestPipelineIntegration(unittest.TestCase):
         self.settings['manual'] = True
         # Get the project root directory (two levels up from this test file)
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        self.settings['input'] = os.path.join(project_root, 'syndirella', 'syndirella_manual_input_template.csv')
+        self.settings['input'] = os.path.join(project_root, 'syndirella', 'tests', 'inputs', 'test_inputs', 'syndirella_manual_input_template.csv')
         self.settings['no_scaffold_place'] = True
         logging.basicConfig(level=logging.INFO)
         

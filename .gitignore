@@ -11,6 +11,7 @@ old_README.md
 /syndirella/aizynth/*.onnx
 /syndirella/aizynth/*.csv*
 /syndirella/aizynth/*.hdf5
+private/
 setup.py
 requirements.txt
 
