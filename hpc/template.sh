@@ -54,11 +54,10 @@ export METADATA=[path_to_metadata];
 
 echo "Running syndirella";
 
-nice -19 syndirella --run \
+nice -19 syndirella run \
 --input $INPUT \
 --output $OUTPUT \
 --templates $TEMPLATES \
---hits_path $HITS \
---metadata $METADATA;
+--hits_path $HITS 
 
 echo 'COMPLETE'
