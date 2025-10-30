@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job.sh-name=NAME
+#SBATCH --job-name=NAME
 #SBATCH --chdir=[path]
 #SBATCH --output=[path]/logs/slurm-log_%x_%j.log
 #SBATCH --error=[path]/logs/slurm-error_%x_%j.log
@@ -50,7 +50,6 @@ export INPUT="syndirella_input/syndirella_input0.csv"
 export OUTPUT=[path_to_output]
 export TEMPLATES=[path_to_templates];
 export HITS=[path_to_hits];
-export METADATA=[path_to_metadata];
 
 echo "Running syndirella";
 
