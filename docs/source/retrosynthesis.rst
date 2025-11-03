@@ -7,6 +7,35 @@ Syndirella offers two options for retrosynthesis functionality, AiZynthFinder an
 AiZynthFinder
 -------------
 
+Before using AiZynthFinder for retrosynthesis, you need to set it up. There are two options:
+
+**Automatic Setup (Recommended):**
+
+Run the setup command to automatically download required data and create the configuration file:
+
+.. code-block:: bash
+
+    syndirella setup-aizynth
+
+.. attention::
+
+    ⚠️ This will download large model files (~750MB total) if run the first time (will take ~5 min). These are required to run AiZynthFinder. This will automatically download the required data to ``[syndirella_package_path]/aizynth`` directory and create the configuration file automatically.
+
+**Manual Setup (Alternative):**
+
+If you prefer to set up AiZynthFinder manually:
+
+.. code-block:: bash
+
+    cd [syndirella_package_path]/aizynth
+    download_public_data .
+    # Update config.yml (if you prefer)
+    export AIZYNTH_CONFIG_FILE="path/to/syndirella/aizynth/config.yml"
+
+.. note::
+
+    To make the environment variable permanent, add the export line to your shell profile (~/.bashrc, ~/.zshrc, etc.).
+
 Basic usage:
 
 .. code-block:: python
