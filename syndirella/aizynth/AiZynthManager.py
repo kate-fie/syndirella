@@ -452,6 +452,8 @@ class AiZynthManager:
             sorted_routes = sorted(routes, key=lambda r: r['score']['state score'], reverse=True)
             best_routes.extend(sorted_routes[:max_routes_per_cluster])
 
+        # Sort all routes by score overall (not just within clusters) to get true top N
+        best_routes = sorted(best_routes, key=lambda r: r['score']['state score'], reverse=True)
         best_routes = self._format_routes_as_dict(best_routes)
 
         self.logger.info(f"Selected {len(best_routes)} best routes from {len(self.valid_clusters)} clusters")

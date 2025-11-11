@@ -14,8 +14,10 @@ On Mac OS and Linux you can install from PyPI using Conda.
 
     conda create -n syndirella python=3.10
     conda activate syndirella
-    pip install "cython<3.2"  # Required to avoid Cython 3.2.0 compiler bug when building cgrtools (transitive dependency with aizynthfinder)
+    pip install "cython<3.2"  # Required to avoid Cython 3.2.0 compiler bug when building cgrtools
     pip install syndirella
+
+**Note:** If `cgrtools` installation fails, try running `pip install --no-build-isolation cgrtools` separately.
 
 .. attention::
 
@@ -156,6 +158,11 @@ Syndirella uses the following default tools:
 **Default Database Search Tool**: ``arthor``  
     - Alternative: ``manifold``
     - Set with: ``--db_search_tool {arthor,manifold}``
+
+.. note::
+
+    If using Manifold for retrosynthesis or database search, you must set up your Manifold API credentials.
+    See the :doc:`Retrosynthesis <retrosynthesis>` section for detailed setup instructions.
 
 Basic Usage
 ===========

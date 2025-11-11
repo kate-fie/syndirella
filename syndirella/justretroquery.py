@@ -12,7 +12,7 @@ from typing import Dict, List
 import pandas as pd
 
 from syndirella.database.Postera import Postera
-from syndirella.utils.error import APIQueryError
+from syndirella.utils.error import APIQueryError, NoSynthesisRoute
 from syndirella.constants import RetrosynthesisTool, DEFAULT_RETROSYNTHESIS_TOOL
 from .cli_defaults import cli_default_settings
 
@@ -22,62 +22,95 @@ with open(cli_default_settings['rxn_smarts_path']) as f:
 reaction_smarts_names: List[str] = list(reaction_smarts.keys())
 
 
-def save_df(df: pd.DataFrame, output_dir: str, csv_path: str) -> str:
+def save_df(df: pd.DataFrame, output_dir: str, csv_path: str, save_csv: bool = True) -> str:
     """
     Save the DataFrame to the output directory.
+    
+    Args:
+        df: DataFrame to save
+        output_dir: Output directory path
+        csv_path: Original CSV path (used for naming)
+        save_csv: If True, save as CSV; also saves pickle format
+    
+    Returns:
+        Path to saved file
     """
     csv_basename = os.path.basename(csv_path)
-    pkl_basename = csv_basename.replace('.csv', '.pkl.gz')
-    saved_path = os.path.join(output_dir, f'justretroquery_{pkl_basename}')
-    df.to_pickle(saved_path)
-    return saved_path
+    base_name = csv_basename.replace('.csv', '')
+    
+    # Save pickle format
+    pkl_basename = f'{base_name}.pkl.gz'
+    pkl_path = os.path.join(output_dir, f'justretroquery_{pkl_basename}')
+    df.to_pickle(pkl_path)
+    
+    # Save CSV format if requested
+    if save_csv:
+        csv_output_name = f'justretroquery_{base_name}.csv'
+        csv_output_path = os.path.join(output_dir, csv_output_name)
+        df.to_csv(csv_output_path, index=False)
+        logger.info(f"Saved CSV to {csv_output_path}")
+        return csv_output_path
+    
+    return pkl_path
 
 
 def format_routes(routes: List[Dict[str, List[Dict[str, str]]]]) -> Dict:
     """
     Gets the top 5 passing routes from the routes. Formats them into a dictionary with routes names as keys, also adds
     other field of routeX_names.
+    
+    Args:
+        routes: List of route dictionaries, each with a 'reactions' key containing list of reaction dicts.
+                Routes should be pre-sorted by score (best first).
+    
+    Returns:
+        Dictionary with route information (route0, route0_names, route0_CAR, etc. for up to 5 routes)
     """
     passing_routes = {}
-    n_of_rxns: List[int] = [i for i, route in enumerate(routes) if len(route['reactions']) > 0]
-    if len(n_of_rxns) == 0:
+    
+    # Filter to only routes with reactions
+    valid_routes = [route for route in routes if route.get('reactions') and len(route['reactions']) > 0]
+    
+    if len(valid_routes) == 0:
         logger.error("No routes with reactions found.")
         return passing_routes
-    min_i = min(n_of_rxns)
-    for i, route in enumerate(routes):
+    
+    # Take top 5 routes (they should already be sorted by score)
+    top_routes = valid_routes[:5]
+    
+    for i, route in enumerate(top_routes):
         # get the reactions
         reactions: List[Dict[str, str]] = route['reactions']
-        # check if all reactions are in the reactions
-        if len(reactions) == 0:
-            continue
-        # adjust i to be in range(5)
-        adjusted_i = i - min_i
         # in original reactions list, replace spaces with underscores
         for reaction in reactions:
             reaction['name'] = reaction['name'].replace(" ", "_")
-        passing_routes[f'route{adjusted_i}'] = reactions
-        passing_routes[f'route{adjusted_i}_names']: List[str] = [reaction['name'] for reaction in reactions]
-        passing_routes[f'route{adjusted_i}_CAR']: bool = all(
+        
+        # Use route index (0-4) for naming
+        passing_routes[f'route{i}'] = reactions
+        passing_routes[f'route{i}_names']: List[str] = [reaction['name'] for reaction in reactions]
+        passing_routes[f'route{i}_CAR']: bool = all(
             [True if reaction['name'] in reaction_smarts_names else False for reaction in reactions])
-        passing_routes[f'route{adjusted_i}_non_CAR']: List[str] | None = ([reaction['name'] for reaction in reactions if
-                                                                           reaction[
-                                                                               'name'] not in reaction_smarts_names]
-                                                                          or None)
-        logger.info(f"Route {adjusted_i} has {len(reactions)} reaction(s)")
-        logger.info(f"Route {adjusted_i} CAR: {passing_routes[f'route{adjusted_i}_CAR']}")
-        logger.info(f"Route {adjusted_i} non-CAR: {passing_routes[f'route{adjusted_i}_non_CAR']}")
-        if len(passing_routes) == 20:  # 5 routes with 3 fields each
-            break
+        passing_routes[f'route{i}_non_CAR']: List[str] | None = ([reaction['name'] for reaction in reactions if
+                                                                   reaction['name'] not in reaction_smarts_names]
+                                                                  or None)
+        logger.info(f"Route {i} has {len(reactions)} reaction(s)")
+        logger.info(f"Route {i} CAR: {passing_routes[f'route{i}_CAR']}")
+        logger.info(f"Route {i} non-CAR: {passing_routes[f'route{i}_non_CAR']}")
+    
+    logger.info(f"Formatted {len(passing_routes) // 4} routes (top {len(top_routes)} scored routes)")
     return passing_routes
 
 
-def retro_search(scaffold: str, retro_tool: RetrosynthesisTool = DEFAULT_RETROSYNTHESIS_TOOL) -> pd.DataFrame:
+def retro_search(scaffold: str, retro_tool: RetrosynthesisTool = DEFAULT_RETROSYNTHESIS_TOOL,
+                 aizynth_search=None, postera=None) -> pd.DataFrame:
     """
     Perform retrosynthesis search on the given scaffold and formats outputs.
     
     Args:
         scaffold: SMILES string of the scaffold to search
         retro_tool: Retrosynthesis tool to use (Manifold or AiZynthFinder)
+        aizynth_search: Optional pre-initialized AiZynthManager instance (for efficiency)
+        postera: Optional pre-initialized Postera instance (for efficiency)
     
     Returns:
         DataFrame with retrosynthesis route information
@@ -86,29 +119,42 @@ def retro_search(scaffold: str, retro_tool: RetrosynthesisTool = DEFAULT_RETROSY
     
     if retro_tool == RetrosynthesisTool.MANIFOLD:
         # Use Postera/Manifold for retrosynthesis
-        postera = Postera()
+        if postera is None:
+            postera = Postera()
         routes: List[Dict[str, List[Dict[str, str]]]] | None = postera.perform_route_search(scaffold)
         if routes is None:
             logger.critical(f"API retrosynthesis query failed for {scaffold}.")
             raise APIQueryError(message=f"API retrosynthesis query failed for {scaffold}.", smiles=scaffold)
     elif retro_tool == RetrosynthesisTool.AIZYNTHFINDER:
         # Use AiZynthFinder for retrosynthesis
-        try:
-            from syndirella.aizynth.AiZynthManager import AiZynthManager
-            aizynth_search = AiZynthManager()
-            routes: List[Dict[str, List[Dict[str, str]]]] = aizynth_search.perform_route_search(
-                target_smiles=scaffold,
-                matching_strategy='best_overall'
-            )
-            # Convert AiZynthFinder format to expected format
-            routes = _convert_aizynth_routes(routes)
-        except ImportError:
-            logger.error("AiZynthFinder not available. Falling back to Manifold.")
-            postera = Postera()
-            routes: List[Dict[str, List[Dict[str, str]]]] | None = postera.perform_route_search(scaffold)
-            if routes is None:
-                logger.critical(f"API retrosynthesis query failed for {scaffold}.")
-                raise APIQueryError(message=f"API retrosynthesis query failed for {scaffold}.", smiles=scaffold)
+        if aizynth_search is None:
+            try:
+                from syndirella.aizynth.AiZynthManager import AiZynthManager
+                aizynth_search = AiZynthManager()
+            except ImportError:
+                logger.error("AiZynthFinder not available. Falling back to Manifold.")
+                if postera is None:
+                    postera = Postera()
+                routes: List[Dict[str, List[Dict[str, str]]]] | None = postera.perform_route_search(scaffold)
+                if routes is None:
+                    logger.critical(f"API retrosynthesis query failed for {scaffold}.")
+                    raise APIQueryError(message=f"API retrosynthesis query failed for {scaffold}.", smiles=scaffold)
+                formatted_routes: Dict = format_routes(routes)
+                logger.info(f"Found {len(formatted_routes)} formatted routes")
+                to_add = {'smiles': scaffold}
+                for route, details in formatted_routes.items():
+                    to_add[route] = details
+                return pd.DataFrame([to_add])
+        
+        routes: List[Dict[str, List[Dict[str, str]]]] = aizynth_search.perform_route_search(
+            target_smiles=scaffold,
+            matching_strategy='best_overall',
+            max_routes_per_cluster=5  # Get up to 5 routes per cluster to ensure we have enough for top 5 overall
+        )
+        # Convert AiZynthFinder format to expected format
+        routes = _convert_aizynth_routes(routes)
+        # Limit to top 5 routes (they're already sorted by score from get_best_routes)
+        routes = routes[:5]
     else:
         raise ValueError(f"Unsupported retrosynthesis tool: {retro_tool}")
     
@@ -142,23 +188,87 @@ def _convert_aizynth_routes(aizynth_routes: List[Dict]) -> List[Dict]:
     return converted_routes
 
 
-def process_df(df: pd.DataFrame, retro_tool: RetrosynthesisTool = DEFAULT_RETROSYNTHESIS_TOOL):
+def process_df(df: pd.DataFrame, retro_tool: RetrosynthesisTool = DEFAULT_RETROSYNTHESIS_TOOL,
+               output_dir: str = None, csv_path: str = None):
     """
     Process the input DataFrame and create output df with retrosynthesis information.
+    Saves incrementally after each scaffold is processed.
     
     Args:
         df: Input DataFrame with 'smiles' column
         retro_tool: Retrosynthesis tool to use
+        output_dir: Optional output directory for incremental saves
+        csv_path: Optional CSV path for incremental saves
     """
     logger.info(f"Processing DataFrame with len {len(df)} using {retro_tool}")
+    
+    # Initialize the retrosynthesis tool once for efficiency
+    aizynth_search = None
+    postera = None
+    
+    if retro_tool == RetrosynthesisTool.AIZYNTHFINDER:
+        try:
+            from syndirella.aizynth.AiZynthManager import AiZynthManager
+            logger.info("Initializing AiZynthManager (this may take a moment)...")
+            aizynth_search = AiZynthManager()
+            logger.info("AiZynthManager initialized successfully")
+        except ImportError:
+            logger.warning("AiZynthFinder not available. Will fall back to Manifold for each scaffold.")
+    elif retro_tool == RetrosynthesisTool.MANIFOLD:
+        postera = Postera()
+    
     route_infos = []
     for i, scaffold in enumerate(df['smiles']):
         logger.info(f"Processing scaffold {i+1}/{len(df)}: {scaffold}")
-        route_info: pd.DataFrame = retro_search(scaffold, retro_tool)
-        route_infos.append(route_info)
-    # format the DataFrame
+        try:
+            route_info: pd.DataFrame = retro_search(scaffold, retro_tool, aizynth_search=aizynth_search, postera=postera)
+            route_infos.append(route_info)
+        except NoSynthesisRoute as e:
+            error_msg = f"No synthesis route found by {retro_tool.value}"
+            logger.warning(f"{error_msg} for scaffold {i+1}/{len(df)}: {scaffold}. Continuing with next scaffold.")
+            # Create a minimal DataFrame with error information
+            route_info = pd.DataFrame([{
+                'smiles': scaffold,
+                'error': error_msg,
+                'error_type': 'NoSynthesisRoute'
+            }])
+            route_infos.append(route_info)
+        except APIQueryError as e:
+            error_msg = f"API retrosynthesis query failed: {str(e)}"
+            logger.error(f"{error_msg} for scaffold {i+1}/{len(df)}: {scaffold}. Continuing with next scaffold.")
+            # Create a minimal DataFrame with error information
+            route_info = pd.DataFrame([{
+                'smiles': scaffold,
+                'error': error_msg,
+                'error_type': 'APIQueryError'
+            }])
+            route_infos.append(route_info)
+        except Exception as e:
+            error_msg = f"Unexpected error: {str(e)}"
+            logger.error(f"{error_msg} for scaffold {i+1}/{len(df)}: {scaffold}. Continuing with next scaffold.")
+            # Create a minimal DataFrame with error information
+            route_info = pd.DataFrame([{
+                'smiles': scaffold,
+                'error': error_msg,
+                'error_type': type(e).__name__
+            }])
+            route_infos.append(route_info)
+        
+        # Save incrementally after each scaffold if output paths provided
+        if output_dir is not None and csv_path is not None:
+            try:
+                route_info_df = pd.concat(route_infos)
+                # Merge with full df - unprocessed scaffolds will have NaN route columns
+                merged_df = df.merge(route_info_df, on='smiles', how='left')
+                merged_df.reset_index(drop=True, inplace=True)
+                save_df(merged_df, output_dir, csv_path, save_csv=True)
+                logger.info(f"Incrementally saved results after scaffold {i+1}/{len(df)}")
+            except Exception as e:
+                logger.warning(f"Failed to save incrementally after scaffold {i+1}: {e}")
+    
+    # format the final DataFrame
     route_info_df = pd.concat(route_infos)
-    merged_df = df.merge(route_info_df, on='smiles')
+    merged_df = df.merge(route_info_df, on='smiles', how='outer')
     merged_df.reset_index(drop=True, inplace=True)
     return merged_df
 
@@ -181,10 +291,12 @@ def run_justretroquery(settings: Dict):
     
     df: pd.DataFrame = pd.read_csv(csv_path)
 
-    df: pd.DataFrame = process_df(df, retro_tool)
+    # Process with incremental saving
+    df: pd.DataFrame = process_df(df, retro_tool, output_dir=output_dir, csv_path=csv_path)
 
-    saved_path: str = save_df(df, output_dir, csv_path)
+    # Final save (in case incremental saves weren't used or for final update)
+    saved_path: str = save_df(df, output_dir, csv_path, save_csv=True)
 
-    logger.info(f"Saved DataFrame to {saved_path}")
+    logger.info(f"Final DataFrame saved to {saved_path}")
 
     logger.info('Justretroquery execution completed successfully.')

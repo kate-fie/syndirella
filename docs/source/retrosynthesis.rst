@@ -65,8 +65,30 @@ and superstructure searches of reactants. You can find more information on Manif
 
     A Manifold Pro account is required for API access.
 
-Set the Manifold API key as an environment variable.
+**Setup:**
+
+1. Get your Manifold API key from your `Postera account <https://app.postera.ai/>`_.
+
+2. Set the required environment variables:
 
 .. code-block:: bash
 
-   export MANIFOLD_API_KEY=[API_KEY]
+   export MANIFOLD_API_KEY=[YOUR_API_KEY]
+   export MANIFOLD_API_URL=[API_URL]
+
+   # Example:
+   # export MANIFOLD_API_KEY=your_api_key_here
+   # export MANIFOLD_API_URL=https://api.postera.ai
+
+.. note::
+
+    To make the environment variables permanent, add the export lines to your shell profile:
+    
+    - For bash: ``~/.bashrc`` or ``~/.bash_profile``
+    - For zsh: ``~/.zshrc``
+    
+    After adding, reload your shell configuration:
+    
+    .. code-block:: bash
+    
+       source ~/.bashrc  # or source ~/.zshrc for zsh
