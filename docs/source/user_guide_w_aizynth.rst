@@ -14,7 +14,7 @@ On Mac OS and Linux you can install from PyPI using Conda.
 
     conda create -n syndirella python=3.10
     conda activate syndirella
-    pip install cgrtools --use-pep517
+    pip install "cython<3.2"  # Required to avoid Cython 3.2.0 compiler bug when building cgrtools (transitive dependency with aizynthfinder)
     pip install syndirella
 
 .. attention::

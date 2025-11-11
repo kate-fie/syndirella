@@ -21,7 +21,7 @@ This guide will walk you through an example to run Syndirella's pipeline through
 
    conda create -n syndirella python=3.10
    conda activate syndirella
-   pip install cgrtools --use-pep517
+   pip install "cython<3.2"  # Required to avoid Cython 3.2.0 compiler bug when building cgrtools (transitive dependency)
    pip install syndirella
 
 2. Clone Syndirella repo.
