@@ -23,7 +23,12 @@ pip install "cython<3.2"  # Required to avoid Cython 3.2.0 compiler bug when bui
 pip install syndirella
 ```
 
-**Note:** If `cgrtools` installation fails, try running `pip install --no-build-isolation cgrtools` separately.
+**Note:** If `cgrtools` installation fails, try running:
+
+```bash
+conda install -c conda-forge c-compiler cxx-compiler
+pip install --no-build-isolation cgrtools
+```
 
 ### Basic Usage
 
