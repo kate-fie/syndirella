@@ -384,24 +384,58 @@ reactions (non-CAR route).
 
     syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --just_retro
 
-**Output file: [input_csv_name].pkl.gz**
+**Output file:**
+    - ``justretroquery_[retro_tool]_[input_csv_name].csv``: CSV file with all route information (e.g., ``justretroquery_aizynthfinder_input.csv`` or ``justretroquery_manifold_input.csv``)
 
 .. note::
 
-    You can read this file using pandas and reading it in as a pickle.
+    The CSV file can be opened directly in Excel or any spreadsheet application, or read using pandas: ``pd.read_csv('justretroquery_[retro_tool]_[input_csv_name].csv')``
 
-Structure of the important columns are:
+Structure of the important columns (where X is 0-4 for the top 5 routes):
 
     ``routeX``:
-        List of dictionaries of each step (X is an int) in the route with reaction names, reactants, and product.
+        List of dictionaries for each step in the route. Each dictionary contains:
+        - ``name``: Reaction name
+        - ``reactantSmiles``: Tuple of reactant SMILES strings
+        - ``productSmiles``: Expected product SMILES from retrosynthesis
+        - ``smirks_validated``: Boolean indicating if applying Syndirella's SMIRKS to the reactants produces the expected product (by InChI-key comparison)
+        - ``actual_product_smiles``: SMILES of the product actually produced by the SMIRKS (if validation was performed)
+    
     ``routeX_names``:
         List of reaction names in the route.
+    
     ``routeX_CAR``:
-        Boolean value if all reactions in route are in RXN_SMIRKS_CONSTANTS.json.
+        Boolean indicating if all reactions in the route are in RXN_SMIRKS_CONSTANTS.json (Chemically Accessible Reactions).
+    
     ``routeX_non_CAR``:
         List of reaction names that are not in RXN_SMIRKS_CONSTANTS.json. Or None if all reactions are in RXN_SMIRKS_CONSTANTS.json.
+    
+    ``routeX_smirks_validated``:
+        Boolean indicating if all reactions in the route passed SMIRKS validation (True if all validated, False if any failed, None if validation couldn't be performed).
+    
+    ``routeX_num_validated``:
+        Number of reactions in the route that passed SMIRKS validation.
+    
+    ``routeX_num_failed_validation``:
+        Number of reactions in the route that failed SMIRKS validation.
+    
+    ``routeX_CAR_and_validated``:
+        **This is the most important column to check!** Boolean that is True only if:
+        - All reactions are in Syndirella's reaction library (CAR = True), AND
+        - All reactions passed SMIRKS validation (smirks_validated = True)
+        
+        Routes with ``routeX_CAR_and_validated = True`` are fully compatible with Syndirella and have been validated to work correctly.
 
-If there are `NaN` values for all above columns, it means that there are no routes found for the scaffold.
+.. attention::
+
+    **Look for routes where ``route0_CAR_and_validated = True`` (or route1, route2, etc.).** These are the routes that:
+    
+    1. Use only reactions from Syndirella's reaction library (CAR routes)
+    2. Have been validated to produce the expected products when applying Syndirella's SMIRKS patterns
+    
+    These routes are the most reliable for use in the full Syndirella pipeline.
+
+If there are `NaN` values for all route columns, it means that there are no routes found for the scaffold.
 
 Usage Option: Only Elaborate One Reactant per Series
 ========================================================

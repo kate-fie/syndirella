@@ -7,9 +7,11 @@ This module provides functions to output retrosynthesis queries for a given list
 import json
 import logging
 import os.path
-from typing import Dict, List
+from typing import Dict, List, Tuple, Optional
 
 import pandas as pd
+from rdkit import Chem
+from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
 from syndirella.database.Postera import Postera
 from syndirella.utils.error import APIQueryError, NoSynthesisRoute
@@ -21,37 +23,122 @@ with open(cli_default_settings['rxn_smarts_path']) as f:
     reaction_smarts = json.load(f)
 reaction_smarts_names: List[str] = list(reaction_smarts.keys())
 
+# Load SMIRKS patterns for validation
+reaction_smirks_dict = {name: data['smirks'] for name, data in reaction_smarts.items()}
 
-def save_df(df: pd.DataFrame, output_dir: str, csv_path: str, save_csv: bool = True) -> str:
+
+def save_df(df: pd.DataFrame, output_dir: str, csv_path: str, retro_tool: str = None) -> str:
     """
-    Save the DataFrame to the output directory.
+    Save the DataFrame to the output directory as CSV.
     
     Args:
         df: DataFrame to save
         output_dir: Output directory path
         csv_path: Original CSV path (used for naming)
-        save_csv: If True, save as CSV; also saves pickle format
+        retro_tool: Optional retrosynthesis tool name to include in filename
     
     Returns:
-        Path to saved file
+        Path to saved CSV file
     """
     csv_basename = os.path.basename(csv_path)
     base_name = csv_basename.replace('.csv', '')
     
-    # Save pickle format
-    pkl_basename = f'{base_name}.pkl.gz'
-    pkl_path = os.path.join(output_dir, f'justretroquery_{pkl_basename}')
-    df.to_pickle(pkl_path)
+    # Create filename prefix with tool name if provided
+    if retro_tool:
+        prefix = f'justretroquery_{retro_tool.lower()}_'
+    else:
+        prefix = 'justretroquery_'
     
-    # Save CSV format if requested
-    if save_csv:
-        csv_output_name = f'justretroquery_{base_name}.csv'
-        csv_output_path = os.path.join(output_dir, csv_output_name)
-        df.to_csv(csv_output_path, index=False)
-        logger.info(f"Saved CSV to {csv_output_path}")
-        return csv_output_path
+    # Save CSV format
+    csv_output_name = f'{prefix}{base_name}.csv'
+    csv_output_path = os.path.join(output_dir, csv_output_name)
+    df.to_csv(csv_output_path, index=False)
+    logger.info(f"Saved CSV to {csv_output_path}")
+    return csv_output_path
+
+
+def validate_reaction_with_smirks(reaction_name: str, reactant_smiles: Tuple[str, ...], 
+                                   expected_product_smiles: str) -> Tuple[bool, Optional[str]]:
+    """
+    Validate that applying a Syndirella SMIRKS reaction to reactants produces the expected product.
     
-    return pkl_path
+    Args:
+        reaction_name: Name of the reaction (must be in Syndirella's reaction library)
+        reactant_smiles: Tuple of reactant SMILES strings
+        expected_product_smiles: Expected product SMILES from the retrosynthesis route
+    
+    Returns:
+        Tuple of (is_valid, actual_product_smiles or None)
+        - is_valid: True if the reaction produces a product matching expected_product_smiles (by InChI-key)
+        - actual_product_smiles: SMILES of the product produced, or None if no product or validation failed
+    """
+    # Check if reaction is in Syndirella's library
+    if reaction_name not in reaction_smirks_dict:
+        logger.debug(f"Reaction {reaction_name} not in Syndirella library, skipping validation")
+        return False, None
+    
+    try:
+        # Get SMIRKS pattern
+        smirks = reaction_smirks_dict[reaction_name]
+        
+        # Create reaction from SMIRKS
+        reaction = ReactionFromSmarts(smirks)
+        
+        # Convert reactant SMILES to molecules
+        reactant_mols = []
+        for smiles in reactant_smiles:
+            mol = Chem.MolFromSmiles(smiles)
+            if mol is None:
+                logger.debug(f"Failed to parse reactant SMILES: {smiles}")
+                return False, None
+            reactant_mols.append(mol)
+        
+        # Apply reaction
+        products = reaction.RunReactants(tuple(reactant_mols))
+        
+        if not products or len(products) == 0:
+            logger.debug(f"No products produced for reaction {reaction_name}")
+            return False, None
+        
+        # Get expected product InChI-key
+        expected_mol = Chem.MolFromSmiles(expected_product_smiles)
+        if expected_mol is None:
+            logger.debug(f"Failed to parse expected product SMILES: {expected_product_smiles}")
+            return False, None
+        expected_inchi_key = Chem.MolToInchiKey(expected_mol)
+        
+        # Check if any product matches the expected product
+        for product_tuple in products:
+            for product_mol in product_tuple:
+                try:
+                    # Sanitize product
+                    Chem.SanitizeMol(product_mol)
+                    product_inchi_key = Chem.MolToInchiKey(product_mol)
+                    
+                    if product_inchi_key == expected_inchi_key:
+                        product_smiles = Chem.MolToSmiles(product_mol)
+                        return True, product_smiles
+                except Exception as e:
+                    logger.debug(f"Error sanitizing/processing product: {e}")
+                    continue
+        
+        # If we get here, no product matched
+        if products:
+            # Return the first product SMILES even if it doesn't match (for debugging)
+            try:
+                first_product = products[0][0]
+                Chem.SanitizeMol(first_product)
+                actual_product_smiles = Chem.MolToSmiles(first_product)
+                logger.debug(f"Product mismatch for {reaction_name}: expected {expected_product_smiles}, got {actual_product_smiles}")
+                return False, actual_product_smiles
+            except:
+                pass
+        
+        return False, None
+        
+    except Exception as e:
+        logger.debug(f"Error validating reaction {reaction_name}: {e}")
+        return False, None
 
 
 def format_routes(routes: List[Dict[str, List[Dict[str, str]]]]) -> Dict:
@@ -85,19 +172,65 @@ def format_routes(routes: List[Dict[str, List[Dict[str, str]]]]) -> Dict:
         for reaction in reactions:
             reaction['name'] = reaction['name'].replace(" ", "_")
         
+        # Validate reactions with Syndirella SMIRKS
+        validated_reactions = []
+        validation_results = []
+        for reaction in reactions:
+            reaction_name = reaction['name']
+            reactant_smiles = reaction.get('reactantSmiles', ())
+            expected_product_smiles = reaction.get('productSmiles', '')
+            
+            # Validate if reaction is in Syndirella library and has required data
+            is_valid = None
+            actual_product = None
+            if reaction_name in reaction_smarts_names and reactant_smiles and expected_product_smiles:
+                # Convert reactantSmiles to tuple if it's not already
+                if isinstance(reactant_smiles, tuple):
+                    reactant_tuple = reactant_smiles
+                elif isinstance(reactant_smiles, list):
+                    reactant_tuple = tuple(reactant_smiles)
+                else:
+                    reactant_tuple = (reactant_smiles,)
+                
+                is_valid, actual_product = validate_reaction_with_smirks(
+                    reaction_name, reactant_tuple, expected_product_smiles
+                )
+            
+            # Add validation info to reaction dict
+            reaction['smirks_validated'] = is_valid
+            if actual_product:
+                reaction['actual_product_smiles'] = actual_product
+            validated_reactions.append(reaction)
+            validation_results.append(is_valid)
+        
         # Use route index (0-4) for naming
-        passing_routes[f'route{i}'] = reactions
-        passing_routes[f'route{i}_names']: List[str] = [reaction['name'] for reaction in reactions]
+        passing_routes[f'route{i}'] = validated_reactions
+        passing_routes[f'route{i}_names']: List[str] = [reaction['name'] for reaction in validated_reactions]
         passing_routes[f'route{i}_CAR']: bool = all(
-            [True if reaction['name'] in reaction_smarts_names else False for reaction in reactions])
-        passing_routes[f'route{i}_non_CAR']: List[str] | None = ([reaction['name'] for reaction in reactions if
+            [True if reaction['name'] in reaction_smarts_names else False for reaction in validated_reactions])
+        passing_routes[f'route{i}_non_CAR']: List[str] | None = ([reaction['name'] for reaction in validated_reactions if
                                                                    reaction['name'] not in reaction_smarts_names]
                                                                   or None)
-        logger.info(f"Route {i} has {len(reactions)} reaction(s)")
+        # Add validation summary
+        passing_routes[f'route{i}_smirks_validated'] = all([v for v in validation_results if v is not None]) if any(v is not None for v in validation_results) else None
+        passing_routes[f'route{i}_num_validated'] = sum([1 for v in validation_results if v is True])
+        passing_routes[f'route{i}_num_failed_validation'] = sum([1 for v in validation_results if v is False])
+        
+        # Add CAR_and_validated: True only if route is CAR AND all reactions passed validation
+        car_status = passing_routes[f'route{i}_CAR']
+        validation_status = passing_routes[f'route{i}_smirks_validated']
+        passing_routes[f'route{i}_CAR_and_validated'] = (car_status is True and validation_status is True)
+        
+        logger.info(f"Route {i} has {len(validated_reactions)} reaction(s)")
         logger.info(f"Route {i} CAR: {passing_routes[f'route{i}_CAR']}")
         logger.info(f"Route {i} non-CAR: {passing_routes[f'route{i}_non_CAR']}")
+        if passing_routes[f'route{i}_smirks_validated'] is not None:
+            logger.info(f"Route {i} SMIRKS validation: {passing_routes[f'route{i}_num_validated']}/{len([v for v in validation_results if v is not None])} reactions validated successfully")
+        logger.info(f"Route {i} CAR_and_validated: {passing_routes[f'route{i}_CAR_and_validated']}")
     
-    logger.info(f"Formatted {len(passing_routes) // 4} routes (top {len(top_routes)} scored routes)")
+    # Calculate number of routes (count keys that are just 'routeX' without suffixes)
+    num_routes = len([k for k in passing_routes.keys() if k.startswith('route') and k.replace('route', '').isdigit()])
+    logger.info(f"Formatted {num_routes} routes (top {len(top_routes)} scored routes)")
     return passing_routes
 
 
@@ -261,7 +394,7 @@ def process_df(df: pd.DataFrame, retro_tool: RetrosynthesisTool = DEFAULT_RETROS
                 # Merge with full df - unprocessed scaffolds will have NaN route columns
                 merged_df = df.merge(route_info_df, on='smiles', how='left')
                 merged_df.reset_index(drop=True, inplace=True)
-                save_df(merged_df, output_dir, csv_path, save_csv=True)
+                save_df(merged_df, output_dir, csv_path, retro_tool=retro_tool.value)
                 logger.info(f"Incrementally saved results after scaffold {i+1}/{len(df)}")
             except Exception as e:
                 logger.warning(f"Failed to save incrementally after scaffold {i+1}: {e}")
@@ -295,7 +428,7 @@ def run_justretroquery(settings: Dict):
     df: pd.DataFrame = process_df(df, retro_tool, output_dir=output_dir, csv_path=csv_path)
 
     # Final save (in case incremental saves weren't used or for final update)
-    saved_path: str = save_df(df, output_dir, csv_path, save_csv=True)
+    saved_path: str = save_df(df, output_dir, csv_path, retro_tool=retro_tool.value)
 
     logger.info(f"Final DataFrame saved to {saved_path}")
 
