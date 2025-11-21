@@ -31,6 +31,13 @@ This guide will walk you through an example to run Syndirella's pipeline through
     conda install -c conda-forge c-compiler cxx-compiler
     pip install --no-build-isolation cgrtools
 
+**Troubleshooting:** If you encounter a ``TypeError: 'AttributeFilledMock' object is not iterable`` error, this is related to a PyRosetta dependency by Fragmenstein. To resolve this, you can download PyRosetta for academic and non-commercial use (see `PyRosetta License <https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md>`_). 
+
+.. code-block:: bash
+
+    pip install pyrosetta-installer
+    python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'
+
 2. Clone Syndirella repo.
 
 .. code-block:: bash

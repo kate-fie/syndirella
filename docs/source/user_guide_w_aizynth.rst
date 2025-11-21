@@ -24,6 +24,13 @@ On Mac OS and Linux you can install from PyPI using Conda.
     conda install -c conda-forge c-compiler cxx-compiler
     pip install --no-build-isolation cgrtools
 
+**Troubleshooting:** If you encounter a ``TypeError: 'AttributeFilledMock' object is not iterable`` error, this is related to a PyRosetta dependency by Fragmenstein. To resolve this, you can download PyRosetta for academic and non-commercial use (see `PyRosetta License <https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md>`_). 
+
+.. code-block:: bash
+
+    pip install pyrosetta-installer
+    python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'
+
 .. attention::
 
     Installation and usage have not been tested on Windows OS.

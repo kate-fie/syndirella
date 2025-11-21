@@ -30,6 +30,13 @@ conda install -c conda-forge c-compiler cxx-compiler
 pip install --no-build-isolation cgrtools
 ```
 
+**Troubleshooting:** If you encounter a `TypeError: 'AttributeFilledMock' object is not iterable` error, this is related to a PyRosetta dependency by Fragmenstein. To resolve this, you can download PyRosetta for academic and non-commercial use (see [PyRosetta License](https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md)). 
+
+```bash
+pip install pyrosetta-installer
+python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'
+```
+
 ### Basic Usage
 
 1. **Setup AiZynthFinder** (required for retrosynthesis):
