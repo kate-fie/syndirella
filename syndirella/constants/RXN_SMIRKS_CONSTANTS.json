@@ -125,7 +125,7 @@
     "type": "parent"
   },
   "Chan-Lam_coupling_(amination)": {
-    "smirks": "[N;H1,H2:1](-[A])-[a,A].[c:2]-[B](-[O])(-[O])>>[N:1]-[c:2]",
+    "smirks": "[c;D3;+0:1]-[B;H0;D3;+0](-[O;H1;D1;+0])-[O;H1;D1;+0].[N;H2;D1;+0:2]>>[c;D3;+0:1]-[N;H1;D2;+0:2]",
     "source": "manual",
     "type": "parent"
   },
