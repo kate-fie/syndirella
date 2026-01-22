@@ -14,22 +14,28 @@ On Mac OS and Linux you can install from PyPI using Conda.
 
     conda create -n syndirella python=3.10
     conda activate syndirella
-    pip install "cython<3.2"  # Required to avoid Cython 3.2.0 compiler bug when building cgrtools
     pip install syndirella
 
-**Note:** If `cgrtools` installation fails, try running:
+**Troubleshooting:**
+
+**cgrtools fails to install:**
 
 .. code-block:: bash
 
+    pip install "cython<3.2"
     conda install -c conda-forge c-compiler cxx-compiler
     pip install --no-build-isolation cgrtools
 
-**Troubleshooting:** If you encounter a ``TypeError: 'AttributeFilledMock' object is not iterable`` error, this is related to a PyRosetta dependency by Fragmenstein. To resolve this, you can download PyRosetta for academic and non-commercial use (see `PyRosetta License <https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md>`_). 
+**'TypeError: 'AttributeFilledMock' object is not iterable' from PyRosetta dependency by Fragmenstein:**
 
 .. code-block:: bash
 
     pip install pyrosetta-installer
     python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'
+
+.. note::
+
+    PyRosetta is available for academic and non-commercial use (see `PyRosetta License <https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md>`_).
 
 .. attention::
 

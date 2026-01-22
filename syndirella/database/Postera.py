@@ -62,6 +62,9 @@ class Postera(DatabaseSearch):
         """
         This function is used to perform the Postera search using the database_search_function.
         """
+        if search_type != "superstructure":
+            raise NotImplementedError(f"Search type '{search_type}' is not implemented. Only 'superstructure' search is supported.")
+        
         # 1. Get additional similar reactant if reaction is one with additional reactants
         reactant_filters = fairy.load_reactant_filters()
         reactants: List[str] = fairy.find_similar_reactants(reactant=reactant,

@@ -19,23 +19,25 @@ Syndirella (Synthesis Directed Elaborations) is a tool for generating and scorin
 ```bash
 conda create -n syndirella python=3.10
 conda activate syndirella
-pip install "cython<3.2"  # Required to avoid Cython 3.2.0 compiler bug when building cgrtools (transitive dependency with aizynthfinder)
 pip install syndirella
 ```
 
-**Note:** If `cgrtools` installation fails, try running:
+#### Troubleshooting:
 
+**cgrtools fails to install:**
 ```bash
+pip install "cython<3.2"
 conda install -c conda-forge c-compiler cxx-compiler
 pip install --no-build-isolation cgrtools
 ```
 
-**Troubleshooting:** If you encounter a `TypeError: 'AttributeFilledMock' object is not iterable` error, this is related to a PyRosetta dependency by Fragmenstein. To resolve this, you can download PyRosetta for academic and non-commercial use (see [PyRosetta License](https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md)). 
-
+**'TypeError: 'AttributeFilledMock' object is not iterable' from PyRosetta dependency by Fragmenstein:**
 ```bash
 pip install pyrosetta-installer
 python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'
 ```
+
+**Note:** PyRosetta is available for academic and non-commercial use (see [PyRosetta License](https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md)).
 
 ### Basic Usage
 
