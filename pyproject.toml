@@ -13,7 +13,7 @@ syndirella = [
 
 [project]
 name = "syndirella"
-version = "5.0.3-alpha"
+version = "5.0.4-alpha"
 authors = [
     { name = "Kate Fieseler", email = "kate.k.fieseler@gmail.com" },
 ]
@@ -39,9 +39,10 @@ dependencies = [
     "aizynthfinder",
     "matplotlib",
     "seaborn",
+    "scikit-learn",
     "pyyaml",
     "openpyxl",
-    "xlrd"
+    "xlrd",
 ]
 [project.urls]
 "Documentation" = "https://syndirella.readthedocs.io/en/latest/"
