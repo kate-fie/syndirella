@@ -27,9 +27,9 @@ reaction_smarts_names: List[str] = list(reaction_smarts.keys())
 reaction_smirks_dict = {name: data['smirks'] for name, data in reaction_smarts.items()}
 
 
-def save_df(df: pd.DataFrame, output_dir: str, csv_path: str, retro_tool: str = None) -> str:
+def save_df(df: pd.DataFrame, output_dir: str, csv_path: str, retro_tool: str = None) -> Tuple[str, str]:
     """
-    Save the DataFrame to the output directory as CSV.
+    Save the DataFrame to the output directory as CSV and as gzip-compressed pickle.
     
     Args:
         df: DataFrame to save
@@ -38,7 +38,7 @@ def save_df(df: pd.DataFrame, output_dir: str, csv_path: str, retro_tool: str = 
         retro_tool: Optional retrosynthesis tool name to include in filename
     
     Returns:
-        Path to saved CSV file
+        Tuple of (path to saved CSV file, path to saved pickle file)
     """
     csv_basename = os.path.basename(csv_path)
     base_name = csv_basename.replace('.csv', '')
@@ -53,8 +53,16 @@ def save_df(df: pd.DataFrame, output_dir: str, csv_path: str, retro_tool: str = 
     csv_output_name = f'{prefix}{base_name}.csv'
     csv_output_path = os.path.join(output_dir, csv_output_name)
     df.to_csv(csv_output_path, index=False)
-    logger.info(f"Saved CSV to {csv_output_path}")
-    return csv_output_path
+    
+    # Save gzip-compressed pickle format
+    pkl_output_name = f'{prefix}{base_name}.pkl.gz'
+    pkl_output_path = os.path.join(output_dir, pkl_output_name)
+    df.to_pickle(pkl_output_path)
+    
+    logger.info(f"Saved DataFrame to CSV: {csv_output_path}")
+    logger.info(f"Saved DataFrame to pickle: {pkl_output_path}")
+    
+    return csv_output_path, pkl_output_path
 
 
 def validate_reaction_with_smirks(reaction_name: str, reactant_smiles: Tuple[str, ...], 
@@ -394,8 +402,8 @@ def process_df(df: pd.DataFrame, retro_tool: RetrosynthesisTool = DEFAULT_RETROS
                 # Merge with full df - unprocessed scaffolds will have NaN route columns
                 merged_df = df.merge(route_info_df, on='smiles', how='left')
                 merged_df.reset_index(drop=True, inplace=True)
-                save_df(merged_df, output_dir, csv_path, retro_tool=retro_tool.value)
-                logger.info(f"Incrementally saved results after scaffold {i+1}/{len(df)}")
+                csv_saved, pkl_saved = save_df(merged_df, output_dir, csv_path, retro_tool=retro_tool.value)
+                logger.info(f"Incrementally saved results after scaffold {i+1}/{len(df)} (CSV: {csv_saved}, pickle: {pkl_saved})")
             except Exception as e:
                 logger.warning(f"Failed to save incrementally after scaffold {i+1}: {e}")
     
@@ -428,8 +436,9 @@ def run_justretroquery(settings: Dict):
     df: pd.DataFrame = process_df(df, retro_tool, output_dir=output_dir, csv_path=csv_path)
 
     # Final save (in case incremental saves weren't used or for final update)
-    saved_path: str = save_df(df, output_dir, csv_path, retro_tool=retro_tool.value)
+    csv_saved, pkl_saved = save_df(df, output_dir, csv_path, retro_tool=retro_tool.value)
 
-    logger.info(f"Final DataFrame saved to {saved_path}")
+    logger.info(f"Final DataFrame saved to CSV: {csv_saved}")
+    logger.info(f"Final DataFrame saved to pickle: {pkl_saved}")
 
     logger.info('Justretroquery execution completed successfully.')

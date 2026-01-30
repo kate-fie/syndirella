@@ -224,12 +224,15 @@ class TestJustRetroQuery(unittest.TestCase):
             test_df = pd.DataFrame({'smiles': ['CCO'], 'route0': ['test']})
             
             # Test saving
-            saved_path = save_df(test_df, temp_dir, '/tmp/test.csv')
+            csv_saved, pkl_saved = save_df(test_df, temp_dir, '/tmp/test.csv')
             
-            # Verify file was created
-            self.assertTrue(os.path.exists(saved_path))
-            self.assertTrue(saved_path.endswith('.pkl.gz'))
-            self.assertIn('justretroquery_', os.path.basename(saved_path))
+            # Verify both files were created
+            self.assertTrue(os.path.exists(csv_saved))
+            self.assertTrue(os.path.exists(pkl_saved))
+            self.assertTrue(csv_saved.endswith('.csv'))
+            self.assertTrue(pkl_saved.endswith('.pkl.gz'))
+            self.assertIn('justretroquery_', os.path.basename(csv_saved))
+            self.assertIn('justretroquery_', os.path.basename(pkl_saved))
     
     def test_run_justretroquery_manifold(self):
         """Test justretroquery execution with Manifold tool."""
