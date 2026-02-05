@@ -7,6 +7,7 @@ This script contains the main pipeline for syndirella.
 
 import datetime
 import logging
+import os
 import time
 import traceback
 from typing import List, Tuple, Dict, Optional
@@ -24,6 +25,7 @@ from syndirella.utils.error import *
 from syndirella.route.CobblersWorkshop import CobblersWorkshop
 from syndirella.slipper.Slipper import Slipper
 from syndirella.slipper.SlipperFitter import SlipperFitter
+from syndirella.slipper import _placement_data as placement_data
 from syndirella.constants import DatabaseSearchTool, RetrosynthesisTool, DEFAULT_DATABASE_SEARCH_TOOL, DEFAULT_RETROSYNTHESIS_TOOL
 
 logger = logging.getLogger(__name__)
@@ -94,26 +96,47 @@ def assert_scaffold_placement(scaffold: str,
                               ) -> Dict[Chem.Mol, str]:
     """
     Assert that the scaffold can be placed for any stereoisomers. If not, raise an error.
+    Writes fragmenstein_placements.csv in the scaffold-check dir using Fragmenstein's placements DataFrame.
     """
     scaffold_mol = Chem.MolFromSmiles(scaffold)
     if not scaffold_mol:
         logger.critical(f"Could not create a molecule from the smiles {scaffold}.")
         raise MolError(smiles=scaffold)
-    # enumerate stereoisomers
     opts = StereoEnumerationOptions(unique=True)
     isomers = list(EnumerateStereoisomers(scaffold_mol, options=opts))
     slipper_fitter = SlipperFitter(template_path, hits_path, hits_names, output_dir)
     placements: Dict[Chem.Mol, str | None] = {}
+    placement_dfs: List[pd.DataFrame] = []
     for i, isomer in enumerate(isomers):
         scaffold_name: str = f'scaffold-{chr(65 + i)}'
-        can_be_placed: str | None = slipper_fitter.check_scaffold(scaffold=isomer,
-                                                                  scaffold_name=scaffold_name,
-                                                                  scaffold_place_num=scaffold_place_num,
-                                                                  assert_intra_geom_flatness=assert_intra_geom_flatness)  # path to scaffold if successful
-        placements[isomer] = can_be_placed  # absolute path to minimised.mol scaffold, checked to exist
+        path_result, placements_df = slipper_fitter.check_scaffold(
+            scaffold=isomer,
+            scaffold_name=scaffold_name,
+            scaffold_place_num=scaffold_place_num,
+            assert_intra_geom_flatness=assert_intra_geom_flatness,
+        )
+        placements[isomer] = path_result
+        if placements_df is not None:
+            passed_intra = path_result is not None
+            placement_dfs.append(placements_df.assign(intra_geometry_pass=passed_intra))
     if not any(placements.values()):
         logger.critical(f"Scaffold {scaffold} could not be placed successfully.")
         raise ScaffoldPlacementError(smiles=scaffold)
+    # Write CSV from Fragmenstein placements (same pattern as Fragmenstein CLI laboratory place -d)
+    if placement_dfs:
+        inchi_id = fairy.generate_inchi_ID(scaffold, isomeric=False)
+        scaffold_check_dir = os.path.join(output_dir, f'{inchi_id}-scaffold-check')
+        os.makedirs(scaffold_check_dir, exist_ok=True)
+        combined = pd.concat(placement_dfs, ignore_index=True)
+        combined = combined.assign(scaffold_inchi_key=inchi_id)
+        # Same success criteria as elaborations: ∆∆G < 0, comRMSD < 2 Å, intra_geometry_pass
+        combined['successful'] = (
+            (combined['∆∆G'] < 0) & (combined['comRMSD'] < 2) & (combined['intra_geometry_pass'] == True)
+        ).fillna(False)
+        dir_name = os.path.basename(scaffold_check_dir)
+        csv_path = os.path.join(scaffold_check_dir, f'{dir_name}_fragmenstein_placements.csv')
+        placement_data.write_placements_csv(combined, csv_path)
+        logger.info(f"Wrote scaffold Fragmenstein placements CSV: {csv_path}")
     return placements
 
 
@@ -296,6 +319,15 @@ def elaborate_compound_full_auto(product: str,
         assert_scaffold_intra_geom_flatness=assert_scaffold_intra_geom_flatness,
     )
     
+    if only_scaffold_place:
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logger.info(
+            f"Finished Syndirella 👑pipeline for compound {product} | {inchi.MolToInchiKey(Chem.MolFromSmiles(product))} "
+            f"after {datetime.timedelta(seconds=elapsed_time)}")
+        logger.info("")
+        return
+
     if not only_scaffold_place:
         cobbler = Cobbler(
             scaffold_compound=product,

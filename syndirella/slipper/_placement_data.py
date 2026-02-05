@@ -112,3 +112,25 @@ def make_success_csv_row(subdir: str, data: dict) -> list:
         rmsd = float('inf')
     csv_row = [subdir, ddG, unbound, bound, rmsd]
     return csv_row
+
+
+# CSV-safe columns used by Fragmenstein CLI when writing placements (no mol objects)
+# scaffold_inchi_key: scaffold InChI key; intra_geometry_pass: Syndirella check; successful: same as elaborations (∆∆G < 0, comRMSD < 2, intra_geometry_pass)
+FRAGMENSTEIN_PLACEMENTS_CSV_COLUMNS = [
+    'scaffold_inchi_key', 'name', 'smiles', 'error', '∆∆G', '∆G_bound', '∆G_unbound', 'comRMSD',
+    'N_constrained_atoms', 'N_unconstrained_atoms', 'runtime', 'regarded',
+    'disregarded', 'LE', 'percent_hybrid', 'intra_geometry_pass', 'successful'
+]
+
+
+def write_placements_csv(placements: pd.DataFrame, csv_path: str, columns: list = None) -> str:
+    """
+    Write a placements DataFrame to CSV using only CSV-safe columns
+    (same approach as Fragmenstein CLI laboratory place -d out-table).
+    """
+    if columns is None:
+        columns = FRAGMENSTEIN_PLACEMENTS_CSV_COLUMNS
+    valid_cols = [c for c in columns if c in placements.columns]
+    if valid_cols:
+        placements[valid_cols].to_csv(csv_path, index=False)
+    return csv_path

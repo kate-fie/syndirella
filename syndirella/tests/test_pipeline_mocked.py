@@ -98,7 +98,7 @@ class TestPipelineFunctions(unittest.TestCase):
         """Test scaffold placement assertion with valid SMILES."""
         mock_fitter = MagicMock()
         mock_slipper_fitter.return_value = mock_fitter
-        mock_fitter.check_scaffold.return_value = "test_placement_path"
+        mock_fitter.check_scaffold.return_value = ("test_placement_path", pd.DataFrame([{'name': 'scaffold-A', '∆∆G': 0.0}]))
         
         result = assert_scaffold_placement(
             scaffold=self.test_scaffold,
