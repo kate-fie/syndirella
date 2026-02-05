@@ -300,7 +300,7 @@ Run pipeline in *manual* mode:
 
 **Output directory structure:**
 
-🔑🔑🔑: Inchi key of scaffold. Example: ``ZJENMQHSGLZNHL-UHFFFAOYSA-N``
+🔑🔑🔑: Inchi key of flat scaffold (removed stereochemistry). Example: ``ZJENMQHSGLZNHL-UHFFFAOYSA-N``
 
 .. code-block::
 
@@ -315,6 +315,8 @@ Run pipeline in *manual* mode:
     │   │   ├── 🔑🔑🔑_[route_uuid]_[rxn_name]_r[reactant_num]_[step_num]of[total_steps].pkl.gz # reactants for step
     │   │   └── continued for all steps...
     │   ├── output
+    │   │   ├── fstein_input.pkl.gz   # Fragmenstein placement input 
+    │   │   ├── fstein_output.pkl.gz  # Fragmenstein placement output 
     │   │   ├── 🔑🔑🔑_[route_uuid]_[num]-[stereoisomer]
     │   │   │   ├── 🔑🔑🔑_[route_uuid]_[num]-[stereoisomer].mol
     │   │   │   ├── 🔑🔑🔑_[route_uuid]_[num]-[stereoisomer].json # energy values
@@ -372,11 +374,12 @@ Usage Option: Only Place Scaffolds (or Specifically Don't Place)
 ===============================================================
 
 You can run Syndirella to only place scaffolds. It will not perform the full elaboration procedure.
+A Fragmenstein placements CSV (``{inchi}-scaffold-check_fragmenstein_placements.csv``) is written in each scaffold-check directory.
 
 .. code-block:: bash
 
     syndirella run --input [path_to_automatic.csv] --output [path_to_output_dir] --templates [path_to_templates_dir]
-    --hits_path [path_to_fragments.sdf] --scaffold_place
+    --hits_path [path_to_fragments.sdf] --only_scaffold_place
 
 You can also specify to not place the scaffold (most likely you confirmed placement using another method).
 

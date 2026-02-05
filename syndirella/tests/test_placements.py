@@ -175,16 +175,19 @@ class TestSlipperFitterScaffoldChecking(unittest.TestCase):
         mock_prep_df.return_value = pd.DataFrame({'hits': [True]})
         mock_lab = MagicMock()
         mock_setup.return_value = mock_lab
-        mock_place.return_value = Chem.MolFromSmiles('O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1')
+        mock_place.return_value = (
+            Chem.MolFromSmiles('O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1'),
+            pd.DataFrame([{'name': 'test_scaffold', '∆∆G': 0.0}]),
+        )
         mock_exists.return_value = True
         
         scaffold = Chem.MolFromSmiles('O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1')
         scaffold_name = 'test_scaffold'
         scaffold_place_num = 3
         
-        result = self.slipper_fitter.check_scaffold(scaffold, scaffold_name, scaffold_place_num)
+        path_result, _df = self.slipper_fitter.check_scaffold(scaffold, scaffold_name, scaffold_place_num)
         
-        self.assertIsNotNone(result)
+        self.assertIsNotNone(path_result)
         mock_setup.assert_called_once()
         mock_place.assert_called_once()
 
@@ -200,16 +203,16 @@ class TestSlipperFitterScaffoldChecking(unittest.TestCase):
         mock_prep_df.return_value = pd.DataFrame({'hits': [True]})
         mock_lab = MagicMock()
         mock_setup.return_value = mock_lab
-        mock_place.return_value = None  # Placement failed
+        mock_place.return_value = (None, None)  # Placement failed
         mock_exists.return_value = False
         
         scaffold = Chem.MolFromSmiles('O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1')
         scaffold_name = 'test_scaffold'
         scaffold_place_num = 1  # Only one attempt to avoid multiple calls
         
-        result = self.slipper_fitter.check_scaffold(scaffold, scaffold_name, scaffold_place_num)
+        path_result, _df = self.slipper_fitter.check_scaffold(scaffold, scaffold_name, scaffold_place_num)
         
-        self.assertIsNone(result)
+        self.assertIsNone(path_result)
         mock_setup.assert_called_once()
         mock_place.assert_called_once()
 
@@ -257,7 +260,8 @@ class TestSlipperFitterPlacementMethods(unittest.TestCase):
         """Test _place_scaffold method."""
         mock_lab = MagicMock()
         mock_setup.return_value = mock_lab
-        mock_place.return_value = Chem.MolFromSmiles('O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1')
+        mock_mol = Chem.MolFromSmiles('O=C(NC1CC(C(F)(F)F)C1)c1cc2ccsc2[nH]1')
+        mock_place.return_value = (mock_mol, pd.DataFrame([{'name': 'test', '∆∆G': 0.0}]))
         
         input_df = pd.DataFrame({
             'compound_set': ['test1'],
@@ -266,9 +270,10 @@ class TestSlipperFitterPlacementMethods(unittest.TestCase):
             'hits': [True]
         })
         
-        result = self.slipper_fitter._place_scaffold(mock_lab, input_df)
+        mol_result, df_result = self.slipper_fitter._place_scaffold(mock_lab, input_df)
         
-        self.assertIsInstance(result, Chem.Mol)
+        self.assertIsInstance(mol_result, Chem.Mol)
+        self.assertIsInstance(df_result, pd.DataFrame)
 
     def test_check_intra_geom_flatness_results(self):
         """Test _check_intra_geom_flatness_results method."""

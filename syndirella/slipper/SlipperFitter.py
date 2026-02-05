@@ -84,10 +84,10 @@ class SlipperFitter:
                        scaffold: Chem.Mol,
                        scaffold_name: str,
                        scaffold_place_num: int,
-                       assert_intra_geom_flatness: bool = True) -> str | None:
+                       assert_intra_geom_flatness: bool = True) -> Tuple[str | None, pd.DataFrame | None]:
         """
         Checks if the scaffold can be minimised (no specific stereoisomer) and passes intermolecular checks.
-        If it cannot be minimised after 3 attempts, returns False.
+        Returns (path to .minimised.mol, placements DataFrame from Fragmenstein) on success, (None, None) on failure.
         """
         input_df: pd.DataFrame = self._prep_scaffold_input_df(scaffold=scaffold, scaffold_name=scaffold_name)
 
@@ -97,7 +97,9 @@ class SlipperFitter:
         output_path: str = os.path.join(self.output_dir, f'{id}-scaffold-check')
         lab: Laboratory = self.setup_Fragmenstein(output_path)
         for attempt in range(1, scaffold_place_num + 1):
-            scaffold_placed: Chem.Mol = self._place_scaffold(lab, input_df)  # None if not minimised
+            scaffold_placed: Chem.Mol
+            placements_df: pd.DataFrame
+            scaffold_placed, placements_df = self._place_scaffold(lab, input_df)
             if scaffold_placed is not None:
                 paths = [os.path.join(output_path, 'output', scaffold_name, f'{scaffold_name}.minimised.mol'),
                          os.path.join(output_path, scaffold_name,
@@ -108,7 +110,7 @@ class SlipperFitter:
                     continue
 
                 if not assert_intra_geom_flatness:
-                    return paths[0] if path_exists[0] else paths[1]
+                    return (paths[0] if path_exists[0] else paths[1], placements_df)
 
                 geometries: Dict = intra_geometry.check_geometry(scaffold_placed,
                                                                  threshold_clash=0.4)  # increasing threshold for internal clash
@@ -116,13 +118,15 @@ class SlipperFitter:
                 
                 if self._check_intra_geom_flatness_results(geometries=geometries, flat_results=flat_results):
                     self.logger.info(f'Scaffold minimised and passed intramolecular checks.')
-                    return paths[0] if path_exists[0] else paths[1]
+                    return (paths[0] if path_exists[0] else paths[1], placements_df)
                 else:
                     self.logger.info(
                         f'Scaffold could not pass intramolecular checks. Attempt {attempt} of {scaffold_place_num}.')
+                    # Still return placements_df so it is included in fragmenstein_placements.csv
+                    return (None, placements_df)
             else:
                 self.logger.info(f'Scaffold could not be minimised. Attempt {attempt} of {scaffold_place_num}.')
-        return None
+        return (None, None)
 
     def _check_intra_geom_flatness_results(self,
                                            geometries: Dict,
@@ -246,9 +250,9 @@ class SlipperFitter:
 
     def _place_scaffold(self,
                         lab: Laboratory,
-                        input_df: pd.DataFrame) -> Chem.Mol:
+                        input_df: pd.DataFrame) -> Tuple[Chem.Mol, pd.DataFrame]:
         """
-        Places the scaffold compound, returns the mol object of the scaffold compound if successful else None.
+        Places the scaffold compound. Returns (minimized_mol, placements DataFrame from Fragmenstein).
         """
         placements: pd.DataFrame = lab.place(place_input_validator(input_df), n_cores=self.n_cores,
                                              timeout=self.timeout)
@@ -259,7 +263,7 @@ class SlipperFitter:
             raise ScaffoldPlacementError(message='Scaffold could not be minimised.',
                                          inchi=self.id,
                                          route_uuid=self.route_uuid)
-        return scaffold
+        return scaffold, placements
 
     def place_products(self, input_df: pd.DataFrame) -> pd.DataFrame:
         """
