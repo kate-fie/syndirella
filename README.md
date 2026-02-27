@@ -20,9 +20,13 @@ Syndirella (Synthesis Directed Elaborations) is a tool for generating and scorin
 conda create -n syndirella python=3.10
 conda activate syndirella
 pip install syndirella
+pip install aizynthfinder
+python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'  # run once, for Fragmenstein
 ```
 
-#### Troubleshooting:
+**Note:** PyRosetta is required by Fragmenstein to operate. Syndirella does not use PyRosetta by default to score compounds. PyRosetta is available for academic and non-commercial use (see [PyRosetta License](https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md)).
+
+### Troubleshooting:
 
 **cgrtools fails to install:**
 ```bash
@@ -31,13 +35,14 @@ conda install -c conda-forge c-compiler cxx-compiler
 pip install --no-build-isolation cgrtools
 ```
 
-**'TypeError: 'AttributeFilledMock' object is not iterable' from PyRosetta dependency by Fragmenstein:**
-```bash
-pip install pyrosetta-installer
-python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'
-```
+### Install with [HIPPO](https://github.com/mwinokan/HIPPO) (optional)
 
-**Note:** PyRosetta is available for academic and non-commercial use (see [PyRosetta License](https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md)).
+```bash
+pip install aizynthfinder --no-deps # HIPPO requires `rdkit>=2024.9.6`; AiZynthFinder declares `rdkit<2024`. Install in this order so pip does not pull AiZynthFinder’s RDKit
+pip install syndirella[hippo]
+conda install -c conda-forge chemicalite
+```
+See the [HIPPO documentation](https://hippo-docs.winokan.com) for full setup and version compatibility.
 
 ### Basic Usage
 

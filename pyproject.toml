@@ -13,7 +13,7 @@ syndirella = [
 
 [project]
 name = "syndirella"
-version = "5.0.6-alpha"
+version = "5.0.7-alpha"
 authors = [
     { name = "Kate Fieseler", email = "kate.k.fieseler@gmail.com" },
 ]
@@ -36,14 +36,19 @@ dependencies = [
     "shortuuid",
     "pandas",
     "biopython",
-    "aizynthfinder",
     "matplotlib",
     "seaborn",
     "scikit-learn",
     "pyyaml",
     "openpyxl",
     "xlrd",
+    # Required by Fragmenstein to operate; Syndirella does not use PyRosetta for scoring compounds.
+    # After pip install, run once: python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'
+    "pyrosetta-installer",
 ]
+[project.optional-dependencies]
+hippo = ["hippo-db", "rdkit>=2024.9.6"]
+
 [project.urls]
 "Documentation" = "https://syndirella.readthedocs.io/en/latest/"
 "Source" = "https://github.com/kate-fie/syndirella"

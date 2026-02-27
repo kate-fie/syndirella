@@ -15,6 +15,12 @@ On Mac OS and Linux you can install from PyPI using Conda.
     conda create -n syndirella python=3.10
     conda activate syndirella
     pip install syndirella
+    pip install aizynthfinder
+    python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'  # run once, for Fragmenstein
+
+.. note::
+
+    PyRosetta is available for academic and non-commercial use (see `PyRosetta License <https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md>`_).
 
 **Troubleshooting:**
 
@@ -26,22 +32,11 @@ On Mac OS and Linux you can install from PyPI using Conda.
     conda install -c conda-forge c-compiler cxx-compiler
     pip install --no-build-isolation cgrtools
 
-**'TypeError: 'AttributeFilledMock' object is not iterable' from PyRosetta dependency by Fragmenstein:**
-
-.. code-block:: bash
-
-    pip install pyrosetta-installer
-    python -c 'import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()'
-
-.. note::
-
-    PyRosetta is available for academic and non-commercial use (see `PyRosetta License <https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.PyRosetta.md>`_).
-
 .. attention::
 
     Installation and usage have not been tested on Windows OS.
 
-2. Install AiZynthFinder:
+2. Setup AiZynthFinder:
 -------------------------------------
 
 Syndirella can use AiZynthFinder for retrosynthesis functionality (see Retrosynthesis for more information).
@@ -97,41 +92,53 @@ Syndirella provides a command-line interface with multiple subcommands. Get help
 
 .. code-block:: bash
 
-    usage: syndirella run [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH] [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual] [--only_scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM] [--retro_tool {manifold,aizynthfinder}] [--db_search_tool {postera,arthor}] [--profile] [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX] [--just_retro] [--no_scaffold_place] [--elab_single_reactant]
+    usage: syndirella run [-h] -i INPUT -o OUTPUT [-t TEMPLATES] [--hits_path HITS_PATH]
+                      [--products PRODUCTS] [--batch_num BATCH_NUM] [--manual]
+                      [--only_scaffold_place] [--scaffold_place_num SCAFFOLD_PLACE_NUM]
+                      [--retro_tool {manifold,aizynthfinder}]
+                      [--db_search_tool {manifold,arthor,hippo}] [--profile]
+                      [--atom_diff_min ATOM_DIFF_MIN] [--atom_diff_max ATOM_DIFF_MAX]
+                      [--just_retro] [--no_scaffold_place] [--elab_single_reactant]
+                      [--reference_db REFERENCE_DB] [--no_assert_scaffold_intra_geom_flatness]
 
     Run the full Syndirella pipeline with specified input files and parameters.
 
     options:
-      -h, --help            show this help message and exit
-      -i INPUT, --input INPUT
+    -h, --help            show this help message and exit
+    -i INPUT, --input INPUT
                             Input .csv file path for the pipeline.
-      -o OUTPUT, --output OUTPUT
+    -o OUTPUT, --output OUTPUT
                             Output directory for the pipeline results.
-      -t TEMPLATES, --templates TEMPLATES
+    -t TEMPLATES, --templates TEMPLATES
                             Absolute path to a directory containing the template(s).
-      --hits_path HITS_PATH
-                            Optional absolute path to hits_path for placements (.sdf or .mol).
-      --products PRODUCTS   Optional absolute path to products for placements.
-      --batch_num BATCH_NUM
-                            Batch number for processing. (default: 10000)
-      --manual              Use manual routes for processing. (default: False)
-      --only_scaffold_place
-                            Only place scaffolds. Do not continue to elaborate. (default: False)
-      --scaffold_place_num SCAFFOLD_PLACE_NUM
-                            Number of times to attempt scaffold placement. (default: 5)
-      --retro_tool {manifold,aizynthfinder}
-                            Retrosynthesis tool to use. (default: aizynthfinder)
-      --db_search_tool {manifold,arthor}
-                            Database search tool to use. (default: arthor)
-      --profile             Run the pipeline with profiling. (default: False)
-      --atom_diff_min ATOM_DIFF_MIN
-                            Minimum atom difference between elaborations and scaffold to keep. (default: 0)
-      --atom_diff_max ATOM_DIFF_MAX
-                            Maximum atom difference between elaborations and scaffold to keep. (default: 10)
-      --just_retro          Only run retrosynthesis querying of scaffolds. (default: False)
-      --no_scaffold_place   Do not place scaffolds initially before elaborating. (default: False)
-      --elab_single_reactant
-                            Only elaborate one reactant per elaboration series. (default: False)
+    --hits_path HITS_PATH
+                            Absolute path to hits_path for placements (.sdf or .mol).
+    --products PRODUCTS   Absolute path to products for placements.
+    --batch_num BATCH_NUM
+                            Batch number for processing.
+    --manual              Use manual routes for processing.
+    --only_scaffold_place
+                            Only place scaffolds. Do not continue to elaborate.
+    --scaffold_place_num SCAFFOLD_PLACE_NUM
+                            Number of times to attempt scaffold placement.
+    --retro_tool {manifold,aizynthfinder}
+                            Retrosynthesis tool to use.
+    --db_search_tool {manifold,arthor,hippo}
+                            Database search tool to use.
+    --profile             Run the pipeline with profiling.
+    --atom_diff_min ATOM_DIFF_MIN
+                            Minimum atom difference between elaborations and scaffold to keep.
+    --atom_diff_max ATOM_DIFF_MAX
+                            Maximum atom difference between elaborations and scaffold to keep.
+    --just_retro          Only run retrosynthesis querying of scaffolds.
+    --no_scaffold_place   Do not place scaffolds initially before elaborating.
+    --elab_single_reactant
+                            Only elaborate one reactant per elaboration series.
+    --reference_db REFERENCE_DB
+                            Path to reference HIPPO database file for superstructure search, must set
+                            --db_search_tool to 'hippo'.
+    --no_assert_scaffold_intra_geom_flatness
+                            Don't check scaffold for intra geometry or flatness.
 
 **Add Reaction Command Help:**
 
@@ -175,7 +182,7 @@ Syndirella uses the following default tools:
 
 **Default Database Search Tool**: ``arthor``  
     - Alternative: ``manifold``
-    - Set with: ``--db_search_tool {arthor,manifold}``
+    - Set with: ``--db_search_tool {arthor,manifold, or hippo if installed}``
 
 .. note::
 

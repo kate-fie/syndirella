@@ -21,6 +21,31 @@ from sklearn.cluster import DBSCAN
 from syndirella.utils.error import AiZynthFinderError, NoSynthesisRoute, USPTOTemplateValidationError
 from syndirella.route.SmirksLibraryManager import SmirksLibraryManager
 
+# Emit RDKit 2024+ warning only once per process when using AiZynthFinder
+_rdkit_2024_warned = False
+
+
+def _warn_if_rdkit_2024(logger: logging.Logger) -> None:
+    """Warn once if RDKit >= 2024 is in use; AiZynthFinder officially supports rdkit<2024."""
+    global _rdkit_2024_warned
+    if _rdkit_2024_warned:
+        return
+    try:
+        from rdkit import __version__ as rdkit_version
+        parts = rdkit_version.split(".")
+        major = int(parts[0]) if parts else 0
+        if major >= 2024:
+            _rdkit_2024_warned = True
+            logger.warning(
+                "AiZynthFinder officially supports RDKit < 2024; you have RDKit %s. "
+                "Compatibility with RDKit 2024+ is not guaranteed. "
+                "If you need both HIPPO and retrosynthesis in one env, this is expected; "
+                "otherwise consider a dedicated env for retrosynthesis with RDKit 2023.x.",
+                rdkit_version,
+            )
+    except Exception:
+        pass
+
 
 class AiZynthManager:
     def __init__(self,
@@ -37,6 +62,8 @@ class AiZynthManager:
                  auto_setup: bool = True):
         # Setup logging
         self.logger = logger or logging.getLogger(__name__)
+
+        _warn_if_rdkit_2024(self.logger)
 
         # Determine config file path
         if config_file is None:

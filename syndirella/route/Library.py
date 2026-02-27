@@ -162,11 +162,11 @@ class Library:
             elif self.db_search_tool == DatabaseSearchTool.MANIFOLD:
                 self.logger.info(f"Using Postera/Manifold for database search for {analogue_prefix}")
                 database_search = Postera()
-            # elif self.db_search_tool == DatabaseSearchTool.HIPPO:  # HIPPO dependency removed
-            #     assert self.reference_db
-            #     self.logger.info(f"Using HIPPO for database search for {analogue_prefix}")
-            #     self.logger.info(f"reference_db={self.reference_db}")
-            #     database_search = Hippo(self.reference_db)
+            elif self.db_search_tool == DatabaseSearchTool.HIPPO:
+                assert self.reference_db
+                self.logger.info(f"Using HIPPO for database search for {analogue_prefix}")
+                self.logger.info(f"reference_db={self.reference_db}")
+                database_search = Hippo(self.reference_db)
             else:
                 self.logger.error(f"Database search tool {self.db_search_tool} not found.")
                 raise ValueError(f"Database search tool {self.db_search_tool} not found.")

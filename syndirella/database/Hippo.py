@@ -19,8 +19,12 @@ from rdkit import Chem
 
 import syndirella.utils.fairy as fairy
 from syndirella.database.DatabaseSearch import DatabaseSearch
-from syndirella.utils.error import APIRetryLimitExceeded
-# from hippo import HIPPO  # HIPPO dependency removed
+from syndirella.utils.error import APIRetryLimitExceeded, HippoNotInstalledError
+
+try:
+    from hippo import HIPPO
+except ImportError:
+    HIPPO = None
 
 
 class Hippo(DatabaseSearch):
@@ -34,9 +38,8 @@ class Hippo(DatabaseSearch):
 
         self.logger = logging.getLogger(f"{__name__}")
 
-        self.db_path = db_path        
-        # self.animal = HIPPO("reference_db", db_path)  # HIPPO dependency removed
-        self.animal = None  # Placeholder for HIPPO functionality
+        self.db_path = db_path
+        self.animal = HIPPO("reference_db", db_path) if HIPPO is not None else None
 
     def perform_database_search(self,
                                 reactant: Chem.Mol,
@@ -75,10 +78,10 @@ class Hippo(DatabaseSearch):
             raise TypeError("Smiles must be a string.")
 
         if self.animal is None:
-            self.logger.warning("HIPPO functionality is not available. Returning empty results.")
-            hits = []
-        else:
-            hits = self.animal.db.query_substructure(smiles, none="quiet")
+            raise HippoNotInstalledError(
+                "HIPPO (hippo-db) is not installed. To use HIPPO database search, install it with: pip install syndirella[hippo]. You may also need chemicalite (see HIPPO documentation)."
+            )
+        hits = self.animal.db.query_substructure(smiles, none="quiet")
         self.logger.info(f"#results = {len(hits or [])}")
 
         hits_info: List[Tuple[str, Tuple[str, int]]] = self.structure_output(hits, query_smiles=smiles)

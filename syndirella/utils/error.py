@@ -139,6 +139,17 @@ class APIQueryError(ChemicalErrorBase):
         super().__init__(message=message, inchi=inchi, smiles=smiles, mol=mol)
 
 
+class HippoNotInstalledError(ChemicalErrorBase):
+    """Raised when HIPPO (hippo-db) is requested but not installed."""
+
+    def __init__(self,
+                 message: str = "HIPPO (hippo-db) is not installed. To use HIPPO database search, install it with: pip install syndirella[hippo]. You may also need chemicalite (see HIPPO documentation).",
+                 inchi: str | None = None,
+                 smiles: str | None = None,
+                 mol: Chem.Mol | None = None):
+        super().__init__(message=message, inchi=inchi, smiles=smiles, mol=mol)
+
+
 class APIRetryLimitExceeded(ChemicalErrorBase):
     def __init__(self,
                  message: str = "The API query retry limit has been exceeded.",

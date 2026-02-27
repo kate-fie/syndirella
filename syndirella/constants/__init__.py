@@ -10,7 +10,7 @@ class DatabaseSearchTool(Enum):
     """Enumerator for database search tools."""
     MANIFOLD = "manifold"
     ARTHOR = "arthor"
-    # HIPPO = "hippo"  # HIPPO dependency removed
+    HIPPO = "hippo"
     
     @classmethod
     def from_string(cls, value: str) -> 'DatabaseSearchTool':

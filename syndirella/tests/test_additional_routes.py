@@ -6,6 +6,12 @@ import unittest
 
 import pandas as pd
 
+try:
+    import hippo  # noqa: F401
+    can_import_hippo = True
+except ImportError:
+    can_import_hippo = False
+
 from syndirella.route.Cobbler import Cobbler
 from syndirella.utils.fairy import generate_inchi_ID
 from syndirella.route.CobblersWorkshop import CobblersWorkshop
@@ -127,6 +133,7 @@ class TestAdditionalRouteandSingleElab(unittest.TestCase):
                         (route2.elab_single_reactant_int != route3.elab_single_reactant_int))
 
 
+@unittest.skipUnless(can_import_hippo, "hippo-db not installed")
 class TestAutoSingleElabHippo(unittest.TestCase):
     def setUp(self):
         self.output_csv_path = 'outputs/test_additional_routes/single_elab/output.csv'

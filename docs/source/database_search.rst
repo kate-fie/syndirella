@@ -87,11 +87,23 @@ Hippo
 
 Hippo provides local database search functionality using a HIPPO database file. This option is useful when you have your own database or want to search locally without API dependencies.
 
-**Setup:**
+**Installation**
+
+HIPPO requires ``rdkit>=2024.9.6``; AiZynthFinder declares ``rdkit<2024``. Install in this order so pip does not pull AiZynthFinder's RDKit:
+
+.. code-block:: bash
+
+    pip install aizynthfinder --no-deps
+    pip install syndirella[hippo]
+    conda install -c conda-forge chemicalite
+
+See the `HIPPO documentation <https://hippo-docs.winokan.com>`_ for full setup and version compatibility. To create a minimal example database (e.g. at ``~/CursorProjects/HIPPO/reference_db.sqlite``), run ``python scripts/create_hippo_example_db.py [OUTPUT_DIR]``.
+
+**Setup**
 
 Have a HIPPO database file available and initialize the Hippo search with the database path.
 
-**Usage:**
+**Usage**
 
 Specify Hippo as the database search tool:
 
@@ -99,6 +111,6 @@ Specify Hippo as the database search tool:
 
     syndirella run --input input.csv --output output_dir --db_search_tool hippo --reference_db /path/to/database
 
-**Default Behavior:**
+**Default Behavior**
 
 If no database search tool is specified, Syndirella will use the default tool (Arthor).
